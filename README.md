@@ -19,13 +19,16 @@ The layout of the directory is as follows:
 .
 `- src/
    `- editor/ 
+   `- include/
+      `- editor/
+      `- interface/
    `- interface/
-   `- Makefile
 `- LICENSE.md
 `- Makefile
 `- README.md
+`- test.txt
 ```
-The source directory contains two branches of code: editor and interface. The editor is responsible for handling all underlying functions of the program - managing text buffers, reading and upholding the configuration file, etc. On the other hand, the interface is responsible for interfacing with the user - getting key input, displaying the editor, etc.
+The source directory contains two branches of code: editor and interface. The editor is responsible for handling all underlying functions of the program - managing text buffers, reading and upholding the configuration file, etc. On the other hand, the interface is responsible for interfacing with the user - getting key input, displaying the editor, etc. The include directory contains the headers for the two branches. Finally, `test.txt` is a simple text file for testing the editor.
 
 ## Configuration
 The configuration file of the editor is located at `~/.config/assembled/config.cfg`. Themes are located in the `~/.config/assembled/themes/` directory.
@@ -36,7 +39,7 @@ For contributions to the main repository, please go about with the standard: for
 Ensure that the changes you have made are documented, and to follow the format of the pre-existing code.
 
 ```c
-#include <stddint.h>
+#include <stdint.h>
 
 #include "include/my_header.h"
 
