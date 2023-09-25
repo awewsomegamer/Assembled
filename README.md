@@ -41,7 +41,7 @@ Ensure that the changes you have made are documented, and to follow the format o
 ```c
 #include <stdint.h>
 
-#include "include/my_header.h"
+#include <my_header.h>
 
 #define MY_CONSTANT (5.234)            // Ensure comments, which are in
 #define MY_MACRO    (printf("Words");) // a group are located in one column 
