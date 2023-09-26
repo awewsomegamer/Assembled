@@ -1,5 +1,7 @@
 {
         "files.associations": {
-                "global.h": "c"
+                "global.h": "c",
+                "keyboard.h": "c",
+                "interface.h": "c"
         }
 }

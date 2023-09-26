@@ -19,13 +19,29 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef INTERFACE_H
+#define INTERFACE_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
+#include <global.h>
+
+#define MAX_SCREEN_COUNT 256
+
+struct render_context {
+
+};
+extern struct render_context current_render_context;
+
+struct screen {
+        void (*render)(struct render_context *);
+        void (*update)(struct render_context *);
+        char *name;
+};
+
+extern struct screen *active_screen;
+
+uint64_t get_screen_hash(char *name);
+int get_screen(char *name);
+int switch_to_screen(char *name);
+int register_screen(char *name, void (*render)(struct render_context *), void (*update)(struct render_context *));
 
 #endif

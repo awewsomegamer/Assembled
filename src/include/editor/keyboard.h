@@ -19,13 +19,11 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef KEYBOARD_H
+#define KEYBOARD_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
+#define MAX_KEY_ELEMENTS 16
+
+void key(char c);
 
 #endif

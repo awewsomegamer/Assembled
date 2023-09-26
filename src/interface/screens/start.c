@@ -19,13 +19,17 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#include <interface/screens/start.h>
+#include <interface/interface.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
+void render(struct render_context *context) {
+        mvprintw(0, 0, "START SCREEN");
+}
 
-#endif
+void update(struct render_context *context) {
+        
+}
+
+void register_start() {
+        register_screen("start", render, update);
+}

@@ -19,55 +19,38 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include <ncurses.h>
-#include <locale.h>
+#include <time.h>
 
 #include <global.h>
 #include <editor/keyboard.h>
-#include <interface/interface.h>
 
-#include <interface/screens/start.h>
+struct key_stack_element {
+        char key;
+        time_t time;
+};
+struct key_stack_element key_stack[MAX_KEY_ELEMENTS];
+int sp = 0;
 
-bool running = 1;
-int currently_active_screen = 0;
-
-void init_ncurses() {
-        setlocale(LC_ALL, "UTF-8");        
-        initscr();
-        cbreak();
-        noecho();
-        nonl();
-        intrflush(stdscr, FALSE);
-        keypad(stdscr, TRUE);
-        nodelay(stdscr, TRUE);
-}
-
-void editor() {
-        char c = getch();
-        
-        if (c > 0)
-                key(c);
-}
-
-void interface() {
-        if (active_screen != NULL)
-                active_screen->render(&current_render_context);
-        
-        refresh();
-}
-
-int main(int argc, char **argv) {
-        init_ncurses();
-
-        register_start();
-        switch_to_screen("start");
-
-        while (running) {
-                editor();
-                interface();
+// Collapse (interpet) current key stack, looking
+// for any valid combinations of keys.
+void collapse_stack() {
+        if (key_stack[sp - 1].key > 32) {
+                mvprintw(0, 0, "Info %d", sp);
+                sp = 0;
         }
+}
 
-        endwin();
+// Acknowledge a key, put it on the stack, ask
+// to collapse the stack.
+void key(char c) {
+        key_stack[sp].key = c;
+        key_stack[sp++].time = time(NULL);
+        collapse_stack();
+}
 
-        return 0;
+// Initialize the keyboard handler, import
+// key combbinations from the configuration
+// file into a data structure.
+void init_keyboard() {
+        
 }
