@@ -19,27 +19,16 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include <interface/interface.h>
-#include <util.h>
+#include <curses.h>
+#include <editor/functions.h>
 
-struct render_context current_render_context;
-struct screen screens[MAX_SCREEN_COUNT];
-struct screen *active_screen;
+void information();
 
-int switch_to_screen(char *name) {
-        int i = GET_SCR_IDX(name);
-        
-        active_screen = &screens[i];
+void (*functions[MAX_FUNCTION_COUNT])() = {
+        [5] = information,
+};
 
-        return i;
+void information() {
+        mvprintw(5, 5, "Hello function");
 }
 
-int register_screen(char *name, void (*render)(struct render_context *), void (*update)(struct render_context *)) {
-        int i = GET_SCR_IDX(name);
-
-        screens[i].render = render;
-        screens[i].update = update;
-        screens[i].name = name;
-
-        return i;
-}

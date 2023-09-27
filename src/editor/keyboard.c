@@ -19,10 +19,16 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include <string.h>
 #include <time.h>
 
 #include <global.h>
 #include <editor/keyboard.h>
+
+struct key_layer {
+        void (*function[128])(); // The index within the array is the ASCII code
+        struct key_layer *next;
+};
 
 struct key_stack_element {
         char key;
@@ -51,6 +57,16 @@ void key(char c) {
 // Initialize the keyboard handler, import
 // key combbinations from the configuration
 // file into a data structure.
-void init_keyboard() {
+void init_keyboard(char *line) {
+        // "keyseq func:0x10,2,'a','b','c'" 
+        // Series of ascii codes, hex, decimal, or ascii.
+
+        if (strncmp(line, "keyseq", 6) != 0)
+                return;
+
+        int i = 0;
+        for (; i < strlen(line) && ((*line + 7) != ':'); i++);
+        char *function_name = (char *)(malloc(i));
         
+        // Finish up interpreting and do a test.
 }

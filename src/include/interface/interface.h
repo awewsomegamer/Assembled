@@ -25,6 +25,7 @@
 #include <global.h>
 
 #define MAX_SCREEN_COUNT 256
+#define GET_SCR_IDX(name) (general_hash(name) % MAX_SCREEN_COUNT)
 
 struct render_context {
 
@@ -39,8 +40,6 @@ struct screen {
 
 extern struct screen *active_screen;
 
-uint64_t get_screen_hash(char *name);
-int get_screen(char *name);
 int switch_to_screen(char *name);
 int register_screen(char *name, void (*render)(struct render_context *), void (*update)(struct render_context *));
 

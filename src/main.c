@@ -25,8 +25,9 @@
 #include <global.h>
 #include <editor/keyboard.h>
 #include <interface/interface.h>
-
 #include <interface/screens/start.h>
+
+#include <editor/functions.h>
 
 bool running = 1;
 int currently_active_screen = 0;
@@ -61,6 +62,8 @@ int main(int argc, char **argv) {
 
         register_start();
         switch_to_screen("start");
+
+        
 
         while (running) {
                 editor();
