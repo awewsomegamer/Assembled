@@ -28,4 +28,9 @@
 #include <stddef.h>
 #include <string.h>
 
+#define TARGET_FPS (double)(1.0/60.0)
+
+extern int max_x;
+extern int max_y;
+
 #endif

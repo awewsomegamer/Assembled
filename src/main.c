@@ -19,6 +19,8 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include <bits/time.h>
+#include <curses.h>
 #include <ncurses.h>
 #include <locale.h>
 
@@ -28,9 +30,14 @@
 #include <interface/screens/start.h>
 
 #include <editor/functions.h>
+#include <time.h>
+#include <unistd.h>
 
 bool running = 1;
 int currently_active_screen = 0;
+
+int max_x = 0;
+int max_y = 0;
 
 void init_ncurses() {
         setlocale(LC_ALL, "UTF-8");        
@@ -41,6 +48,8 @@ void init_ncurses() {
         intrflush(stdscr, FALSE);
         keypad(stdscr, TRUE);
         nodelay(stdscr, TRUE);
+
+        getmaxyx(stdscr, max_y, max_x);
 }
 
 void editor() {
@@ -63,11 +72,35 @@ int main(int argc, char **argv) {
         register_start();
         switch_to_screen("start");
 
-        
+        struct timespec spec;
+        clock_gettime(CLOCK_REALTIME, &spec);
+
+        double now = 0;
+        double last = spec.tv_nsec / 1000000000.0;
+        double delta = 0;
+        double accumulator = 0;
 
         while (running) {
-                editor();
-                interface();
+                uint8_t render = 0;
+
+                clock_gettime(CLOCK_REALTIME, &spec);
+                now = spec.tv_nsec / 1000000000.0;
+                delta = now - last;
+                last = now;
+                accumulator += delta;
+
+                while (accumulator >= TARGET_FPS) {
+                        editor();
+
+                        accumulator -= TARGET_FPS;
+                        render = 1;
+                }
+
+                usleep(1);
+
+                if (render) {
+                        interface();
+                }
         }
 
         endwin();
