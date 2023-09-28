@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include <ncurses.h>
 
 #define TARGET_FPS (double)(1.0/60.0)
 

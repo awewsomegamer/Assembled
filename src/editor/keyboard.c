@@ -19,16 +19,20 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include <curses.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
 #include <global.h>
 #include <editor/keyboard.h>
+#include <editor/functions.h>
 
 struct key_layer {
         void (*function[128])(); // The index within the array is the ASCII code
         struct key_layer *next;
 };
+struct key_layer top_layer;
 
 struct key_stack_element {
         char key;
@@ -54,6 +58,45 @@ void key(char c) {
         collapse_stack();
 }
 
+void create_path(char *start, char *end, void (*function)(), struct key_layer *layer) {
+        int next_present = 0;
+
+        char *i;
+        for (i = start; i < end; i++)
+                if (*i == ',') {
+                        if (layer->next == NULL)
+                                layer->next = (struct key_layer *)malloc(sizeof(struct key_layer));
+
+                        create_path(i, end, function, layer->next);
+                        next_present = 1;
+                }
+
+        switch (*start) {
+        case '\'': {
+                // Char
+                layer->function[*(start + 1)] = function;
+
+                break;
+        }
+
+        case '0': {
+                if (*(start + 1) == 'x') {
+                        // Base 16
+                        layer->function[strtol(start, &i, 16)] = function;
+
+                        break;
+                }
+                
+                // Base 10
+                layer->function[strtol(start, &i, 10)] = function;
+                
+                break;
+        }
+        }
+
+
+}
+
 // Initialize the keyboard handler, import
 // key combbinations from the configuration
 // file into a data structure.
@@ -64,9 +107,19 @@ void init_keyboard(char *line) {
         if (strncmp(line, "keyseq", 6) != 0)
                 return;
 
+        // TODO: Fix this code, returns the whole string
+        //       except for the first 7 characters. It
+        //       should return up to the first ':'.
         int i = 0;
-        for (; i < strlen(line) && ((*line + 7) != ':'); i++);
+        for (; i < strlen(line) && ((*line + 7 + i) != ':'); i++);
         char *function_name = (char *)(malloc(i));
-        
+        strncpy(function_name, line + 7, i);
+
+        printw("%s %d %d", function_name, GET_FUNC_IDX(function_name), i);
+        refresh();
+
+        i++;
+        create_path((line + 7 + i), (line + strlen(line) - 1), functions[GET_FUNC_IDX(function_name)], &top_layer);
+
         // Finish up interpreting and do a test.
 }

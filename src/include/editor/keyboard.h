@@ -25,5 +25,6 @@
 #define MAX_KEY_ELEMENTS 16
 
 void key(char c);
+void init_keyboard(char *line);
 
 #endif

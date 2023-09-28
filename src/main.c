@@ -32,6 +32,7 @@
 #include <editor/functions.h>
 #include <time.h>
 #include <unistd.h>
+#include <math.h>
 
 bool running = 1;
 int currently_active_screen = 0;
@@ -60,6 +61,8 @@ void editor() {
 }
 
 void interface() {
+        erase();
+
         if (active_screen != NULL)
                 active_screen->render(&current_render_context);
         
@@ -71,6 +74,7 @@ int main(int argc, char **argv) {
 
         register_start();
         switch_to_screen("start");
+        init_keyboard("keyseq test:'A'");
 
         struct timespec spec;
         clock_gettime(CLOCK_REALTIME, &spec);
@@ -80,6 +84,10 @@ int main(int argc, char **argv) {
         double delta = 0;
         double accumulator = 0;
 
+        // int fps = 0;
+        // time(NULL);
+        // time_t economic_knock = time(NULL);
+
         while (running) {
                 uint8_t render = 0;
 
@@ -87,19 +95,29 @@ int main(int argc, char **argv) {
                 now = spec.tv_nsec / 1000000000.0;
                 delta = now - last;
                 last = now;
-                accumulator += delta;
+                accumulator += fabs(delta);
 
                 while (accumulator >= TARGET_FPS) {
                         editor();
+                        
+                        // fps++;
 
                         accumulator -= TARGET_FPS;
                         render = 1;
                 }
 
-                usleep(1);
+                usleep(1000);
+
+                // if (time(NULL) > economic_knock) {
+                //         economic_knock = time(NULL);
+                //         printw("%d", fps);
+                //         fps = 0;
+                // }
+
+                // refresh();
 
                 if (render) {
-                        interface();
+                        // interface();
                 }
         }
 

@@ -32,3 +32,6 @@ void information() {
         mvprintw(5, 5, "Hello function");
 }
 
+void layer_down() {
+
+}
