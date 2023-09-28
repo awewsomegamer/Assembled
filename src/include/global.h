@@ -31,6 +31,8 @@
 
 #define TARGET_FPS (double)(1.0/60.0)
 
+#define ASSEMBLED_COLOR_HIGHLIGHT 1 
+
 extern int max_x;
 extern int max_y;
 

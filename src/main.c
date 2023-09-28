@@ -40,6 +40,8 @@ int currently_active_screen = 0;
 int max_x = 0;
 int max_y = 0;
 
+time_t thing;
+
 void init_ncurses() {
         setlocale(LC_ALL, "UTF-8");        
         initscr();
@@ -50,6 +52,13 @@ void init_ncurses() {
         keypad(stdscr, TRUE);
         nodelay(stdscr, TRUE);
 
+        if (has_colors()) {
+                start_color();
+                use_default_colors();
+
+                init_pair(ASSEMBLED_COLOR_HIGHLIGHT, COLOR_BLACK, COLOR_WHITE);
+        }
+
         getmaxyx(stdscr, max_y, max_x);
 }
 
@@ -58,6 +67,9 @@ void editor() {
         
         if (c > 0)
                 key(c);
+
+        if (active_screen != NULL)
+                active_screen->update(&current_render_context);
 }
 
 void interface() {
@@ -74,7 +86,7 @@ int main(int argc, char **argv) {
 
         register_start();
         switch_to_screen("start");
-        init_keyboard("keyseq test:'A'");
+        // init_keyboard("keyseq test:'A'");
 
         struct timespec spec;
         clock_gettime(CLOCK_REALTIME, &spec);
@@ -84,9 +96,10 @@ int main(int argc, char **argv) {
         double delta = 0;
         double accumulator = 0;
 
+        // uint64_t last_s = spec.tv_sec;
         // int fps = 0;
-        // time(NULL);
-        // time_t economic_knock = time(NULL);
+
+        time(NULL);
 
         while (running) {
                 uint8_t render = 0;
@@ -99,8 +112,6 @@ int main(int argc, char **argv) {
 
                 while (accumulator >= TARGET_FPS) {
                         editor();
-                        
-                        // fps++;
 
                         accumulator -= TARGET_FPS;
                         render = 1;
@@ -108,8 +119,9 @@ int main(int argc, char **argv) {
 
                 usleep(1000);
 
-                // if (time(NULL) > economic_knock) {
-                //         economic_knock = time(NULL);
+                // if (spec.tv_sec > last_s) {
+                //         erase();
+                //         last_s = spec.tv_sec;
                 //         printw("%d", fps);
                 //         fps = 0;
                 // }
@@ -117,7 +129,8 @@ int main(int argc, char **argv) {
                 // refresh();
 
                 if (render) {
-                        // interface();
+                        // fps++;
+                        interface();
                 }
         }
 
