@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
 
         register_start();
         switch_to_screen("start");
-        // init_keyboard("keyseq test:'A'");
+        init_keyboard("keyseq test:'A'"); // Fix up multiple layers
 
         struct timespec spec;
         clock_gettime(CLOCK_REALTIME, &spec);
@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
 
                 if (render) {
                         // fps++;
-                        interface();
+                        // interface();
                 }
         }
 

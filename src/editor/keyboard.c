@@ -20,6 +20,7 @@
 */
 
 #include <curses.h>
+#include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -43,9 +44,24 @@ int sp = 0;
 
 // Collapse (interpet) current key stack, looking
 // for any valid combinations of keys.
+// TODO: Ensure the stack won't stick together
+//       and lock the user from enter more keys.
+//       Possible fix: make the stack bigger.
 void collapse_stack() {
-        if (key_stack[sp - 1].key > 32) {
-                mvprintw(0, 0, "Info %d", sp);
+        struct key_layer *layer = &top_layer;
+        for (int i = sp - 1; i >= 0; i--) {
+                void (*func_ptr)() = (void *)layer->function[key_stack[i].key];
+
+                if (func_ptr == NULL) {
+                        break;
+                }
+
+                if (func_ptr == layer_down) {
+                        layer = layer->next;
+                        continue;
+                }
+
+                (func_ptr)();
                 sp = 0;
         }
 }
@@ -107,11 +123,8 @@ void init_keyboard(char *line) {
         if (strncmp(line, "keyseq", 6) != 0)
                 return;
 
-        // TODO: Fix this code, returns the whole string
-        //       except for the first 7 characters. It
-        //       should return up to the first ':'.
         int i = 0;
-        for (; i < strlen(line) && ((*line + 7 + i) != ':'); i++);
+        for (; i < strlen(line) && ((*(line + 7 + i)) != ':'); i++) printw("%c ", (*(line + 7 + i)));
         char *function_name = (char *)(malloc(i));
         strncpy(function_name, line + 7, i);
 

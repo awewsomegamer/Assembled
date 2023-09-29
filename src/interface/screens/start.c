@@ -75,10 +75,10 @@ void render(struct render_context *context) {
         // Draw Logo
         for (int i = 0; i < 40; i++) {
                 for (int j = 0; j < 64; j++) {
-                        for (int x = 0; x < 8; x++) {
+                        for (int x = 7; x >= 0; x--) {
                                 uint8_t bit = (logo_bmp[(i * 8) + (j / 8)] >> x) & 1;//(logo_bmp[i * 64 + j] >> (j % 8)) & 1;
                                 
-                                if (bit == 0) {
+                                if (bit == 1) {
                                         attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 
                                         mvaddch(i, j, ' ');
