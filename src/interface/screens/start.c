@@ -25,6 +25,7 @@
 #include <interface/screens/start.h>
 #include <interface/interface.h>
 #include <ncurses.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -77,18 +78,24 @@ void render(struct render_context *context) {
         }
 
         // Draw Logo
-        for (int i = 0; i < 40; i++) {
-                for (int j = 0; j < 64; j++) {
-                        for (int x = 7; x >= 0; x--) {
-                                uint8_t bit = (logo_bmp[(i * 8) + (j / 8)] >> x) & 1;//(logo_bmp[i * 64 + j] >> (j % 8)) & 1;
-                                
-                                if (bit == 1) {
-                                        attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+        int x = 0;
+        int y = 39;
+        for (int i = 0; i < 320; i++) {
+                for (int x = 7; x >= 0; x--) {
+                        uint8_t bit = (logo_bmp[i] >> x) & 1;
 
-                                        mvaddch(i, j, ' ');
+                        if (bit) {
+                                attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                         
+                                addch(' ');
 
-                                        attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
-                                }
+                                attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                        }
+
+                        x++;
+                        if (x >= 64) {
+                                x = 0;
+                                y--;
                         }
                 }
         }
@@ -101,8 +108,6 @@ void render(struct render_context *context) {
         for (int i = 0; i < sizeof(menu_table_right)/sizeof(menu_table_right[0]); i++) { 
                 mvprintw((max_y / 2 + i), (max_x / 2) - strlen(menu_table_right[i]) + CHARS_FROM_CENTER, "%s", menu_table_right[i]);
         }
-
-        mvprintw(5, 5, "%lu", general_hash("start_screen"));
 }
 
 void update(struct render_context *context) {
@@ -119,7 +124,7 @@ void register_start() {
 }
 
 void configure_start_screen(char *line) {
-        if (strcmp(line, "background_off") == 0) {
+        if (strcmp(line, "background_off\n") == 0) {
                 background_enable = 0;
         }
 }

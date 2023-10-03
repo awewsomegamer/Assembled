@@ -50,7 +50,7 @@ int sp = 0;
 void collapse_stack() {
         struct key_layer *layer = &top_layer;
         for (int i = sp - 1; i >= 0; i--) {
-                void (*func_ptr)() = (void *)layer->function[key_stack[i].key];
+                void (*func_ptr)() = layer->function[key_stack[i].key];
 
                 if (func_ptr == NULL) {
                         break;
