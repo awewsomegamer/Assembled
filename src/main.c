@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "util.h"
 #include <bits/time.h>
 #include <curses.h>
 #include <ncurses.h>
@@ -26,10 +27,12 @@
 
 #include <global.h>
 #include <editor/keyboard.h>
+#include <editor/config.h>
 #include <interface/interface.h>
 #include <interface/screens/start.h>
 
 #include <editor/functions.h>
+#include <stdio.h>
 #include <time.h>
 #include <unistd.h>
 #include <math.h>
@@ -82,11 +85,11 @@ void interface() {
 }
 
 int main(int argc, char **argv) {
-        init_ncurses();
-
+        read_config();
         register_start();
         switch_to_screen("start");
-        init_keyboard("keyseq test:'A'"); // Fix up multiple layers
+
+        init_ncurses();
 
         struct timespec spec;
         clock_gettime(CLOCK_REALTIME, &spec);
@@ -95,9 +98,6 @@ int main(int argc, char **argv) {
         double last = spec.tv_nsec / 1000000000.0;
         double delta = 0;
         double accumulator = 0;
-
-        // uint64_t last_s = spec.tv_sec;
-        // int fps = 0;
 
         time(NULL);
 
@@ -119,18 +119,8 @@ int main(int argc, char **argv) {
 
                 usleep(1000);
 
-                // if (spec.tv_sec > last_s) {
-                //         erase();
-                //         last_s = spec.tv_sec;
-                //         printw("%d", fps);
-                //         fps = 0;
-                // }
-
-                // refresh();
-
                 if (render) {
-                        // fps++;
-                        // interface();
+                        interface();
                 }
         }
 

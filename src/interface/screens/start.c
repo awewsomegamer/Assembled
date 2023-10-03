@@ -20,6 +20,7 @@
 */
 
 #include "global.h"
+#include "util.h"
 #include <curses.h>
 #include <interface/screens/start.h>
 #include <interface/interface.h>
@@ -31,6 +32,7 @@
 
 static float t = 0.01;
 static uint8_t dir = 0;
+int background_enable = 1;
 
 static const char *menu_table_left[] = {
         "Hello",
@@ -60,15 +62,17 @@ static const uint8_t logo_bmp[] = {
 };
 
 void render(struct render_context *context) {
-        for (int i = 0; i < max_y; i++) {
-                for (int j = 0; j < max_x; j++) {
-                        int value = i * j * t * t;
-                        int x = (value + j * i) % max_x;
-                        int y = (value + i * j) % max_y;
-                        
-                        char c = (value <= 0xFF) ? ('0' + (x % 2)) : ' ';
-                        
-                        mvprintw(y, x, "%c", c);
+        if (background_enable) {
+                for (int i = 0; i < max_y; i++) {
+                        for (int j = 0; j < max_x; j++) {
+                                int value = i * j * t * t;
+                                int x = (value + j * i) % max_x;
+                                int y = (value + i * j) % max_y;
+                                
+                                char c = (value <= 0xFF) ? ('0' + (x % 2)) : ' ';
+                                
+                                mvprintw(y, x, "%c", c);
+                        }
                 }
         }
 
@@ -97,6 +101,8 @@ void render(struct render_context *context) {
         for (int i = 0; i < sizeof(menu_table_right)/sizeof(menu_table_right[0]); i++) { 
                 mvprintw((max_y / 2 + i), (max_x / 2) - strlen(menu_table_right[i]) + CHARS_FROM_CENTER, "%s", menu_table_right[i]);
         }
+
+        mvprintw(5, 5, "%lu", general_hash("start_screen"));
 }
 
 void update(struct render_context *context) {
@@ -110,4 +116,10 @@ void update(struct render_context *context) {
 
 void register_start() {
         register_screen("start", render, update);
+}
+
+void configure_start_screen(char *line) {
+        if (strcmp(line, "background_off") == 0) {
+                background_enable = 0;
+        }
 }

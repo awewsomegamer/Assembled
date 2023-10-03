@@ -133,6 +133,4 @@ void init_keyboard(char *line) {
 
         i++;
         create_path((line + 7 + i), (line + strlen(line) - 1), functions[GET_FUNC_IDX(function_name)], &top_layer);
-
-        // Finish up interpreting and do a test.
 }

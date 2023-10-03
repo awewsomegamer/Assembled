@@ -24,6 +24,9 @@
 
 #include <global.h>
 
+#define CFG_CMD_KEYBOARD_HASH  7572580242119542
+#define CFG_CMD_START_SCR_HASH 15790532866159747730
+
 int read_config();
 
 #endif

@@ -23,5 +23,6 @@
 #define START_H
 
 void register_start();
+void configure_start_screen(char *line);
 
 #endif
