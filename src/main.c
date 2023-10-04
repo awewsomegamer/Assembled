@@ -44,8 +44,6 @@ int currently_active_screen = 0;
 int max_x = 0;
 int max_y = 0;
 
-time_t thing;
-
 void init_ncurses() {
         setlocale(LC_ALL, "UTF-8");        
         initscr();

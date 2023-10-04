@@ -29,11 +29,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CHARS_FROM_CENTER 32
+#define CHARS_FROM_CENTER       32
+#define BMP_WIDTH               64
+#define BMP_HEIGHT              40
+#define SCREEN_MIN_WIDTH        (BMP_WIDTH  + 20)
+#define SCREEN_MIN_HEIGHT       (BMP_HEIGHT + 20)
+
+#define UPDATE_TIME_MAX         0.07900
+#define UPDATE_TIME_MIN         0.01000
+#define UPDATE_TIME_TICK        0.00005
 
 static float t = 0.01;
 static uint8_t dir = 0;
 int background_enable = 1;
+
+int cx = 0;
+int cy = 0;
 
 static const char *menu_table_left[] = {
         "Hello",
@@ -62,7 +73,7 @@ static const uint8_t logo_bmp[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 };
 
-void render(struct render_context *context) {
+static void render(struct render_context *context) {
         if (background_enable) {
                 for (int i = 0; i < max_y; i++) {
                         for (int j = 0; j < max_x; j++) {
@@ -81,12 +92,12 @@ void render(struct render_context *context) {
         // Draw Logo / Menu Bounding Bo
         int logo_y_offset = 0;
         int menu_y_offset = 0;
-        if (max_y >= 60 && max_x >= 84) {
+        if (max_y >= SCREEN_MIN_HEIGHT && max_x >= SCREEN_MIN_WIDTH) {
                 logo_y_offset = (max_y / 4 - CHARS_FROM_CENTER / 2);
                 menu_y_offset = CHARS_FROM_CENTER;
 
                 int x = 0;
-                int y = 39;
+                int y = BMP_HEIGHT - 1;
                 for (int i = 0; i < 320; i++) {
                         for (int b = 7; b >= 0; b--) {
                                 uint8_t bit = (logo_bmp[i] >> b) & 1;
@@ -124,25 +135,55 @@ void render(struct render_context *context) {
 
         // Draw Options Menu
         for (int i = 0; i < sizeof(menu_table_left)/sizeof(menu_table_left[0]); i++) {
-                mvprintw(logo_y_offset + 2 + menu_y_offset + i, (max_x / 2) - (strlen(menu_table_left[i]) / 2) - (CHARS_FROM_CENTER / 2), "%s", menu_table_left[i]);
+                mvprintw(logo_y_offset + 2 + menu_y_offset + i,
+                        (max_x / 2) - (strlen(menu_table_left[i]) / 2) - (CHARS_FROM_CENTER / 2),
+                        "%s", menu_table_left[i]);
         }
 
         for (int i = 0; i < sizeof(menu_table_right)/sizeof(menu_table_right[0]); i++) {
-                mvprintw(logo_y_offset + 2 + menu_y_offset + i, (max_x / 2) - (strlen(menu_table_right[i]) / 2) + (CHARS_FROM_CENTER / 2), "%s", menu_table_right[i]);
+                mvprintw(logo_y_offset + 2 + menu_y_offset + i,
+                        (max_x / 2) - (strlen(menu_table_right[i]) / 2) + (CHARS_FROM_CENTER / 2), 
+                        "%s", menu_table_right[i]);
         }
+
+        move(cy, cx);
 }
 
-void update(struct render_context *context) {
-        t += (dir ? -0.00005 : 0.00005);
+static void update(struct render_context *context) {
+        t += (dir ? -UPDATE_TIME_TICK : UPDATE_TIME_TICK);
 
-        if (t >= 0.079) // 0.078
+        if (t >= UPDATE_TIME_MAX)
                 dir = 1;
-        if (t <= 0.01)
+        if (t <= UPDATE_TIME_MIN)
                 dir = 0;
 }
 
+static void local(int code) {
+        switch(code) {
+        case LOCAL_ARROW_UP: {
+                cy--;
+                break;
+        }
+
+        case LOCAL_ARROW_DOWN: {
+                cy++;
+                break;
+        }
+
+        case LOCAL_ARROW_LEFT: {
+                cx--;
+                break;
+        }
+
+        case LOCAL_ARROW_RIGHT: {
+                cx++;
+                break;
+        }
+        }
+}
+
 void register_start() {
-        register_screen("start", render, update);
+        register_screen("start", render, update, local);
 }
 
 void configure_start_screen(char *line) {

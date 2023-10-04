@@ -19,19 +19,38 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "interface/interface.h"
 #include <curses.h>
 #include <editor/functions.h>
 
-void information();
-
-void (*functions[MAX_FUNCTION_COUNT])() = {
-        [5] = information,
-};
-
-void information() {
-        mvprintw(5, 5, "Hello function");
-}
+#define UP_IDX          10
+#define DOWN_IDX        29
+#define LEFT_IDX        16
+#define RIGHT_IDX       3
 
 void layer_down() {
 
 }
+
+void cursor_up() {
+        active_screen->local(LOCAL_ARROW_UP);
+}
+
+void cursor_down() {
+        active_screen->local(LOCAL_ARROW_DOWN);
+}
+
+void cursor_left() {
+        active_screen->local(LOCAL_ARROW_LEFT);
+}
+
+void cursor_right() {
+        active_screen->local(LOCAL_ARROW_RIGHT);
+}
+
+void (*functions[MAX_FUNCTION_COUNT])() = {
+        [UP_IDX] = cursor_up,
+        [DOWN_IDX] = cursor_down,
+        [LEFT_IDX] = cursor_left,
+        [RIGHT_IDX] = cursor_right,
+};

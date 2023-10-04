@@ -34,11 +34,12 @@ int switch_to_screen(char *name) {
         return i;
 }
 
-int register_screen(char *name, void (*render)(struct render_context *), void (*update)(struct render_context *)) {
+int register_screen(char *name, void (*render)(struct render_context *), void (*update)(struct render_context *), void (*local)(int)) {
         int i = GET_SCR_IDX(name);
 
         screens[i].render = render;
         screens[i].update = update;
+        screens[i].local = local;
         screens[i].name = name;
 
         return i;
