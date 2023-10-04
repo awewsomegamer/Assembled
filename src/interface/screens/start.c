@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CHARS_FROM_CENTER 20
+#define CHARS_FROM_CENTER 32
 
 static float t = 0.01;
 static uint8_t dir = 0;
@@ -71,42 +71,64 @@ void render(struct render_context *context) {
                                 int y = (value + i * j) % max_y;
                                 
                                 char c = (value <= 0xFF) ? ('0' + (x % 2)) : ' ';
-                                
+
                                 mvprintw(y, x, "%c", c);
+
                         }
                 }
         }
 
-        // Draw Logo
-        int x = 0;
-        int y = 39;
-        for (int i = 0; i < 320; i++) {
-                for (int x = 7; x >= 0; x--) {
-                        uint8_t bit = (logo_bmp[i] >> x) & 1;
+        // Draw Logo / Menu Bounding Bo
+        int logo_y_offset = 0;
+        int menu_y_offset = 0;
+        if (max_y >= 60 && max_x >= 84) {
+                logo_y_offset = (max_y / 4 - CHARS_FROM_CENTER / 2);
+                menu_y_offset = CHARS_FROM_CENTER;
 
-                        if (bit) {
-                                attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
-                         
-                                addch(' ');
+                int x = 0;
+                int y = 39;
+                for (int i = 0; i < 320; i++) {
+                        for (int b = 7; b >= 0; b--) {
+                                uint8_t bit = (logo_bmp[i] >> b) & 1;
 
-                                attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
-                        }
+                                if (bit) {
+                                        attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 
-                        x++;
-                        if (x >= 64) {
-                                x = 0;
-                                y--;
+                                        mvaddch(y + logo_y_offset, (max_x / 2 - CHARS_FROM_CENTER) + x, ' ');
+
+                                        attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+
+                                }
+
+                                x++;
+
+                                if (x >= 64) {
+                                        x = 0;
+                                        y--;
+                                }
                         }
                 }
+        } else {
+                logo_y_offset = max_y / 2 - 2;
+ 
+                attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+
+                for (int i = 0; i < CHARS_FROM_CENTER / 4; i++) {
+                        for (int j = 0; j < CHARS_FROM_CENTER * 2; j++) {
+                                mvaddch(i + logo_y_offset, j + (max_x / 2) - (CHARS_FROM_CENTER), ' ');
+                        }
+                }
+ 
+                attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
         }
 
         // Draw Options Menu
-        for (int i = 0; i < sizeof(menu_table_left)/sizeof(menu_table_left[0]); i++) { 
-                mvprintw((max_y / 2 + i), (max_x / 2) - strlen(menu_table_left[i]) - CHARS_FROM_CENTER, "%s", menu_table_left[i]);
+        for (int i = 0; i < sizeof(menu_table_left)/sizeof(menu_table_left[0]); i++) {
+                mvprintw(logo_y_offset + 2 + menu_y_offset + i, (max_x / 2) - (strlen(menu_table_left[i]) / 2) - (CHARS_FROM_CENTER / 2), "%s", menu_table_left[i]);
         }
 
-        for (int i = 0; i < sizeof(menu_table_right)/sizeof(menu_table_right[0]); i++) { 
-                mvprintw((max_y / 2 + i), (max_x / 2) - strlen(menu_table_right[i]) + CHARS_FROM_CENTER, "%s", menu_table_right[i]);
+        for (int i = 0; i < sizeof(menu_table_right)/sizeof(menu_table_right[0]); i++) {
+                mvprintw(logo_y_offset + 2 + menu_y_offset + i, (max_x / 2) - (strlen(menu_table_right[i]) / 2) + (CHARS_FROM_CENTER / 2), "%s", menu_table_right[i]);
         }
 }
 
@@ -124,7 +146,11 @@ void register_start() {
 }
 
 void configure_start_screen(char *line) {
-        if (strcmp(line, "background_off\n") == 0) {
+        if (strcmp(line, "background_disable\n") == 0) {
                 background_enable = 0;
+        }
+
+        if (strncmp(line, "logo_bmp", strlen("logo_bmp")) == 0) {
+                printf("New logo file specified\n");
         }
 }

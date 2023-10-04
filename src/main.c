@@ -19,17 +19,18 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "util.h"
 #include <bits/time.h>
 #include <curses.h>
 #include <ncurses.h>
 #include <locale.h>
+#include <signal.h>
 
 #include <global.h>
 #include <editor/keyboard.h>
 #include <editor/config.h>
 #include <interface/interface.h>
 #include <interface/screens/start.h>
+#include <util.h>
 
 #include <editor/functions.h>
 #include <stdio.h>
@@ -84,10 +85,16 @@ void interface() {
         refresh();
 }
 
+void terminate(int signal) {
+        running = 0;
+}
+
 int main(int argc, char **argv) {
         read_config();
         register_start();
         switch_to_screen("start");
+
+        signal(SIGINT,terminate);
 
         init_ncurses();
 

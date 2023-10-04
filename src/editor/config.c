@@ -42,6 +42,9 @@ int read_config() {
         char *line;
         size_t chars_read = 0;
         while (getline(&line, &chars_read, f) != -1) {
+                if (*line == '#')
+                        continue;
+
                 int tab_idx = 0;
                 for (; tab_idx < strlen(line) && (*(line + tab_idx) != '\t'); tab_idx++);
 

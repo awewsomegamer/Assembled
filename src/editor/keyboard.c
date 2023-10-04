@@ -21,6 +21,7 @@
 
 #include <curses.h>
 #include <ncurses.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -49,7 +50,7 @@ int sp = 0;
 //       Possible fix: make the stack bigger.
 void collapse_stack() {
         struct key_layer *layer = &top_layer;
-        for (int i = sp - 1; i >= 0; i--) {
+        for (int i = 0; i < sp; i++) {
                 void (*func_ptr)() = layer->function[key_stack[i].key];
 
                 if (func_ptr == NULL) {
@@ -74,18 +75,17 @@ void key(char c) {
         collapse_stack();
 }
 
-void create_path(char *start, char *end, void (*function)(), struct key_layer *layer) {
-        int next_present = 0;
-
+void create_path(char *start, char *end, void (*function)(), struct key_layer *layer) {    
         char *i;
-        for (i = start; i < end; i++)
+        for (i = start; i < end; i++) {
                 if (*i == ',') {
                         if (layer->next == NULL)
                                 layer->next = (struct key_layer *)malloc(sizeof(struct key_layer));
 
-                        create_path(i, end, function, layer->next);
-                        next_present = 1;
+                        create_path(i + 1, end, function, layer->next);
+                        function = layer_down;
                 }
+        }
 
         switch (*start) {
         case '\'': {
@@ -103,10 +103,15 @@ void create_path(char *start, char *end, void (*function)(), struct key_layer *l
                         break;
                 }
                 
-                // Base 10
-                layer->function[strtol(start, &i, 10)] = function;
+                // Base 8
+                layer->function[strtol(start, &i, 8)] = function;
                 
                 break;
+        }
+
+        default: {
+                // Base 10
+                layer->function[strtol(start, &i, 10)] = function;
         }
         }
 
@@ -127,9 +132,6 @@ void init_keyboard(char *line) {
         for (; i < strlen(line) && ((*(line + 7 + i)) != ':'); i++) printw("%c ", (*(line + 7 + i)));
         char *function_name = (char *)(malloc(i));
         strncpy(function_name, line + 7, i);
-
-        printw("%s %d %d", function_name, GET_FUNC_IDX(function_name), i);
-        refresh();
 
         i++;
         create_path((line + 7 + i), (line + strlen(line) - 1), functions[GET_FUNC_IDX(function_name)], &top_layer);
