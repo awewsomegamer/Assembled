@@ -39,12 +39,12 @@
 #define UPDATE_TIME_MIN         0.01000
 #define UPDATE_TIME_TICK        0.00005
 
-static float t = 0.01;
-static uint8_t dir = 0;
-int background_enable = 1;
+static float time = 0.01;
+static bool direction = 0;
+static bool background_enable = 1;
 
-int cx = 0;
-int cy = 0;
+static int cx = 0;
+static int cy = 0;
 
 static const char *menu_table_left[] = {
         "Hello",
@@ -59,7 +59,7 @@ static const char *menu_table_right[] = {
         "Menu system"
 };
 
-static const uint8_t logo_bmp[] = {
+static const uint8_t logo_bmp_fallback[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x7F, 0xFF, 0xFF, 0xFF,
         0xF0, 0x0F, 0xFF, 0xC0, 0x3F, 0xFF, 0xFF, 0xFF, 0xE0, 0x1F, 0xFF, 0xE0, 0x1F, 0xFF, 0xFF, 0xFF, 0xC0, 0x3F, 0xFF, 0xE0, 0x0F, 0xFF, 0xFF, 0xFF, 0x80, 0x7F, 0xFF, 0xF0, 0x07, 0xFF, 0xFF,
@@ -77,7 +77,7 @@ static void render(struct render_context *context) {
         if (background_enable) {
                 for (int i = 0; i < max_y; i++) {
                         for (int j = 0; j < max_x; j++) {
-                                int value = i * j * t * t;
+                                int value = i * j * time * time;
                                 int x = (value + j * i) % max_x;
                                 int y = (value + i * j) % max_y;
                                 
@@ -100,7 +100,7 @@ static void render(struct render_context *context) {
                 int y = BMP_HEIGHT - 1;
                 for (int i = 0; i < 320; i++) {
                         for (int b = 7; b >= 0; b--) {
-                                uint8_t bit = (logo_bmp[i] >> b) & 1;
+                                uint8_t bit = (logo_bmp_fallback[i] >> b) & 1;
 
                                 if (bit) {
                                         attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
@@ -113,7 +113,7 @@ static void render(struct render_context *context) {
 
                                 x++;
 
-                                if (x >= 64) {
+                                if (x >= BMP_WIDTH) {
                                         x = 0;
                                         y--;
                                 }
@@ -150,12 +150,12 @@ static void render(struct render_context *context) {
 }
 
 static void update(struct render_context *context) {
-        t += (dir ? -UPDATE_TIME_TICK : UPDATE_TIME_TICK);
+        time += (direction ? -UPDATE_TIME_TICK : UPDATE_TIME_TICK);
 
-        if (t >= UPDATE_TIME_MAX)
-                dir = 1;
-        if (t <= UPDATE_TIME_MIN)
-                dir = 0;
+        if (time >= UPDATE_TIME_MAX)
+                direction = 1;
+        if (time <= UPDATE_TIME_MIN)
+                direction = 0;
 }
 
 static void local(int code) {

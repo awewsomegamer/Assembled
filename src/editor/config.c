@@ -31,17 +31,17 @@
 int read_config() {
         struct passwd *pw = getpwuid(getuid());
         char *path = strcat(pw->pw_dir, "/.config/assembled/config.cfg");
+        
+        FILE *file = fopen(path, "r");
 
-        FILE *f = fopen(path, "r");
-
-        if (f == NULL) {
+        if (file == NULL) {
                 printf("Cannot open configuration file at %s\n", path);
                 return 1;
         }
 
         char *line;
         size_t chars_read = 0;
-        while (getline(&line, &chars_read, f) != -1) {
+        while (getline(&line, &chars_read, file) != -1) {
                 if (*line == '#')
                         continue;
 
@@ -68,7 +68,11 @@ int read_config() {
                         printf("Could not make use of line: %s\n", line);
                 }
                 }
+
+                free(command);
         }
+
+        fclose(file);
 
         return 0;
 }

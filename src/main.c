@@ -45,11 +45,13 @@ int max_x = 0;
 int max_y = 0;
 
 void init_ncurses() {
-        setlocale(LC_ALL, "UTF-8");        
+        setlocale(LC_ALL, "UTF-8");
+
         initscr();
         cbreak();
         noecho();
         nonl();
+        
         intrflush(stdscr, FALSE);
         keypad(stdscr, TRUE);
         nodelay(stdscr, TRUE);
@@ -65,9 +67,11 @@ void init_ncurses() {
 }
 
 void editor() {
-        char c = getch();
+        // W & D move  cursor successfully, any other key
+        // freezes everything.
+        int c = getch();
         
-        if (c > 0)
+        if (c > -1)
                 key(c);
 
         if (active_screen != NULL)
@@ -107,7 +111,7 @@ int main(int argc, char **argv) {
         time(NULL);
 
         while (running) {
-                uint8_t render = 0;
+                bool render = 0;
 
                 clock_gettime(CLOCK_REALTIME, &spec);
                 now = spec.tv_nsec / 1000000000.0;

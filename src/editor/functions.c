@@ -24,13 +24,11 @@
 #include <editor/functions.h>
 
 #define UP_IDX          10
-#define DOWN_IDX        29
-#define LEFT_IDX        16
+#define DOWN_IDX        2
+#define LEFT_IDX        21
 #define RIGHT_IDX       3
 
-void layer_down() {
-
-}
+void layer_down() { }
 
 void cursor_up() {
         active_screen->local(LOCAL_ARROW_UP);

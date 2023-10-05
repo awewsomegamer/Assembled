@@ -41,7 +41,7 @@ struct key_stack_element {
         time_t time;
 };
 struct key_stack_element key_stack[MAX_KEY_ELEMENTS];
-int sp = 0;
+int key_stack_ptr = 0;
 
 // Collapse (interpet) current key stack, looking
 // for any valid combinations of keys.
@@ -50,11 +50,13 @@ int sp = 0;
 //       Possible fix: make the stack bigger.
 void collapse_stack() {
         struct key_layer *layer = &top_layer;
-        for (int i = 0; i < sp; i++) {
+
+        for (int i = 0; i < key_stack_ptr; i++) {
                 void (*func_ptr)() = layer->function[key_stack[i].key];
 
                 if (func_ptr == NULL) {
-                        break;
+                        key_stack_ptr = 0;
+                        return;
                 }
 
                 if (func_ptr == layer_down) {
@@ -63,28 +65,33 @@ void collapse_stack() {
                 }
 
                 (func_ptr)();
-                sp = 0;
+                key_stack_ptr = 0;
         }
 }
 
 // Acknowledge a key, put it on the stack, ask
 // to collapse the stack.
 void key(char c) {
-        key_stack[sp].key = c;
-        key_stack[sp++].time = time(NULL);
+        if (key_stack_ptr >= MAX_KEY_ELEMENTS) {
+                key_stack_ptr = 0;
+        }
+
+        key_stack[key_stack_ptr].key = c;
+        key_stack[key_stack_ptr++].time = time(NULL);
         collapse_stack();
 }
 
 void create_path(char *start, char *end, void (*function)(), struct key_layer *layer) {    
-        char *i;
-        for (i = start; i < end; i++) {
-                if (*i == ',') {
-                        if (layer->next == NULL)
-                                layer->next = (struct key_layer *)malloc(sizeof(struct key_layer));
+        char *i = start;
+        for (; i < end; i++) {
+                if (*i != ',')
+                        continue;
 
-                        create_path(i + 1, end, function, layer->next);
-                        function = layer_down;
-                }
+                if (layer->next == NULL)
+                        layer->next = (struct key_layer *)malloc(sizeof(struct key_layer));
+
+                create_path(i + 1, end, function, layer->next);
+                function = layer_down;
         }
 
         switch (*start) {
@@ -115,7 +122,7 @@ void create_path(char *start, char *end, void (*function)(), struct key_layer *l
         }
         }
 
-
+        printf("%c: %p (%p)\n", *(start + 1), function, layer_down);
 }
 
 // Initialize the keyboard handler, import
@@ -135,4 +142,6 @@ void init_keyboard(char *line) {
 
         i++;
         create_path((line + 7 + i), (line + strlen(line) - 1), functions[GET_FUNC_IDX(function_name)], &top_layer);
+
+        free(function_name);
 }
