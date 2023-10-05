@@ -75,11 +75,11 @@ static const uint8_t logo_bmp_fallback[] = {
 
 static void render(struct render_context *context) {
         if (background_enable) {
-                for (int i = 0; i < max_y; i++) {
-                        for (int j = 0; j < max_x; j++) {
+                for (int i = 0; i < context->max_y; i++) {
+                        for (int j = 0; j < context->max_x; j++) {
                                 int value = i * j * time * time;
-                                int x = (value + j * i) % max_x;
-                                int y = (value + i * j) % max_y;
+                                int x = (value + j * i) % context->max_x;
+                                int y = (value + i * j) % context->max_y;
                                 
                                 char c = (value <= 0xFF) ? ('0' + (x % 2)) : ' ';
 
@@ -92,8 +92,8 @@ static void render(struct render_context *context) {
         // Draw Logo / Menu Bounding Bo
         int logo_y_offset = 0;
         int menu_y_offset = 0;
-        if (max_y >= SCREEN_MIN_HEIGHT && max_x >= SCREEN_MIN_WIDTH) {
-                logo_y_offset = (max_y / 4 - CHARS_FROM_CENTER / 2);
+        if (context->max_y >= SCREEN_MIN_HEIGHT && context->max_x >= SCREEN_MIN_WIDTH) {
+                logo_y_offset = (context->max_y / 4 - CHARS_FROM_CENTER / 2);
                 menu_y_offset = CHARS_FROM_CENTER;
 
                 int x = 0;
@@ -105,7 +105,7 @@ static void render(struct render_context *context) {
                                 if (bit) {
                                         attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 
-                                        mvaddch(y + logo_y_offset, (max_x / 2 - CHARS_FROM_CENTER) + x, ' ');
+                                        mvaddch(y + logo_y_offset, (context->max_x / 2 - CHARS_FROM_CENTER) + x, ' ');
 
                                         attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 
@@ -120,13 +120,13 @@ static void render(struct render_context *context) {
                         }
                 }
         } else {
-                logo_y_offset = max_y / 2 - 2;
+                logo_y_offset = context->max_y / 2 - 2;
  
                 attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 
                 for (int i = 0; i < CHARS_FROM_CENTER / 4; i++) {
                         for (int j = 0; j < CHARS_FROM_CENTER * 2; j++) {
-                                mvaddch(i + logo_y_offset, j + (max_x / 2) - (CHARS_FROM_CENTER), ' ');
+                                mvaddch(i + logo_y_offset, j + (context->max_x / 2) - (CHARS_FROM_CENTER), ' ');
                         }
                 }
  
@@ -136,13 +136,13 @@ static void render(struct render_context *context) {
         // Draw Options Menu
         for (int i = 0; i < sizeof(menu_table_left)/sizeof(menu_table_left[0]); i++) {
                 mvprintw(logo_y_offset + 2 + menu_y_offset + i,
-                        (max_x / 2) - (strlen(menu_table_left[i]) / 2) - (CHARS_FROM_CENTER / 2),
+                        (context->max_x / 2) - (strlen(menu_table_left[i]) / 2) - (CHARS_FROM_CENTER / 2),
                         "%s", menu_table_left[i]);
         }
 
         for (int i = 0; i < sizeof(menu_table_right)/sizeof(menu_table_right[0]); i++) {
                 mvprintw(logo_y_offset + 2 + menu_y_offset + i,
-                        (max_x / 2) - (strlen(menu_table_right[i]) / 2) + (CHARS_FROM_CENTER / 2), 
+                        (context->max_x / 2) - (strlen(menu_table_right[i]) / 2) + (CHARS_FROM_CENTER / 2), 
                         "%s", menu_table_right[i]);
         }
 

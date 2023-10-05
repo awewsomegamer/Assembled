@@ -41,9 +41,6 @@
 bool running = 1;
 int currently_active_screen = 0;
 
-int max_x = 0;
-int max_y = 0;
-
 void init_ncurses() {
         setlocale(LC_ALL, "UTF-8");
 
@@ -63,7 +60,7 @@ void init_ncurses() {
                 init_pair(ASSEMBLED_COLOR_HIGHLIGHT, COLOR_BLACK, COLOR_WHITE);
         }
 
-        getmaxyx(stdscr, max_y, max_x);
+        getmaxyx(stdscr, current_render_context.max_y, current_render_context.max_y);
 }
 
 void editor() {

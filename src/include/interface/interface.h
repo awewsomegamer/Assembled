@@ -33,7 +33,8 @@
 #define LOCAL_ARROW_RIGHT       3
 
 struct render_context {
-
+        int max_x;
+        int max_y;
 };
 extern struct render_context current_render_context;
 
