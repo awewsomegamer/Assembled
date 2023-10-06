@@ -32,6 +32,17 @@
 #define LOCAL_ARROW_LEFT        2
 #define LOCAL_ARROW_RIGHT       3
 
+struct bound {
+        int x;                  // Starting X
+        int y;                  // Starting Y
+        int w;                 // Width
+        int h;                 // Height
+};
+// Determine if given coordinate is inside given bounding box
+#define IN_BOUND(x, y, bound) \
+        (x >= bound.x && x <= bound.x + bound.w) && \
+        (y >= bound.y && y <= bound.y + bound.h)
+
 struct render_context {
         int max_x;
         int max_y;

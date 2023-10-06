@@ -77,7 +77,7 @@ static void render(struct render_context *context) {
         if (background_enable) {
                 for (int i = 0; i < context->max_y; i++) {
                         for (int j = 0; j < context->max_x; j++) {
-                                int value = i * j * time * time;
+                                int value = i * j * time * time - j;
                                 int x = (value + j * i) % context->max_x;
                                 int y = (value + i * j) % context->max_y;
                                 

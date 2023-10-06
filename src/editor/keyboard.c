@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include <ctype.h>
 #include <curses.h>
 #include <ncurses.h>
 #include <stdio.h>
@@ -83,12 +84,15 @@ void key(char c) {
 
 void create_path(char *start, char *end, void (*function)(), struct key_layer *layer) {    
         char *i = start;
+
         for (; i < end; i++) {
                 if (*i != ',')
                         continue;
 
-                if (layer->next == NULL)
+                if (layer->next == NULL) {
                         layer->next = (struct key_layer *)malloc(sizeof(struct key_layer));
+                        memset(layer->next, 0, sizeof(struct key_layer));
+                }
 
                 create_path(i + 1, end, function, layer->next);
                 function = layer_down;

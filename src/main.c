@@ -60,7 +60,17 @@ void init_ncurses() {
                 init_pair(ASSEMBLED_COLOR_HIGHLIGHT, COLOR_BLACK, COLOR_WHITE);
         }
 
-        getmaxyx(stdscr, current_render_context.max_y, current_render_context.max_y);
+        int x = 0, y = 0;
+        getmaxyx(stdscr, y, x);
+        
+        current_render_context.max_x = x;
+        current_render_context.max_y = y;
+
+        if (current_render_context.max_x == 0 || current_render_context.max_y == 0) {
+                endwin();
+                printf("Max X: %d, Max Y: %d are unsuitable for operation\n", current_render_context.max_x, current_render_context.max_y);
+                exit(1);
+        }
 }
 
 void editor() {
