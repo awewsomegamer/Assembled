@@ -40,6 +40,7 @@
 
 bool running = 1;
 int currently_active_screen = 0;
+FILE *debug_log_file = NULL;
 
 void init_ncurses() {
         setlocale(LC_ALL, "UTF-8");
@@ -99,6 +100,8 @@ void terminate(int signal) {
 }
 
 int main(int argc, char **argv) {
+        DEBUG_CODE( debug_log_file = fopen("debug.log", "w"); )
+
         read_config();
         register_start();
         switch_to_screen("start");
@@ -141,6 +144,10 @@ int main(int argc, char **argv) {
         }
 
         endwin();
+
+        DEBUG_MSG("Closed\n", 0);
+
+        DEBUG_CODE( fclose(debug_log_file); )
 
         return 0;
 }

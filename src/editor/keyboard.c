@@ -98,6 +98,8 @@ void create_path(char *start, char *end, void (*function)(), struct key_layer *l
                 function = layer_down;
         }
 
+        for (; (isblank(*start)) && (start < end); start++);
+
         switch (*start) {
         case '\'': {
                 // Char
@@ -125,8 +127,6 @@ void create_path(char *start, char *end, void (*function)(), struct key_layer *l
                 layer->function[strtol(start, &i, 10)] = function;
         }
         }
-
-        printf("%c: %p (%p)\n", *(start + 1), function, layer_down);
 }
 
 // Initialize the keyboard handler, import
@@ -140,12 +140,13 @@ void init_keyboard(char *line) {
                 return;
 
         int i = 0;
-        for (; i < strlen(line) && ((*(line + 7 + i)) != ':'); i++) printw("%c ", (*(line + 7 + i)));
+        line += 7;
+        for (; (i < strlen(line)) && ((*(line + i) != ':') || isblank(*(line + i))); i++);
         char *function_name = (char *)(malloc(i));
-        strncpy(function_name, line + 7, i);
+        strncpy(function_name, line, i);
 
         i++;
-        create_path((line + 7 + i), (line + strlen(line) - 1), functions[GET_FUNC_IDX(function_name)], &top_layer);
+        create_path((line + i), (line + strlen(line) - 1), functions[GET_FUNC_IDX(function_name)], &top_layer);
 
         free(function_name);
 }

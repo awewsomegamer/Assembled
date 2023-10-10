@@ -7,3 +7,6 @@ all:
 
 run: all
 	$(PRODUCT) test.txt
+
+debug: CFLAGS += -DDEBUG_MODE
+debug: all

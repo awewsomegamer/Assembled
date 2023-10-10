@@ -33,4 +33,16 @@
 
 #define ASSEMBLED_COLOR_HIGHLIGHT 1 
 
+#ifdef DEBUG_MODE
+#define DEBUG_CODE(code) { code }
+#else
+#define DEBUG_CODE(code) ;
+#endif
+
+#ifdef DEBUG_MODE
+#define DEBUG_MSG(form, ...) fprintf(debug_log_file, form, __VA_ARGS__) 
+#else
+#define DEBUG_MSG(form, ...) ;
+#endif
+
 #endif
