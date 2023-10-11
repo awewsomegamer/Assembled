@@ -43,6 +43,7 @@ int currently_active_screen = 0;
 FILE *debug_log_file = NULL;
 
 void init_ncurses() {
+        DEBUG_MSG("Initializing ncurses\n");
         setlocale(LC_ALL, "UTF-8");
 
         initscr();
@@ -55,10 +56,12 @@ void init_ncurses() {
         nodelay(stdscr, TRUE);
 
         if (has_colors()) {
+                DEBUG_MSG("Terminal has colors\n");
                 start_color();
                 use_default_colors();
 
                 init_pair(ASSEMBLED_COLOR_HIGHLIGHT, COLOR_BLACK, COLOR_WHITE);
+                DEBUG_MSG("Initialized Assembled colors\n");
         }
 
         int x = 0, y = 0;
@@ -72,6 +75,7 @@ void init_ncurses() {
                 printf("Max X: %d, Max Y: %d are unsuitable for operation\n", current_render_context.max_x, current_render_context.max_y);
                 exit(1);
         }
+        DEBUG_MSG("Initialized ncurses\n");
 }
 
 void editor() {
@@ -145,7 +149,7 @@ int main(int argc, char **argv) {
 
         endwin();
 
-        DEBUG_MSG("Closed\n", 0);
+        DEBUG_MSG("Successfuly exited\n");
 
         DEBUG_CODE( fclose(debug_log_file); )
 

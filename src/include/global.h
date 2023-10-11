@@ -33,16 +33,18 @@
 
 #define ASSEMBLED_COLOR_HIGHLIGHT 1 
 
-#ifdef DEBUG_MODE
-#define DEBUG_CODE(code) { code }
-#else
-#define DEBUG_CODE(code) ;
-#endif
+extern FILE *debug_log_file;
 
 #ifdef DEBUG_MODE
-#define DEBUG_MSG(form, ...) fprintf(debug_log_file, form, __VA_ARGS__) 
+#define DEBUG_CODE(code) { code }
+#define DEBUG_MSG(...)  { \
+                                int i = fprintf(debug_log_file, "[%s:%d]: ", __FILE_NAME__, __LINE__); \
+                                for (; i < 24; i++) fputc(' ', debug_log_file); \
+                                fprintf(debug_log_file, __VA_ARGS__); \
+                        }
 #else
-#define DEBUG_MSG(form, ...) ;
+#define DEBUG_CODE(code) ;
+#define DEBUG_MSG(...) ;
 #endif
 
 #endif

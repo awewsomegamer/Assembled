@@ -183,15 +183,19 @@ static void local(int code) {
 }
 
 void register_start() {
+        DEBUG_MSG("Registering start screen\n");
         register_screen("start", render, update, local);
 }
 
 void configure_start_screen(char *line) {
+        DEBUG_MSG("Received line \"%s\"\n", line);
+
         if (strcmp(line, "background_disable\n") == 0) {
                 background_enable = 0;
+                DEBUG_MSG("Disabled background\n");
         }
 
         if (strncmp(line, "logo_bmp", strlen("logo_bmp")) == 0) {
-                printf("New logo file specified\n");
+                DEBUG_MSG("Loaded in desired logo\n");
         }
 }

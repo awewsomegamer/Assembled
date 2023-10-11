@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "global.h"
 #include <interface/interface.h>
 #include <util.h>
 
@@ -31,6 +32,8 @@ int switch_to_screen(char *name) {
         
         active_screen = &screens[i];
 
+        DEBUG_MSG("Switched to screen %d (\"%s\")\n", i, name);
+
         return i;
 }
 
@@ -41,6 +44,8 @@ int register_screen(char *name, void (*render)(struct render_context *), void (*
         screens[i].update = update;
         screens[i].local = local;
         screens[i].name = name;
+
+        DEBUG_MSG("Registered screen \"%s\" at position %d (0x%X, 0x%X, 0x%X)\n", name, i, render, update, local);
 
         return i;
 }

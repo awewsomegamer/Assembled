@@ -20,6 +20,7 @@
 */
 
 #include "editor/keyboard.h"
+#include "global.h"
 #include "interface/screens/start.h"
 #include <util.h>
 #include <editor/config.h>
@@ -29,6 +30,8 @@
 #include <unistd.h>
 
 int read_config() {
+        DEBUG_MSG("Reading configuration file\n");
+
         struct passwd *pw = getpwuid(getuid());
         char *path = strcat(pw->pw_dir, "/.config/assembled/config.cfg");
         
@@ -39,17 +42,24 @@ int read_config() {
                 return 1;
         }
 
+        DEBUG_MSG("Successfully opened configuration file %s\n", path);
+
         char *line;
         size_t chars_read = 0;
         while (getline(&line, &chars_read, file) != -1) {
                 if (*line == '#')
                         continue;
 
+                if (*(line + strlen(line) - 1) == '\n')
+                        *(line + strlen(line) - 1) = 0;
+
                 int tab_idx = 0;
                 for (; tab_idx < strlen(line) && (*(line + tab_idx) != '\t'); tab_idx++);
 
                 char *command = (char *)malloc(tab_idx);
                 strncpy(command, line, tab_idx);
+
+                DEBUG_MSG("\"%s\": %d \"%s\" %lu\n", line, tab_idx, command, general_hash(command));
 
                 switch (general_hash(command)) {
                 case CFG_CMD_KEYBOARD_HASH: {
@@ -65,7 +75,7 @@ int read_config() {
                 }
 
                 default: {
-                        printf("Could not make use of line: %s\n", line);
+                        DEBUG_MSG("Line is extraneous!\n");
                 }
                 }
 
@@ -73,6 +83,8 @@ int read_config() {
         }
 
         fclose(file);
+
+        DEBUG_MSG("Successfully read configuration\n");
 
         return 0;
 }

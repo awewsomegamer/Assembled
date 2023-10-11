@@ -139,11 +139,16 @@ void init_keyboard(char *line) {
         if (strncmp(line, "keyseq", 6) != 0)
                 return;
 
+        DEBUG_MSG("Received \"%s\"\n", line);
+
         int i = 0;
         line += 7;
         for (; (i < strlen(line)) && ((*(line + i) != ':') || isblank(*(line + i))); i++);
-        char *function_name = (char *)(malloc(i));
+        char *function_name = (char *)(malloc(i + 1));
+        memset(function_name, 0, i + 1);
         strncpy(function_name, line, i);
+
+        DEBUG_MSG("\"%s\": %d \"%s\"\n", line, i, function_name);
 
         i++;
         create_path((line + i), (line + strlen(line) - 1), functions[GET_FUNC_IDX(function_name)], &top_layer);
