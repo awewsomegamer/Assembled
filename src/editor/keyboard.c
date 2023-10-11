@@ -34,6 +34,7 @@
 struct key_layer {
         void (*function[128])(); // The index within the array is the ASCII code
         struct key_layer *next;
+        DEBUG_CODE( int level; )
 };
 struct key_layer top_layer;
 
@@ -91,6 +92,7 @@ void create_path(char *start, char *end, void (*function)(), struct key_layer *l
 
                 if (layer->next == NULL) {
                         layer->next = (struct key_layer *)malloc(sizeof(struct key_layer));
+                        DEBUG_CODE( layer->next->level = layer->level + 1; )
                         memset(layer->next, 0, sizeof(struct key_layer));
                 }
 
@@ -100,10 +102,12 @@ void create_path(char *start, char *end, void (*function)(), struct key_layer *l
 
         for (; (isblank(*start)) && (start < end); start++);
 
+        DEBUG_CODE( int func_idx = 0; )
+
         switch (*start) {
         case '\'': {
                 // Char
-                layer->function[*(start + 1)] = function;
+                layer->function[DEBUG_CODE( func_idx = ) *(start + 1)] = function;
 
                 break;
         }
@@ -111,22 +115,24 @@ void create_path(char *start, char *end, void (*function)(), struct key_layer *l
         case '0': {
                 if (*(start + 1) == 'x') {
                         // Base 16
-                        layer->function[strtol(start, &i, 16)] = function;
+                        layer->function[DEBUG_CODE( func_idx = ) strtol(start, &i, 16)] = function;
 
                         break;
                 }
                 
                 // Base 8
-                layer->function[strtol(start, &i, 8)] = function;
+                layer->function[DEBUG_CODE( func_idx = ) strtol(start, &i, 8)] = function;
                 
                 break;
         }
 
         default: {
                 // Base 10
-                layer->function[strtol(start, &i, 10)] = function;
+                layer->function[DEBUG_CODE( func_idx = ) strtol(start, &i, 10)] = function;
         }
         }
+
+        DEBUG_MSG("Pointed function 0x%X to pointer 0x%X (LD: 0x%X) on layer %d\n", func_idx, function, layer_down, layer->level);
 }
 
 // Initialize the keyboard handler, import
@@ -149,6 +155,10 @@ void init_keyboard(char *line) {
         strncpy(function_name, line, i);
 
         DEBUG_MSG("\"%s\": %d \"%s\"\n", line, i, function_name);
+
+        DEBUG_CODE( top_layer.level = 0; )
+
+        DEBUG_MSG("%d\n", GET_FUNC_IDX(function_name));
 
         i++;
         create_path((line + i), (line + strlen(line) - 1), functions[GET_FUNC_IDX(function_name)], &top_layer);

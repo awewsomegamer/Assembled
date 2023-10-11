@@ -19,13 +19,14 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "global.h"
 #include "interface/interface.h"
 #include <curses.h>
 #include <editor/functions.h>
 
 #define UP_IDX          10
-#define DOWN_IDX        2
-#define LEFT_IDX        21
+#define DOWN_IDX        29
+#define LEFT_IDX        16
 #define RIGHT_IDX       3
 
 void layer_down() { }

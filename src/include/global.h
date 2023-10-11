@@ -36,15 +36,27 @@
 extern FILE *debug_log_file;
 
 #ifdef DEBUG_MODE
-#define DEBUG_CODE(code) { code }
+#define DEBUG_CODE(code) code
 #define DEBUG_MSG(...)  { \
                                 int i = fprintf(debug_log_file, "[%s:%d]: ", __FILE_NAME__, __LINE__); \
                                 for (; i < 24; i++) fputc(' ', debug_log_file); \
                                 fprintf(debug_log_file, __VA_ARGS__); \
                         }
 #else
-#define DEBUG_CODE(code) ;
-#define DEBUG_MSG(...) ;
+#define DEBUG_CODE(code)
+#define DEBUG_MSG(...)
 #endif
+
+ #define max(a, b) \
+        ({ __typeof__ (a) _a = (a); \
+        __typeof__ (b) _b = (b); \
+        _a > _b ? _a : _b; })
+
+
+ #define min(a, b) \
+        ({ __typeof__ (a) _a = (a); \
+        __typeof__ (b) _b = (b); \
+        _a < _b ? _a : _b; })
+
 
 #endif

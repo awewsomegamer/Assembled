@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #define CHARS_FROM_CENTER       32
 #define BMP_WIDTH               64
@@ -135,18 +136,28 @@ static void render(struct render_context *context) {
 
         // Draw Options Menu
         for (int i = 0; i < sizeof(menu_table_left)/sizeof(menu_table_left[0]); i++) {
+                if (min(cy, sizeof(menu_table_left)/sizeof(menu_table_left[0]) - 1)  == i && cx == 0)
+                        attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+
                 mvprintw(logo_y_offset + 2 + menu_y_offset + i,
                         (context->max_x / 2) - (strlen(menu_table_left[i]) / 2) - (CHARS_FROM_CENTER / 2),
                         "%s", menu_table_left[i]);
+
+                if (min(cy, sizeof(menu_table_left)/sizeof(menu_table_left[0]) - 1) == i && cx == 0)
+                        attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
         }
 
         for (int i = 0; i < sizeof(menu_table_right)/sizeof(menu_table_right[0]); i++) {
+                if (min(cy, sizeof(menu_table_right)/sizeof(menu_table_right[0]) - 1) == i && cx == 1)
+                        attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+
                 mvprintw(logo_y_offset + 2 + menu_y_offset + i,
                         (context->max_x / 2) - (strlen(menu_table_right[i]) / 2) + (CHARS_FROM_CENTER / 2), 
                         "%s", menu_table_right[i]);
-        }
 
-        move(cy, cx);
+                if (min(cy, sizeof(menu_table_right)/sizeof(menu_table_right[0]) - 1) == i && cx == 1)
+                        attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+        }
 }
 
 static void update(struct render_context *context) {
@@ -161,22 +172,28 @@ static void update(struct render_context *context) {
 static void local(int code) {
         switch(code) {
         case LOCAL_ARROW_UP: {
-                cy--;
+                if (cy > 0)
+                        cy--;
+
                 break;
         }
 
         case LOCAL_ARROW_DOWN: {
-                cy++;
+                if (cy < 10)
+                        cy++;
+
                 break;
         }
 
         case LOCAL_ARROW_LEFT: {
-                cx--;
+                cx = 0;
+                
                 break;
         }
 
         case LOCAL_ARROW_RIGHT: {
-                cx++;
+                cx = 1;
+
                 break;
         }
         }
