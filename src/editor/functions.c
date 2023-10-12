@@ -24,27 +24,32 @@
 #include <curses.h>
 #include <editor/functions.h>
 
-#define UP_IDX          10
-#define DOWN_IDX        29
-#define LEFT_IDX        16
-#define RIGHT_IDX       3
+#define UP_IDX          ((5863882U) % MAX_FUNCTION_COUNT)
+#define DOWN_IDX        ((6385159517U) % MAX_FUNCTION_COUNT)
+#define LEFT_IDX        ((6385435568U) % MAX_FUNCTION_COUNT)
+#define RIGHT_IDX       ((210726633827U) % MAX_FUNCTION_COUNT)
+#define ENTER_IDX       ((210711410595U) % MAX_FUNCTION_COUNT)
 
 void layer_down() { }
 
-void cursor_up() {
+static void cursor_up() {
         active_screen->local(LOCAL_ARROW_UP);
 }
 
-void cursor_down() {
+static void cursor_down() {
         active_screen->local(LOCAL_ARROW_DOWN);
 }
 
-void cursor_left() {
+static void cursor_left() {
         active_screen->local(LOCAL_ARROW_LEFT);
 }
 
-void cursor_right() {
+static void cursor_right() {
         active_screen->local(LOCAL_ARROW_RIGHT);
+}
+
+static void enter() {
+        active_screen->local(LOCAL_ENTER);
 }
 
 void (*functions[MAX_FUNCTION_COUNT])() = {
@@ -52,4 +57,5 @@ void (*functions[MAX_FUNCTION_COUNT])() = {
         [DOWN_IDX] = cursor_down,
         [LEFT_IDX] = cursor_left,
         [RIGHT_IDX] = cursor_right,
+        [ENTER_IDX] = enter,
 };

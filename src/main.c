@@ -49,7 +49,6 @@ void init_ncurses() {
         initscr();
         cbreak();
         noecho();
-        nonl();
         
         intrflush(stdscr, FALSE);
         keypad(stdscr, TRUE);

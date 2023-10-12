@@ -25,7 +25,7 @@
 #include <global.h>
 #include <util.h>
 
-#define MAX_FUNCTION_COUNT 32
+#define MAX_FUNCTION_COUNT 256
 #define GET_FUNC_IDX(name) (general_hash(name) % MAX_FUNCTION_COUNT)
 
 extern void (*functions[MAX_FUNCTION_COUNT])();

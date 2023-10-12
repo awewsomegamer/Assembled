@@ -147,18 +147,20 @@ void init_keyboard(char *line) {
 
         DEBUG_MSG("Received \"%s\"\n", line);
 
+
+        // Error: Whitespace is factored into the function name.
+        //        Function name should be completely free of white-
+        //        space.
         int i = 0;
         line += 7;
-        for (; (i < strlen(line)) && ((*(line + i) != ':') || isblank(*(line + i))); i++);
+        for (; (i < strlen(line)) && ((*(line + i) != ':') && !isblank(*(line + i))); i++);
         char *function_name = (char *)(malloc(i + 1));
         memset(function_name, 0, i + 1);
         strncpy(function_name, line, i);
 
-        DEBUG_MSG("\"%s\": %d \"%s\"\n", line, i, function_name);
+        DEBUG_MSG("\"%s\": %d \"%s\" (%lu)\n", line, i, function_name, general_hash(function_name));
 
         DEBUG_CODE( top_layer.level = 0; )
-
-        DEBUG_MSG("%d\n", GET_FUNC_IDX(function_name));
 
         i++;
         create_path((line + i), (line + strlen(line) - 1), functions[GET_FUNC_IDX(function_name)], &top_layer);
