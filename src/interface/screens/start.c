@@ -136,32 +136,36 @@ static void render(struct render_context *context) {
 
         // Draw Options Menu
         for (int i = 0; i < sizeof(menu_table_left)/sizeof(menu_table_left[0]); i++) {
-                if (min(cy, sizeof(menu_table_left)/sizeof(menu_table_left[0]) - 1)  == i && cx == 0)
+                if (cy == i && cx == 0)
                         attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 
                 mvprintw(logo_y_offset + 2 + menu_y_offset + i,
                         (context->max_x / 2) - (strlen(menu_table_left[i]) / 2) - (CHARS_FROM_CENTER / 2),
                         "%s", menu_table_left[i]);
 
-                if (min(cy, sizeof(menu_table_left)/sizeof(menu_table_left[0]) - 1) == i && cx == 0)
+                if (cy == i && cx == 0)
                         attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
         }
 
         for (int i = 0; i < sizeof(menu_table_right)/sizeof(menu_table_right[0]); i++) {
-                if (min(cy, sizeof(menu_table_right)/sizeof(menu_table_right[0]) - 1) == i && cx == 1)
+                if (cy == i && cx == 1)
                         attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 
                 mvprintw(logo_y_offset + 2 + menu_y_offset + i,
                         (context->max_x / 2) - (strlen(menu_table_right[i]) / 2) + (CHARS_FROM_CENTER / 2), 
                         "%s", menu_table_right[i]);
 
-                if (min(cy, sizeof(menu_table_right)/sizeof(menu_table_right[0]) - 1) == i && cx == 1)
+                if (cy == i && cx == 1)
                         attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
         }
 }
 
 static void update(struct render_context *context) {
         time += (direction ? -UPDATE_TIME_TICK : UPDATE_TIME_TICK);
+        
+        int max_y = cx ? sizeof(menu_table_right)/sizeof(menu_table_right[0]) : sizeof(menu_table_left)/sizeof(menu_table_left[0]);
+        if (cy >= max_y)
+                cy = max_y - 1;
 
         if (time >= UPDATE_TIME_MAX)
                 direction = 1;
@@ -170,6 +174,8 @@ static void update(struct render_context *context) {
 }
 
 static void local(int code) {
+        int max_y = cx ? sizeof(menu_table_right)/sizeof(menu_table_right[0]) : sizeof(menu_table_left)/sizeof(menu_table_left[0]);
+
         switch(code) {
         case LOCAL_ARROW_UP: {
                 if (cy > 0)
@@ -179,7 +185,7 @@ static void local(int code) {
         }
 
         case LOCAL_ARROW_DOWN: {
-                if (cy < 10)
+                if (cy < max_y - 1)
                         cy++;
 
                 break;
