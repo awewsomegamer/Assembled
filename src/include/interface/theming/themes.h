@@ -24,6 +24,14 @@
 
 #include <global.h>
 
+#define MAX_CUSTOM_COLORS  32
+#define CUSTOM_COLOR_START 16
+
+#define RED_MASK           16
+#define GREEN_MASK         8
+#define BLUE_MASK          0
+
+void register_custom_colors();
 void configure_theme(char *line);
 
 #endif

@@ -65,7 +65,8 @@ int read_config() {
                 int tab_idx = 0;
                 for (; tab_idx < strlen(line) && (*(line + tab_idx) != '\t'); tab_idx++);
 
-                char *command = (char *)malloc(tab_idx);
+                char *command = (char *)malloc(tab_idx + 1);
+                memset(command, 0, tab_idx + 1); 
                 strncpy(command, line, tab_idx);
 
                 DEBUG_MSG("\"%s\": %d \"%s\" %lu\n", line, tab_idx, command, general_hash(command));

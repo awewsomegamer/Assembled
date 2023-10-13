@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "interface/theming/themes.h"
 #include <bits/time.h>
 #include <curses.h>
 #include <ncurses.h>
@@ -58,8 +59,9 @@ void init_ncurses() {
                 DEBUG_MSG("Terminal has colors\n");
                 start_color();
                 use_default_colors();
+                register_custom_colors();
 
-                init_pair(ASSEMBLED_COLOR_HIGHLIGHT, COLOR_BLACK, COLOR_WHITE);
+                init_pair(ASSEMBLED_COLOR_HIGHLIGHT, COLOR_BLACK, 16);
                 DEBUG_MSG("Initialized Assembled colors\n");
         }
 

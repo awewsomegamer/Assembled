@@ -19,7 +19,8 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "global.h"
+#include <curses.h>
+#include <global.h>
 #include <interface/theming/themes.h>
 #include <pwd.h>
 #include <stdio.h>
@@ -27,7 +28,12 @@
 #include <string.h>
 #include <unistd.h>
 
-uint32_t custom_colors[32];
+struct assembled_color {
+        uint32_t color_value;
+        uint8_t information; // 0 0 0 0 0 0 0 P
+                             //               ` Color is non-null
+};
+static struct assembled_color custom_colors[32];
 
 static void read_lines(FILE *file) {
         char *line = NULL;
@@ -37,13 +43,26 @@ static void read_lines(FILE *file) {
                 for (; (end < (line + strlen(line))) && (*end != ':'); end++);
                 int idx = strtol(line, &end, 10);
                 
-                if (idx >= 32)
+                if (idx >= MAX_CUSTOM_COLORS || idx < 0)
                         continue;
 
                 uint32_t color = strtol(end + 1, NULL, 16);
 
-                custom_colors[idx] = color;
-                DEBUG_MSG("%d, %X\n", idx, color);
+                custom_colors[idx].color_value = color;
+                custom_colors[idx].information |= 1;
+        }
+}
+
+void register_custom_colors() {
+        for (int i = 0; i < MAX_CUSTOM_COLORS; i++) {
+                if ((custom_colors[i].information & 1) == 0)
+                        continue;
+
+                short red =   (short)(((float)((custom_colors[i].color_value >> RED_MASK  ) & 0xFF) / 256) * 1000);
+                short green = (short)(((float)((custom_colors[i].color_value >> GREEN_MASK) & 0xFF) / 256) * 1000);
+                short blue =  (short)(((float)((custom_colors[i].color_value >> BLUE_MASK ) & 0xFF) / 256) * 1000);
+
+                init_color(i + CUSTOM_COLOR_START, red, green, blue);
         }
 }
 
@@ -76,4 +95,8 @@ void configure_theme(char *line) {
 
         if (path != line)
                 free(path);
+
+        fclose(theme_file);
+
+        DEBUG_MSG("%X\n", custom_colors[0].color_value);
 }

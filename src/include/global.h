@@ -38,8 +38,8 @@ extern FILE *debug_log_file;
 #ifdef DEBUG_MODE
 #define DEBUG_CODE(code) code
 #define DEBUG_MSG(...)  { \
-                                int i = fprintf(debug_log_file, "[%s:%d]: ", __FILE_NAME__, __LINE__); \
-                                for (; i < 24; i++) fputc(' ', debug_log_file); \
+                                for (int __i__ = fprintf(debug_log_file, "[%s:%d]: ", __FILE_NAME__, __LINE__); __i__ < 24; __i__++) \
+                                   fputc(' ', debug_log_file); \
                                 fprintf(debug_log_file, __VA_ARGS__); \
                         }
 #else
