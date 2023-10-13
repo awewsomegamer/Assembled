@@ -138,7 +138,7 @@ void create_path(char *start, char *end, void (*function)(), struct key_layer *l
 // Initialize the keyboard handler, import
 // key combbinations from the configuration
 // file into a data structure.
-void init_keyboard(char *line) {
+void configure_keyboard(char *line) {
         // "keyseq func:0x10,2,'a','b','c'" 
         // Series of ascii codes, hex, decimal, or ascii.
 

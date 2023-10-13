@@ -19,13 +19,13 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "editor/keyboard.h"
-#include "global.h"
-#include "interface/screens/start.h"
+#include <editor/keyboard.h>
+#include <global.h>
+#include <interface/screens/start.h>
+#include <interface/theming/themes.h>
 #include <util.h>
 #include <editor/config.h>
 #include <pwd.h>
-#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -39,7 +39,10 @@ int read_config() {
         DEBUG_MSG("Reading configuration file\n");
 
         struct passwd *pw = getpwuid(getuid());
-        char *path = strcat(pw->pw_dir, "/.config/assembled/config.cfg");
+
+        char *path = (char *)malloc(strlen(pw->pw_dir) + strlen("/.config/assembled/config.cfg") + 1);
+        strcpy(path, pw->pw_dir);
+        strcat(path, "/.config/assembled/config.cfg");
         
         FILE *file = fopen(path, "r");
 
@@ -67,16 +70,24 @@ int read_config() {
 
                 DEBUG_MSG("\"%s\": %d \"%s\" %lu\n", line, tab_idx, command, general_hash(command));
 
+                line += tab_idx + 1;
+
                 switch (general_hash(command)) {
                 case CFG_CMD_KEYBOARD_HASH: {
-                        init_keyboard(line + tab_idx + 1);
+                        configure_keyboard(line);
 
                         break;
                 }
 
                 case CFG_CMD_START_SCR_HASH: {
-                        configure_start_screen(line + tab_idx + 1);
+                        configure_start_screen(line);
                         
+                        break;
+                }
+
+                case CFG_CMD_THEME_HASH: {
+                        configure_theme(line);
+
                         break;
                 }
 
@@ -89,6 +100,7 @@ int read_config() {
         }
 
         fclose(file);
+        free(path);
 
         DEBUG_MSG("Successfully read configuration\n");
 

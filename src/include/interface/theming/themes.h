@@ -19,15 +19,11 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef THEMES_H
+#define THEMES_H
 
 #include <global.h>
 
-#define CFG_CMD_KEYBOARD_HASH  7572580242119542U
-#define CFG_CMD_START_SCR_HASH 15790532866159747730U
-#define CFG_CMD_THEME_HASH     6954055934347U
-
-int read_config();
+void configure_theme(char *line);
 
 #endif
