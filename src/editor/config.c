@@ -29,6 +29,12 @@
 #include <string.h>
 #include <unistd.h>
 
+// TODO: Implement a system where when an error
+//       is recognized, the program doesn't instantly
+//       close. Rather the whole of configuration is
+//       read, and if the "ignore_errors" property
+//       is enabled, then we continue on the best
+//       we can.
 int read_config() {
         DEBUG_MSG("Reading configuration file\n");
 

@@ -69,7 +69,7 @@ static void (*menu_functions[2][10])() = {
         {}
 };
 
-static uint8_t logo_bmp_fallback[] = {
+static uint8_t logo_bmp_data[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x7F, 0xFF, 0xFF, 0xFF,
         0xF0, 0x0F, 0xFF, 0xC0, 0x3F, 0xFF, 0xFF, 0xFF, 0xE0, 0x1F, 0xFF, 0xE0, 0x1F, 0xFF, 0xFF, 0xFF, 0xC0, 0x3F, 0xFF, 0xE0, 0x0F, 0xFF, 0xFF, 0xFF, 0x80, 0x7F, 0xFF, 0xF0, 0x07, 0xFF, 0xFF,
@@ -110,7 +110,7 @@ static void render(struct render_context *context) {
                 int y = BMP_HEIGHT - 1;
                 for (int i = 0; i < 320; i++) {
                         for (int b = 7; b >= 0; b--) {
-                                uint8_t bit = (logo_bmp_fallback[i] >> b) & 1;
+                                uint8_t bit = (logo_bmp_data[i] >> b) & 1;
 
                                 if (bit) {
                                         attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
@@ -245,8 +245,40 @@ void configure_start_screen(char *line) {
                         printf("Could not open BMP file %s\n", line);
                         exit(1);
                 }
-
                 
+                uint16_t identifier = 0;
+                uint32_t data_offset = 0;
+                uint32_t width = 0;
+                uint32_t height = 0;
+                uint16_t bpp = 0;
 
+                fseek(bmp, 0x00, SEEK_SET);
+                fread(&identifier, 2, 1, bmp);
+
+                // "BM" in little endian
+                if (identifier != 0x4D42) {
+                        printf("%s is not a BMP\n", line);
+                        exit(1);
+                }
+
+                fseek(bmp, 0x0A, SEEK_SET);
+                fread(&data_offset, 4, 1, bmp);
+                
+                fseek(bmp, 0x12, SEEK_SET);
+                fread(&width, 4, 1, bmp);
+                
+                fseek(bmp, 0x16, SEEK_SET);
+                fread(&height, 4, 1, bmp);
+                
+                fseek(bmp, 0x1C, SEEK_SET);
+                fread(&bpp, 2, 1, bmp);
+                
+                if (width != 64 || height != 40 || bpp != 1) {
+                        printf("Image has incorrect dimensions (%dx%dx%d). Correct dimensions are 64x40x1", width, height, bpp);
+                        exit(1);
+                }
+
+                fseek(bmp, data_offset, SEEK_SET);
+                fread(logo_bmp_data, 1, 320, bmp);
         }
 }
