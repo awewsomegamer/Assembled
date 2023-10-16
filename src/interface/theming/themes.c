@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "editor/config.h"
 #include <curses.h>
 #include <global.h>
 #include <interface/theming/themes.h>
@@ -67,10 +68,18 @@ void register_custom_colors() {
 }
 
 void configure_theme(char *line) {
-        if (strncmp(line, "use", 3) != 0)
+        int idx = read_line_section(line, ':');
+        
+        if (idx == -1) {
+                printf("Error encountered in \"%s\"\n", line);
+                DEBUG_MSG("Error encountered in \"%s\"\n", line);
+                exit(1);
+        }
+
+        if (strncmp(line, "use", idx) != 0)
                 return;
 
-        line += 4;
+        line += idx + 1;
 
         char *path = line;
 

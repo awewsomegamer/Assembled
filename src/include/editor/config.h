@@ -29,5 +29,7 @@
 #define CFG_CMD_THEME_HASH     6954055934347U
 
 int read_config();
+int read_line_section(char *line, char c);
+int skip_whitespace(char *line);
 
 #endif
