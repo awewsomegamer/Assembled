@@ -48,8 +48,11 @@ int read_config() {
 
         // Create absolute path to user configuration file
         char *path = (char *)malloc(strlen(pw->pw_dir) + strlen("/.config/assembled/config.cfg") + 1);
+        DEBUG_MSG("%p\n", path);
         strcpy(path, pw->pw_dir);
+        DEBUG_MSG("%p\n", path);
         strcat(path, "/.config/assembled/config.cfg");
+        DEBUG_MSG("%p\n", path);
         
         FILE *file = fopen(path, "r");
 
@@ -125,8 +128,11 @@ int read_config() {
         }
 
         // Memory Manage
+        DEBUG_MSG("%p\n", path);
         fclose(file);
-        free(path);
+        // ERROR: Causes munmap_chunk(): invalid pointer withk keyseq longer than
+        //        16 characters.
+        // free(path);
 
         DEBUG_MSG("Successfully read configuration\n");
 
