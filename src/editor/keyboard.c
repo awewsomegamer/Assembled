@@ -100,7 +100,7 @@ void key(char c) {
 // Initialize the keyboard handler, import
 // key combbinations from the configuration
 // file into a data structure.
-struct token *configure_keyboard(struct token *token) {
+struct cfg_token *configure_keyboard(struct cfg_token *token) {
         EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected keyword")
         EXPECT_VALUE(CFG_LOOKUP_KEYSEQ, "Expected keyword keyseq")
 

@@ -67,7 +67,7 @@ void register_custom_colors() {
         }
 }
 
-struct token *configure_theme(struct token *token) {
+struct cfg_token *configure_theme(struct cfg_token *token) {
         EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected keyword")
 
         switch (token->value) {

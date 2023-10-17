@@ -28,6 +28,6 @@
 #define MAX_KEY_ELEMENTS 16
 
 void key(char c);
-struct token *configure_keyboard(struct token *token);
+struct cfg_token *configure_keyboard(struct cfg_token *token);
 
 #endif

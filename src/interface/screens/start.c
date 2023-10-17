@@ -228,7 +228,7 @@ void register_start() {
         register_screen("start", render, update, local);
 }
 
-struct token *configure_start_screen(struct token *token) {
+struct cfg_token *configure_start_screen(struct cfg_token *token) {
         switch (token->type) {
         case CFG_LOOKUP_BG_DISABLE: {
                 background_enable = 0;

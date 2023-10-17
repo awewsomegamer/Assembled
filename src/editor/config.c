@@ -31,12 +31,12 @@
 #include <string.h>
 #include <unistd.h>
 
-static struct token *head;
+static struct cfg_token *head;
 static int line = 1;
 static int column = 1;
 static char putback = 0;
 
-void interpret_token_stream(struct token *token) {
+void interpret_token_stream(struct cfg_token *token) {
         while (token->type != CFG_TOKEN_EOF) {
                 EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected command (i.e. keyboard, themes, or start_screen)");
                 int command = token->value;
@@ -62,13 +62,15 @@ void interpret_token_stream(struct token *token) {
                 case CFG_LOOKUP_THEMES: {
                         token = configure_theme(token);
                         NEXT_TOKEN
+
+                        break;
                 }
                 }
         }
 }
 
 int read_config() {
-        head = (struct token *)malloc(sizeof(struct token));
+        head = (struct cfg_token *)malloc(sizeof(struct cfg_token));
 
         // Get the name of the home directory
         struct passwd *pw = getpwuid(getuid());
@@ -88,22 +90,39 @@ int read_config() {
         }
 
         char c = 0;
-        struct token *current = head;
-        while ((c = (putback == 0) ? fgetc(file) : putback) != EOF) {
-                if (putback != 0)
-                        putback = 0;
+        bool comment = 0;
+        struct cfg_token *current = head;
+        while ((c = ((putback == 0) ? fgetc(file) : putback)) != EOF) {
+                putback = 0;
 
-                if (c == '\n' || c == '\r') {
+                switch (c) {
+                case '\r':
+                case '\n': {
                         line++;
                         column = 0;
+                        comment = 0;
+
                         continue;
                 }
 
-                struct token *next = (struct token *)malloc(sizeof(struct token));
-                memset(next, 0, sizeof(struct token));
+                case '#': {
+                        comment = 1;
+
+                        continue;
+                }
+
+                case ' ': {
+                        continue;
+                }
+                }
+
+                if (comment)
+                        continue;
+
+                struct cfg_token *next = (struct cfg_token *)malloc(sizeof(struct cfg_token));
+                memset(next, 0, sizeof(struct cfg_token));
 
                 current->next = next;
-
                 current->line = line;
                 current->column = column;
 
@@ -133,7 +152,7 @@ int read_config() {
                         current->type = CFG_TOKEN_INT;
                         current->value = fgetc(file);
                         fgetc(file);
-                        column += 3;
+                        column += 2;
 
                         break;
                 }
@@ -206,13 +225,15 @@ int read_config() {
                 current = next;
         }
 
-        current = head;
         DEBUG_MSG("Token list:\n");
-        while (current != NULL) {
-                DEBUG_MSG("%d { %d, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
+        DEBUG_CODE(
+                current = head;
+                while (current != NULL) {
+                        DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
 
-                current = current->next;
-        }
+                        current = current->next;
+                }
+        )
         DEBUG_MSG("List end\n");
 
         free(path);

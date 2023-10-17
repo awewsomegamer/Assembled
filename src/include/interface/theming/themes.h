@@ -33,6 +33,6 @@
 #define BLUE_MASK          0
 
 void register_custom_colors();
-struct token *configure_theme(struct token *token);
+struct cfg_token *configure_theme(struct cfg_token *token);
 
 #endif

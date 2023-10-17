@@ -66,11 +66,11 @@ static const char *str_lookup[] = {
 	[CFG_LOOKUP_LOGO_BMP]    = "logo_bmp",
 };
 
-struct token {
+struct cfg_token {
         int type;
         int value;
         char *str;
-        struct token *next;
+        struct cfg_token *next;
         int line;
         int column;
 };
