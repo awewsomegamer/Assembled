@@ -31,122 +31,194 @@
 #include <string.h>
 #include <unistd.h>
 
-// TODO: Implement a system where when an error
-//       is recognized, the program doesn't instantly
-//       close. Rather the whole of configuration is
-//       read, and if the "ignore_errors" property
-//       is enabled, then we continue on the best
-//       we can.
-// Return Value - Number of extraneous lines
-int read_config() {
-        int extraneous = 0;
+static struct token *head;
+static int line = 1;
+static int column = 1;
+static char putback = 0;
 
-        DEBUG_MSG("Reading configuration file\n");
+void interpret_token_stream(struct token *token) {
+        while (token->type != CFG_TOKEN_EOF) {
+                EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected command (i.e. keyboard, themes, or start_screen)");
+                int command = token->value;
+
+                NEXT_TOKEN
+                EXPECT_TOKEN(CFG_TOKEN_TAB, "Expected tab")
+                NEXT_TOKEN
+
+                switch (command) {
+                case CFG_LOOKUP_KEYBOARD: {
+                        token = configure_keyboard(token);
+
+                        break;
+                }
+
+                case CFG_LOOKUP_START_SCR: {
+                        token = configure_start_screen(token);
+                        NEXT_TOKEN
+
+                        break;
+                }
+
+                case CFG_LOOKUP_THEMES: {
+                        token = configure_theme(token);
+                        NEXT_TOKEN
+                }
+                }
+        }
+}
+
+int read_config() {
+        head = (struct token *)malloc(sizeof(struct token));
 
         // Get the name of the home directory
         struct passwd *pw = getpwuid(getuid());
 
         // Create absolute path to user configuration file
         char *path = (char *)malloc(strlen(pw->pw_dir) + strlen("/.config/assembled/config.cfg") + 1);
-        DEBUG_MSG("%p\n", path);
         strcpy(path, pw->pw_dir);
-        DEBUG_MSG("%p\n", path);
-        strcat(path, "/.config/assembled/config.cfg");
-        DEBUG_MSG("%p\n", path);
+        strcpy(path + strlen(pw->pw_dir), "/.config/assembled/config.cfg");
         
         FILE *file = fopen(path, "r");
 
         if (file == NULL) {
-                printf("Cannot open configuration file at %s\n", path);
-                return 1;
+                printf("Could not open file %s\n", path);
+                DEBUG_MSG("Could not open file %s\n", path);
+
+                exit(1);
         }
 
-        DEBUG_MSG("Successfully opened configuration file %s\n", path);
+        char c = 0;
+        struct token *current = head;
+        while ((c = (putback == 0) ? fgetc(file) : putback) != EOF) {
+                if (putback != 0)
+                        putback = 0;
 
-        // Read opened configuration file
-        char *line;
-        size_t chars_read = 0;
-        while (getline(&line, &chars_read, file) != -1) {
-                // Line starts with #, comment, continue to next line
-                if (*line == '#')
+                if (c == '\n' || c == '\r') {
+                        line++;
+                        column = 0;
                         continue;
-
-                // Remove extraneous characters at the end of the line
-                for (int i = strlen(line) - 1; i >= 0; i--) {
-                        if (*(line + i) < 32)
-                                *(line + i) = 0;
-                        else
-                                break;
                 }
 
-                // Find the index of the tab separating coommand and argument
-                int tab_idx = 0;
-                for (; tab_idx < strlen(line) && (*(line + tab_idx) != '\t'); tab_idx++);
+                struct token *next = (struct token *)malloc(sizeof(struct token));
+                memset(next, 0, sizeof(struct token));
 
-                // Parse command
-                char *command = (char *)malloc(tab_idx + 1);
-                memset(command, 0, tab_idx + 1); 
-                strncpy(command, line, tab_idx);
+                current->next = next;
 
-                DEBUG_MSG("\"%s\": %d \"%s\" %lu\n", line, tab_idx, command, general_hash(command));
+                current->line = line;
+                current->column = column;
 
-                // Advance line pointer to
-                line += tab_idx + 1;
+                switch (c) {
+                case '\t': {
+                        current->type = CFG_TOKEN_TAB;
+                        column++;
 
-                // Hash the command, compare it against existing hashes:
-                // Match - Call the appropriate configuration function with the line.
-                // No matches - Increment return value
-                switch (general_hash(command)) {
-                case CFG_CMD_KEYBOARD_HASH: {
-                        configure_keyboard(line);
+                        break;
+                }
+                
+                case ':': {
+                        current->type = CFG_TOKEN_COL;
+                        column++;
 
                         break;
                 }
 
-                case CFG_CMD_START_SCR_HASH: {
-                        configure_start_screen(line);
-                        
+                case ',': {
+                        current->type = CFG_TOKEN_COM;
+                        column++;
+
                         break;
                 }
 
-                case CFG_CMD_THEME_HASH: {
-                        configure_theme(line);
+                case '\'': {
+                        current->type = CFG_TOKEN_INT;
+                        current->value = fgetc(file);
+                        fgetc(file);
+                        column += 3;
 
                         break;
                 }
 
                 default: {
-                        DEBUG_MSG("Line is extraneous!\n");
-                        extraneous++;
+                        // Read string
+                        int size = 1;
+                        char *str = (char *)malloc(size);
+
+                        do {
+                                column++;
+
+                                if (isblank(c))
+                                        continue;
+
+                                *(str + (size - 1)) = c;
+                                size++;
+                                str = (char *)realloc(str, size * sizeof(char));
+                        } while (((c = fgetc(file)) != EOF) && (isalnum(c) || c == '.' || c == '/' || c == '_'));
                         
+                        putback = c;
+
+                        *(str + size - 1) = 0;
+
+                        // Number
+                        if (isdigit(*str)) {
+                                current->type = CFG_TOKEN_INT;
+
+                                if (*str == '0' && tolower(*(str + 1)) == 'x') {
+                                        // Base 16
+                                        current->value = strtol(str, NULL, 16);
+                                } else if (*str == '0') {
+                                        // Base 8
+                                        current->value = strtol(str, NULL, 8);
+                                } else {
+                                        // Base 10
+                                        current->value = strtol(str, NULL, 10);
+                                }
+
+                                // String is no longer needed
+                                // Memory Manage
+                                free(str);
+
+                                break;
+                        }
+
+                        // String
+                        current->type = CFG_TOKEN_STR;
+                        current->str = str;
+
+                        // Keyword
+                        for (int i = 0; i < sizeof(str_lookup)/sizeof(str_lookup[0]); i++) {
+                                if (strcmp(str_lookup[i], str) == 0) {
+                                        current->type = CFG_TOKEN_KEY;
+                                        current->value = i;
+                                        current->str = NULL;
+
+                                        // String is no longer needed
+                                        // Memory Manage
+                                        free(str);
+
+                                        break;
+                                }
+                        }
+
                         break;
                 }
                 }
 
-                // Memory Manage
-                free(command);
+                current = next;
         }
 
-        // Memory Manage
-        DEBUG_MSG("%p\n", path);
+        current = head;
+        DEBUG_MSG("Token list:\n");
+        while (current != NULL) {
+                DEBUG_MSG("%d { %d, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
+
+                current = current->next;
+        }
+        DEBUG_MSG("List end\n");
+
+        free(path);
         fclose(file);
-        // ERROR: Causes munmap_chunk(): invalid pointer withk keyseq longer than
-        //        16 characters.
-        // free(path);
 
-        DEBUG_MSG("Successfully read configuration\n");
+        interpret_token_stream(head);
 
-        return extraneous;
-}
-
-// Return Value - Index at which the line ends
-int read_line_section(char *line, char c) {
-        int len = strlen(line);
-        int idx = 0;
-
-        for (; (idx < len) && ((*(line + idx) != c)); idx++)
-                if (isblank(*(line + idx)))
-                        return -1;
-
-        return idx;
+        return 0;
 }

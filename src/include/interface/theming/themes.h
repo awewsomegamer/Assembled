@@ -23,6 +23,7 @@
 #define THEMES_H
 
 #include <global.h>
+#include <editor/config.h>
 
 #define MAX_CUSTOM_COLORS  32
 #define CUSTOM_COLOR_START 16
@@ -32,6 +33,6 @@
 #define BLUE_MASK          0
 
 void register_custom_colors();
-void configure_theme(char *line);
+struct token *configure_theme(struct token *token);
 
 #endif

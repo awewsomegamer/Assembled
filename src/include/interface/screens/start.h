@@ -22,7 +22,9 @@
 #ifndef START_H
 #define START_H
 
+#include <editor/config.h>
+
 void register_start();
-void configure_start_screen(char *line);
+struct token *configure_start_screen(struct token *token);
 
 #endif

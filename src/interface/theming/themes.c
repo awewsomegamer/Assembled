@@ -19,7 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "editor/config.h"
+#include <editor/config.h>
 #include <curses.h>
 #include <global.h>
 #include <interface/theming/themes.h>
@@ -67,45 +67,42 @@ void register_custom_colors() {
         }
 }
 
-void configure_theme(char *line) {
-        int idx = read_line_section(line, ':');
-        
-        if (idx == -1) {
-                printf("Error encountered in \"%s\"\n", line);
-                DEBUG_MSG("Error encountered in \"%s\"\n", line);
-                exit(1);
-        }
+struct token *configure_theme(struct token *token) {
+        EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected keyword")
 
-        if (strncmp(line, "use", idx) != 0)
-                return;
-
-        line += idx + 1;
-
-        char *path = line;
-
-        // Not absolute path, assume user is relative to ~/.config/assembled/
-        if (*path != '/') {
-                struct passwd *pw = getpwuid(getuid());
+        switch (token->value) {
+        case CFG_LOOKUP_USE: {
+                NEXT_TOKEN
+                EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
+                NEXT_TOKEN
+                EXPECT_TOKEN(CFG_TOKEN_STR, "Expected string")
                 
-                path = (char *)malloc(strlen(pw->pw_dir) + strlen("/.config/assembled/") + strlen(line) + 1);
-                strcpy(path, pw->pw_dir);
-                strcat(path, "/.config/assembled/");
-                strcat(path, line);
+                char *path = token->str;
+
+                // Not absolute path, assume user is relative to ~/.config/assembled/
+                if (*path != '/') {
+                        struct passwd *pw = getpwuid(getuid());
+                        
+                        path = (char *)malloc(strlen(pw->pw_dir) + strlen("/.config/assembled/") + strlen(token->str) + 1);
+                        strcpy(path, pw->pw_dir);
+                        strcat(path, "/.config/assembled/");
+                        strcat(path, token->str);
+                }
+
+                FILE *theme_file = fopen(path, "r");
+
+                if (theme_file == NULL) {
+                        printf("Failed to open file %s\n", path);
+                        exit(1);
+                }
+
+                read_lines(theme_file);
+
+                fclose(theme_file);
+
+                break;
+        }
         }
 
-        FILE *theme_file = fopen(path, "r");
-
-        if (theme_file == NULL) {
-                printf("Failed to open file %s\n", path);
-                exit(1);
-        }
-
-        read_lines(theme_file);
-
-        if (path != line)
-                free(path);
-
-        fclose(theme_file);
-
-        DEBUG_MSG("%X\n", custom_colors[0].color_value);
+        return token;
 }

@@ -22,9 +22,12 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
+#include <global.h>
+#include <editor/config.h>
+
 #define MAX_KEY_ELEMENTS 16
 
 void key(char c);
-void configure_keyboard(char *line);
+struct token *configure_keyboard(struct token *token);
 
 #endif

@@ -97,119 +97,50 @@ void key(char c) {
         collapse_stack();
 }
 
-// ERROR: Thrown into an infinite loop, when 15 or more characters are involved in a path
-void create_path(char *start, char *end, void (*function)(), struct key_layer *layer) {
-        char *i = start;
-
-        // Step through the current string to the end
-        for (; i < end; i++) {
-                // While we do not ecnounter a ',', we continue to the next char
-                if (*i != ',')
-                        continue;
-
-                // We have encountered a ','
-                // Create a new layer if one doesn't already exist
-                if (layer->next == NULL) {
-                        layer->next = (struct key_layer *)malloc(sizeof(struct key_layer));
-                        key_layer_count++;
-
-                        DEBUG_CODE( layer->next->level = layer->level + 1; )
-                        memset(layer->next, 0, sizeof(struct key_layer));
-                }
-                
-                // Recurse down
-                create_path(i + 1, end, function, layer->next);
-
-                // Once we get back here, our function is no longer going
-                // to be the one originally set, rather it is going to
-                // be layer down
-                function = layer_down;
-        }
-
-        // Have now processed every character after us
-
-        // Skip over any whitespace
-        for (; (isblank(*start)) && (start < end); start++)
-                ;
-
-        DEBUG_CODE( int func_idx = 0; )
-
-        // Interpret ASCII code
-        switch (*start) {
-        case '\'': {
-                // Char
-                layer->function[DEBUG_CODE( func_idx = ) *(start + 1)] = function;
-
-                break;
-        }
-
-        case '0': {
-                if (*(start + 1) == 'x') {
-                        // Base 16
-                        layer->function[DEBUG_CODE( func_idx = ) strtol(start, &i, 16)] = function;
-
-                        break;
-                }
-                
-                // Base 8
-                layer->function[DEBUG_CODE( func_idx = ) strtol(start, &i, 8)] = function;
-                
-                break;
-        }
-
-        default: {
-                // Base 10
-                layer->function[DEBUG_CODE( func_idx = ) strtol(start, &i, 10)] = function;
-        }
-        }
-
-        DEBUG_MSG("Pointed function 0x%X to pointer 0x%X (LD: 0x%X) on layer %d\n", func_idx, function, layer_down, layer->level);
-}
-
 // Initialize the keyboard handler, import
 // key combbinations from the configuration
 // file into a data structure.
-void configure_keyboard(char *line) {
-        // "keyseq func:0x10,2,'a','b','c'" 
-        // Series of ASCII codes, hex, decimal, or ascii.
+struct token *configure_keyboard(struct token *token) {
+        EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected keyword")
+        EXPECT_VALUE(CFG_LOOKUP_KEYSEQ, "Expected keyword keyseq")
 
-        // Currently, only keyseqs are supported.
-        if (strncmp(line, "keyseq", 6) != 0)
-                return;
+        NEXT_TOKEN
+        EXPECT_TOKEN(CFG_TOKEN_STR, "Expected string")
 
-        DEBUG_MSG("Received \"%s\"\n", line);
+        DEBUG_MSG("Function name: \"%s\", Hash: %lu, Index: %d\n", token->str, general_hash(token->str), GET_FUNC_IDX(token->str));
+        void (*function)() = functions[GET_FUNC_IDX(token->str)];
 
-        // Increment the line pointer
-        line += 7;
+        NEXT_TOKEN
+        EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
 
-        // Find the index of the colon, there can be no whitespace here
-        int idx = read_line_section(line, ':');
+        NEXT_TOKEN
 
-        // If we discovered whitespace, or another error, report it
-        if (idx == -1) {
-                printf("Error encountered in \"%s\"\n", line);
-                DEBUG_MSG("Error encountered in \"%s\"\n", line);
-                exit(1);
+        DEBUG_MSG("Stack trace for function %X (LD: %X):\n", function, layer_down);
+
+        struct key_layer *current_layer = &top_layer;
+        while (token->type == CFG_TOKEN_INT || token->type == CFG_TOKEN_COM) {
+                if (token->type == CFG_TOKEN_COM) {
+                        NEXT_TOKEN
+                        continue;
+                }
+
+                if (current_layer->next == NULL) {
+                        current_layer->next = (struct key_layer *)malloc(sizeof(struct key_layer));
+                        memset(current_layer->next, 0, sizeof(struct key_layer));
+                }
+
+                current_layer->function[token->value] = (token->next->type != CFG_TOKEN_INT || token->next->type != CFG_TOKEN_COM)
+                                                        ? function : layer_down; 
+
+                current_layer = current_layer->next;
+                
+                DEBUG_MSG("%X\n", token->value);
+
+                NEXT_TOKEN
         }
 
-        // Use the index gathered above, and isolate the function name
-        char *function_name = (char *)(malloc(idx + 1));
-        memset(function_name, 0, idx + 1);
-        strncpy(function_name, line, idx);
+        DEBUG_MSG("Stack end\n")
         
-        DEBUG_MSG("\"%s\": %d \"%s\" (%lu)\n", line, idx, function_name, general_hash(function_name));
 
-        DEBUG_CODE( top_layer.level = 0; )
-
-        // Create a "petrified lightning" type path
-        create_path((line + idx + 1), (line + strlen(line) - 1), functions[GET_FUNC_IDX(function_name)], &top_layer);
-
-        // Memory Manage
-        free(function_name);
-
-        // Check if stack might stick
-        if (key_layer_count >= MAX_KEY_ELEMENTS) {
-                printf("Stack will stick! Longest keyseq: %d, stack length: %d\n", key_layer_count, MAX_KEY_ELEMENTS);
-                DEBUG_MSG("Stack will stick! Longest keyseq: %d, stack length: %d\n", key_layer_count, MAX_KEY_ELEMENTS);
-        }
+        return token;
 }

@@ -19,8 +19,8 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "global.h"
-#include "util.h"
+#include <global.h>
+#include <util.h>
 #include <curses.h>
 #include <interface/screens/start.h>
 #include <interface/interface.h>
@@ -228,21 +228,24 @@ void register_start() {
         register_screen("start", render, update, local);
 }
 
-void configure_start_screen(char *line) {
-        DEBUG_MSG("Received line \"%s\"\n", line);
-
-        if (strcmp(line, "background_disable\n") == 0) {
+struct token *configure_start_screen(struct token *token) {
+        switch (token->type) {
+        case CFG_LOOKUP_BG_DISABLE: {
                 background_enable = 0;
-                DEBUG_MSG("Disabled background\n");
+                
+                break;
         }
 
-        if (strncmp(line, "logo_bmp", strlen("logo_bmp")) == 0) {
-                line += strlen("logo_bmp") + 1;
+        case CFG_LOOKUP_LOGO_BMP: {
+                NEXT_TOKEN
+                EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
+                NEXT_TOKEN
+                EXPECT_TOKEN(CFG_TOKEN_STR, "Expected string")
 
-                FILE *bmp = fopen(line, "r");
+                FILE *bmp = fopen(token->str, "r");
 
                 if (bmp == NULL) {
-                        printf("Could not open BMP file %s\n", line);
+                        printf("Could not open BMP file %s\n", token->str);
                         exit(1);
                 }
                 
@@ -257,7 +260,7 @@ void configure_start_screen(char *line) {
 
                 // "BM" in little endian
                 if (identifier != 0x4D42) {
-                        printf("%s is not a BMP\n", line);
+                        printf("%s is not a BMP\n", token->str);
                         exit(1);
                 }
 
@@ -280,5 +283,10 @@ void configure_start_screen(char *line) {
 
                 fseek(bmp, data_offset, SEEK_SET);
                 fread(logo_bmp_data, 1, 320, bmp);
+
+                break;
         }
+        }
+
+        return token;
 }
