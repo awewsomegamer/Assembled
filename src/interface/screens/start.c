@@ -44,6 +44,8 @@ static float time = 0.01;
 static bool direction = 0;
 static bool background_enable = 1;
 
+static int longest_table_right_entry = 0;
+
 static int cx = 0;
 static int cy = 0;
 
@@ -99,12 +101,20 @@ static void render(struct render_context *context) {
                 }
         }
 
-        // Draw Logo / Menu Bounding Bo
-        int logo_y_offset = 0;
-        int menu_y_offset = 0;
-        if (context->max_y >= SCREEN_MIN_HEIGHT && context->max_x >= SCREEN_MIN_WIDTH) {
-                logo_y_offset = (context->max_y / 4 - CHARS_FROM_CENTER / 2);
-                menu_y_offset = CHARS_FROM_CENTER;
+        // Absolute minimun
+        if (context->max_x < 69 || context->max_y < 12)
+                return;
+
+        int center_x = context->max_x / 2;
+        int center_y = context->max_y / 2;
+
+        // BMP can be drawn
+        int additional_y_offset = 0;
+        int menu_left_count = sizeof(menu_table_left)/sizeof(menu_table_left[0]);
+        int menu_right_count = sizeof(menu_table_right)/sizeof(menu_table_right[0]);
+
+        if (context->max_x >= 64 && context->max_y >= 40) {
+                additional_y_offset = max((BMP_HEIGHT - center_y), 0) - max(menu_left_count, menu_right_count) - 1;
 
                 int x = 0;
                 int y = BMP_HEIGHT - 1;
@@ -115,10 +125,9 @@ static void render(struct render_context *context) {
                                 if (bit) {
                                         attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 
-                                        mvaddch(y + logo_y_offset, (context->max_x / 2 - CHARS_FROM_CENTER) + x, ' ');
+                                        mvaddch(y + max((center_y - BMP_HEIGHT), 0), (center_x - CHARS_FROM_CENTER) + x, ' ');
 
                                         attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
-
                                 }
 
                                 x++;
@@ -130,39 +139,44 @@ static void render(struct render_context *context) {
                         }
                 }
         } else {
-                logo_y_offset = context->max_y / 2 - 2;
- 
                 attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 
-                for (int i = 0; i < CHARS_FROM_CENTER / 4; i++) {
-                        for (int j = 0; j < CHARS_FROM_CENTER * 2; j++) {
-                                mvaddch(i + logo_y_offset, j + (context->max_x / 2) - (CHARS_FROM_CENTER), ' ');
+                for (int i = -(center_y / 2); i < (center_y / 2) + 1; i++) {
+                        for (int j = -CHARS_FROM_CENTER; j < CHARS_FROM_CENTER; j++) {
+                                mvprintw(i + center_y + 1, j + center_x, " ");
                         }
                 }
- 
+
                 attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
         }
 
         // Draw Options Menu
-        for (int i = 0; i < sizeof(menu_table_left)/sizeof(menu_table_left[0]); i++) {
+        for (int i = 0; i < menu_left_count; i++) {
                 if (cy == i && cx == 0)
                         attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 
-                mvprintw(logo_y_offset + 2 + menu_y_offset + i,
-                        (context->max_x / 2) - (strlen(menu_table_left[i]) / 2) - (CHARS_FROM_CENTER / 2),
-                        "%s", menu_table_left[i]);
+                move((center_y + i + additional_y_offset),
+                     (center_x - CHARS_FROM_CENTER + 1));
+
+                printw("%s", menu_table_left[i]);
 
                 if (cy == i && cx == 0)
                         attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
         }
 
-        for (int i = 0; i < sizeof(menu_table_right)/sizeof(menu_table_right[0]); i++) {
+        for (int i = 0; i < menu_right_count; i++)
+                if (strlen(menu_table_right[i]) > longest_table_right_entry)
+                        longest_table_right_entry = strlen(menu_table_right[i]);
+        
+
+        for (int i = 0; i < menu_right_count; i++) {
                 if (cy == i && cx == 1)
                         attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 
-                mvprintw(logo_y_offset + 2 + menu_y_offset + i,
-                        (context->max_x / 2) - (strlen(menu_table_right[i]) / 2) + (CHARS_FROM_CENTER / 2), 
-                        "%s", menu_table_right[i]);
+                move((center_y + i + additional_y_offset),
+                     (center_x + CHARS_FROM_CENTER - longest_table_right_entry - 1));
+
+                printw("%s", menu_table_right[i]);
 
                 if (cy == i && cx == 1)
                         attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
