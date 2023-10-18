@@ -102,7 +102,7 @@ static void render(struct render_context *context) {
         }
 
         // Absolute minimun
-        if (context->max_x < 69 || context->max_y < 12)
+        if (context->max_x < 64 || context->max_y < 10)
                 return;
 
         int center_x = context->max_x / 2;

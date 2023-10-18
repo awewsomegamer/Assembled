@@ -32,22 +32,28 @@
 struct assembled_color {
         uint32_t color_value;
         uint8_t information; // 0 0 0 0 0 0 0 P
-                             //               ` Color is non-null
+                             //               ` 1: Color is non-null
 };
 static struct assembled_color custom_colors[32];
 
 static void read_lines(FILE *file) {
-        char *line = NULL;
-        size_t count = 0;
-        while (getline(&line, &count, file) != -1) {
-                char *end = line;
-                for (; (end < (line + strlen(line))) && (*end != ':'); end++);
-                int idx = strtol(line, &end, 10);
-                
-                if (idx >= MAX_CUSTOM_COLORS || idx < 0)
-                        continue;
+        struct cfg_token *token = cfg_lex(file);
 
-                uint32_t color = strtol(end + 1, NULL, 16);
+        while (token->type != CFG_TOKEN_EOF) {
+                EXPECT_TOKEN(CFG_TOKEN_INT, "Expected integer");
+                int idx = token->value;
+
+                NEXT_TOKEN
+                EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon");
+
+                NEXT_TOKEN
+                EXPECT_TOKEN(CFG_TOKEN_INT, "Expected integer")
+                uint32_t color = token->value;
+
+                NEXT_TOKEN
+
+                if (idx >= 32)
+                        continue;
 
                 custom_colors[idx].color_value = color;
                 custom_colors[idx].information |= 1;

@@ -31,7 +31,6 @@
 #include <string.h>
 #include <unistd.h>
 
-static struct cfg_token *head;
 static int line = 1;
 static int column = 1;
 static char putback = 0;
@@ -69,25 +68,8 @@ void interpret_token_stream(struct cfg_token *token) {
         }
 }
 
-int read_config() {
-        head = (struct cfg_token *)malloc(sizeof(struct cfg_token));
-
-        // Get the name of the home directory
-        struct passwd *pw = getpwuid(getuid());
-
-        // Create absolute path to user configuration file
-        char *path = (char *)malloc(strlen(pw->pw_dir) + strlen("/.config/assembled/config.cfg") + 1);
-        strcpy(path, pw->pw_dir);
-        strcpy(path + strlen(pw->pw_dir), "/.config/assembled/config.cfg");
-        
-        FILE *file = fopen(path, "r");
-
-        if (file == NULL) {
-                printf("Could not open file %s\n", path);
-                DEBUG_MSG("Could not open file %s\n", path);
-
-                exit(1);
-        }
+struct cfg_token *cfg_lex(FILE *file) {
+        struct cfg_token *head = (struct cfg_token *)malloc(sizeof(struct cfg_token));
 
         char c = 0;
         bool comment = 0;
@@ -225,21 +207,45 @@ int read_config() {
                 current = next;
         }
 
-        DEBUG_MSG("Token list:\n");
-        DEBUG_CODE(
-                current = head;
-                while (current != NULL) {
-                        DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
+        return head;
+}
 
-                        current = current->next;
-                }
-        )
+int read_config() {
+        // Get the name of the home directory
+        struct passwd *pw = getpwuid(getuid());
+
+        // Create absolute path to user configuration file
+        char *path = (char *)malloc(strlen(pw->pw_dir) + strlen("/.config/assembled/config.cfg") + 1);
+        strcpy(path, pw->pw_dir);
+        strcpy(path + strlen(pw->pw_dir), "/.config/assembled/config.cfg");
+        
+        FILE *file = fopen(path, "r");
+
+        if (file == NULL) {
+                printf("Could not open file %s\n", path);
+                DEBUG_MSG("Could not open file %s\n", path);
+
+                exit(1);
+        }
+
+        struct cfg_token *head = cfg_lex(file);
+
+        interpret_token_stream(head);
+
+        DEBUG_MSG("Token list:\n");
+        struct cfg_token *current = head;
+        while (current != NULL) {
+                DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
+                struct cfg_token *tmp = current->next;
+
+                free(current);
+
+                current = tmp;
+        }
         DEBUG_MSG("List end\n");
 
         free(path);
         fclose(file);
-
-        interpret_token_stream(head);
 
         return 0;
 }

@@ -75,6 +75,7 @@ struct cfg_token {
         int column;
 };
 
+struct cfg_token *cfg_lex(FILE *file);
 int read_config();
 int read_line_section(char *line, char c);
 
