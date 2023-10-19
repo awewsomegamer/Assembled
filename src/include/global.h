@@ -33,6 +33,9 @@
 
 #define ASSEMBLED_COLOR_HIGHLIGHT 1 
 
+#include <pwd.h>
+#include <unistd.h>
+
 extern FILE *debug_log_file;
 
 #ifdef DEBUG_MODE

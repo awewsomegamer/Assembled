@@ -36,8 +36,9 @@ struct assembled_color {
 };
 static struct assembled_color custom_colors[32];
 
-static void read_lines(FILE *file) {
+static void read_theme(FILE *file) {
         struct cfg_token *token = cfg_lex(file);
+        struct cfg_token *current = token;
 
         while (token->type != CFG_TOKEN_EOF) {
                 EXPECT_TOKEN(CFG_TOKEN_INT, "Expected integer");
@@ -58,6 +59,17 @@ static void read_lines(FILE *file) {
                 custom_colors[idx].color_value = color;
                 custom_colors[idx].information |= 1;
         }
+
+        DEBUG_MSG("Token list:\n");
+        while (current != NULL) {
+                DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
+                struct cfg_token *tmp = current->next;
+
+                free(current);
+
+                current = tmp;
+        }
+        DEBUG_MSG("List end\n");
 }
 
 void register_custom_colors() {
@@ -102,7 +114,7 @@ struct cfg_token *configure_theme(struct cfg_token *token) {
                         exit(1);
                 }
 
-                read_lines(theme_file);
+                read_theme(theme_file);
 
                 fclose(theme_file);
 

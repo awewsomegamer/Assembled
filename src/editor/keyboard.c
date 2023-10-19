@@ -33,7 +33,7 @@
 #include <editor/config.h>
 
 struct key_layer {
-        void (*function[128])(); // The index within the array is the ASCII code
+        void (*function[256])(); // The index within the array is the ASCII code
         struct key_layer *next;
         DEBUG_CODE( int level; )
 };
@@ -82,6 +82,9 @@ void collapse_stack() {
 
 // Acknowledge a key, put it on the stack, ask
 // to collapse the stack.
+// CONVIENENCE: Create an End of Command char
+//              that will tell us when to
+//              collapse the stack
 void key(char c) {
         // Wrap around (should never happen unless user has more
         //              keys than MAX_KEY_ELEMENTS)

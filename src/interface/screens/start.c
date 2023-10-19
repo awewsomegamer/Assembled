@@ -255,8 +255,23 @@ struct cfg_token *configure_start_screen(struct cfg_token *token) {
                 EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
                 NEXT_TOKEN
                 EXPECT_TOKEN(CFG_TOKEN_STR, "Expected string")
+                
+                char *path = token->str;
 
-                FILE *bmp = fopen(token->str, "r");
+                if (*token->str != '/') {
+                        struct passwd *pw = getpwuid(getuid());
+
+                        int size = strlen(token->str) + strlen(pw->pw_dir) + strlen("/.config/assembled/");
+                        
+                        path = (char *)malloc(size);
+                        memset(path, 0, size);
+                        
+                        strcpy(path, pw->pw_dir);
+                        strcat(path, "/.config/assembled/");
+                        strcat(path, token->str);
+                }
+
+                FILE *bmp = fopen(path, "r");
 
                 if (bmp == NULL) {
                         printf("Could not open BMP file %s\n", token->str);
@@ -297,6 +312,9 @@ struct cfg_token *configure_start_screen(struct cfg_token *token) {
 
                 fseek(bmp, data_offset, SEEK_SET);
                 fread(logo_bmp_data, 1, 320, bmp);
+
+                if (path != token->str)
+                        free(path);
 
                 break;
         }

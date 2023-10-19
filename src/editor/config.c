@@ -31,10 +31,6 @@
 #include <string.h>
 #include <unistd.h>
 
-static int line = 1;
-static int column = 1;
-static char putback = 0;
-
 void interpret_token_stream(struct cfg_token *token) {
         while (token->type != CFG_TOKEN_EOF) {
                 EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected command (i.e. keyboard, themes, or start_screen)");
@@ -70,6 +66,10 @@ void interpret_token_stream(struct cfg_token *token) {
 
 struct cfg_token *cfg_lex(FILE *file) {
         struct cfg_token *head = (struct cfg_token *)malloc(sizeof(struct cfg_token));
+        
+        int line = 1;
+        int column = 1;
+        char putback = 0;
 
         char c = 0;
         bool comment = 0;
