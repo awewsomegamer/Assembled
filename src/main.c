@@ -27,6 +27,7 @@
 #include <signal.h>
 
 #include <global.h>
+#include <editor/buffer/editor.h>
 #include <editor/keyboard.h>
 #include <editor/config.h>
 #include <interface/interface.h>
@@ -76,6 +77,7 @@ void init_ncurses() {
                 printf("Max X: %d, Max Y: %d are unsuitable for operation\n", current_render_context.max_x, current_render_context.max_y);
                 exit(1);
         }
+        
         DEBUG_MSG("Initialized ncurses\n");
 }
 
@@ -109,7 +111,12 @@ int main(int argc, char **argv) {
 
         read_config();
         register_start();
-        switch_to_screen("start");
+
+        if (argc > 1) {
+                load_file(argv[1]);
+        } else {
+                switch_to_screen("start");
+        }
 
         signal(SIGINT,terminate);
 
