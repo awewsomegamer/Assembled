@@ -19,5 +19,26 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "interface/interface.h"
 #include <interface/screens/editor_scr.h>
 
+static void render(struct render_context *context) {
+
+}
+
+static void update(struct render_context *context) {
+
+}
+
+static void local(int code) {
+
+}
+
+void register_editor_screen() {
+        DEBUG_MSG("Registering editor screen\n");
+        register_screen("editor", render, update, local);
+}
+
+struct cfg_token *configure_editor_screen(struct cfg_token *token) {
+        return token;
+}

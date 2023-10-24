@@ -19,8 +19,8 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "editor/buffer/buffer.h"
-#include "editor/config.h"
+#include <editor/buffer/buffer.h>
+#include <editor/config.h>
 #include <global.h>
 #include <editor/buffer/editor.h>
 #include <stdio.h>
@@ -29,22 +29,23 @@
 
 int editor_line = 0;
 int editor_column = 0;
+struct text_buffer *current_active_text_buffer = NULL;
 
 struct text_buffer *load_file(char *name) {
         FILE *file = fopen(name, "r+");
 
-        struct text_buffer *buffer = new_buffer(name);
+        current_active_text_buffer = new_buffer(name, file);
 
         if (file == NULL) {
                 DEBUG_MSG("File %s does not exist, creating a new buffer\n", name);
 
-                return buffer;
+                return current_active_text_buffer;
         }
         
         char *contents;
         size_t size = 0;
         int line_count = 1;
-        struct line_list_element *cur_element = buffer->head;
+        struct line_list_element *cur_element = current_active_text_buffer->head;
 
         while (getline(&contents, &size, file) != -1) {
                 memset(cur_element, 0, sizeof(struct line_list_element));
@@ -53,6 +54,7 @@ struct text_buffer *load_file(char *name) {
 
                 cur_element->line = line_count++;
                 cur_element->next = (struct line_list_element *)malloc(sizeof(struct line_list_element));
+                memset(cur_element->next, 0, sizeof(struct line_list_element));
 
                 free(contents);
                 contents = NULL;
@@ -62,24 +64,26 @@ struct text_buffer *load_file(char *name) {
 
         free(contents);
         contents = NULL;
-        
-        cur_element = buffer->head;
 
-        // ERROR: Weird segmentation fault occuring here
-        while (cur_element->next != NULL) {
-                printf("%p\n", cur_element);
+        fseek(file, 0, SEEK_SET);
 
-                if (cur_element->contents != NULL)
-                        DEBUG_MSG("%s\n", cur_element->contents)
-
-                cur_element = cur_element->next;
-        }
-
-        return buffer;
+        return current_active_text_buffer;
 }
 
-void save_file(char *name) {
+void save_buffer(struct text_buffer *buffer) {
+        // Assume current offset into file is equivalent
+        // to the first byte of the first line
+        DEBUG_MSG("Saving buffer \"%s\" to offset %d\n", buffer->name, ftell(buffer->file));
 
+        struct line_list_element *current = buffer->head;
+        
+        while (current->next != NULL) {
+                fwrite(current->contents, 1, strlen(current->contents), buffer->file);
+
+                current = current->next;
+        }
+
+        DEBUG_MSG("Saved\n");
 }
 
 void edit_file() {

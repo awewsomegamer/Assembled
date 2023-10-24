@@ -24,6 +24,8 @@
 
 #define MAX_BUFFERS 32
 
+#include <global.h>
+
 struct line_list_element {
         char *contents;
         int line;
@@ -32,7 +34,7 @@ struct line_list_element {
 
 struct text_buffer {
         char *name;
-        
+        FILE *file;
         struct line_list_element *head;
 };
 
@@ -42,6 +44,7 @@ struct syntax_highlight {
 
 };
 
-struct text_buffer *new_buffer(char *name);
+struct text_buffer *new_buffer(char *name, FILE *file);
+void destroy_buffer(struct text_buffer *buffer);
 
 #endif

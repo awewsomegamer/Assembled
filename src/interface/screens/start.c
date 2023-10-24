@@ -237,7 +237,7 @@ static void local(int code) {
         }
 }
 
-void register_start() {
+void register_start_screen() {
         DEBUG_MSG("Registering start screen\n");
         register_screen("start", render, update, local);
 }

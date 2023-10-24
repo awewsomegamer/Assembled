@@ -22,4 +22,9 @@
 #ifndef EDITOR_SCR_H
 #define EDITOR_SCR_H
 
+#include <editor/config.h>
+
+void register_editor_screen();
+struct cfg_token *configure_editor_screen(struct cfg_token *token);
+
 #endif

@@ -38,10 +38,11 @@ int allocate_buffer() {
         return -1;
 };
 
-struct text_buffer *new_buffer(char *name) {
+struct text_buffer *new_buffer(char *name, FILE *file) {
         struct text_buffer *buffer = (struct text_buffer *)malloc(sizeof(struct text_buffer));
 
         buffer->name = name;
+        buffer->file = file;
         buffer->head = (struct line_list_element *)malloc(sizeof(struct line_list_element));
 
         int i = allocate_buffer();
@@ -56,4 +57,19 @@ struct text_buffer *new_buffer(char *name) {
         buffers[i] = buffer;
 
         return buffer;
+}
+
+void destroy_buffer(struct text_buffer *buffer) {
+        fclose(buffer->file);
+
+        struct line_list_element *current = buffer->head;
+
+        while (current->next != NULL) {
+                struct line_list_element *temp = current->next;
+                free(current->contents);
+                
+                free(current);
+
+                current = temp;
+        }
 }

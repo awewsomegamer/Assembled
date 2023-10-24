@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include <interface/screens/editor_scr.h>
 #include "interface/theming/themes.h"
 #include <bits/time.h>
 #include <curses.h>
@@ -110,10 +111,11 @@ int main(int argc, char **argv) {
         DEBUG_CODE( debug_log_file = fopen("debug.log", "w"); )
 
         read_config();
-        register_start();
+        register_start_screen();
+        register_editor_screen();
 
         if (argc > 1) {
-                load_file(argv[1]);
+                save_buffer(load_file(argv[1]));
         } else {
                 switch_to_screen("start");
         }

@@ -24,7 +24,7 @@
 
 #include <editor/config.h>
 
-void register_start();
+void register_start_screen();
 struct cfg_token *configure_start_screen(struct cfg_token *token);
 
 #endif
