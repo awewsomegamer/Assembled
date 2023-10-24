@@ -99,8 +99,9 @@ struct cfg_token *cfg_lex(FILE *file) {
                 }
                 }
 
-                if (comment)
+                if (comment) {
                         continue;
+                }
 
                 struct cfg_token *next = (struct cfg_token *)malloc(sizeof(struct cfg_token));
                 memset(next, 0, sizeof(struct cfg_token));
@@ -148,8 +149,9 @@ struct cfg_token *cfg_lex(FILE *file) {
                         do {
                                 column++;
 
-                                if (isblank(c))
+                                if (isblank(c)) {
                                         continue;
+                                }
 
                                 *(str + (size - 1)) = c;
                                 size++;

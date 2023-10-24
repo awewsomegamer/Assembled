@@ -43,6 +43,9 @@ struct text_buffer *new_buffer(char *name, FILE *file) {
 
         buffer->name = name;
         buffer->file = file;
+        buffer->cx = 0;
+        buffer->cy = 0;
+        
         buffer->head = (struct line_list_element *)malloc(sizeof(struct line_list_element));
 
         int i = allocate_buffer();

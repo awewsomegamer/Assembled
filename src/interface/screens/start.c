@@ -152,34 +152,39 @@ static void render(struct render_context *context) {
 
         // Draw Options Menu
         for (int i = 0; i < menu_left_count; i++) {
-                if (cy == i && cx == 0)
+                if (cy == i && cx == 0) {
                         attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                }
 
                 move((center_y + i + additional_y_offset),
                      (center_x - CHARS_FROM_CENTER + 1));
 
                 printw("%s", menu_table_left[i]);
 
-                if (cy == i && cx == 0)
+                if (cy == i && cx == 0) {
                         attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                }
         }
 
         for (int i = 0; i < menu_right_count; i++)
-                if (strlen(menu_table_right[i]) > longest_table_right_entry)
+                if (strlen(menu_table_right[i]) > longest_table_right_entry) {
                         longest_table_right_entry = strlen(menu_table_right[i]);
+                }
         
 
         for (int i = 0; i < menu_right_count; i++) {
-                if (cy == i && cx == 1)
+                if (cy == i && cx == 1) {
                         attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                }
 
                 move((center_y + i + additional_y_offset),
                      (center_x + CHARS_FROM_CENTER - longest_table_right_entry - 1));
 
                 printw("%s", menu_table_right[i]);
 
-                if (cy == i && cx == 1)
+                if (cy == i && cx == 1) {
                         attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                }
         }
 }
 
@@ -187,13 +192,16 @@ static void update(struct render_context *context) {
         time += (direction ? -UPDATE_TIME_TICK : UPDATE_TIME_TICK);
         
         int max_y = cx ? sizeof(menu_table_right)/sizeof(menu_table_right[0]) : sizeof(menu_table_left)/sizeof(menu_table_left[0]);
-        if (cy >= max_y)
+        
+        if (cy >= max_y) {
                 cy = max_y - 1;
+        }
 
-        if (time >= UPDATE_TIME_MAX)
+        if (time >= UPDATE_TIME_MAX) {
                 direction = 1;
-        if (time <= UPDATE_TIME_MIN)
+        } else if (time <= UPDATE_TIME_MIN) {
                 direction = 0;
+        }
 }
 
 static void local(int code) {
@@ -201,15 +209,17 @@ static void local(int code) {
 
         switch(code) {
         case LOCAL_ARROW_UP: {
-                if (cy > 0)
+                if (cy > 0) {
                         cy--;
+                }
 
                 break;
         }
 
         case LOCAL_ARROW_DOWN: {
-                if (cy < max_y - 1)
+                if (cy < max_y - 1) {
                         cy++;
+                }
 
                 break;
         }
@@ -229,8 +239,9 @@ static void local(int code) {
         case LOCAL_ENTER: {
                 void (*func)() = menu_functions[cx][cy];
 
-                if (func != NULL)
+                if (func != NULL) {
                         (*func)();
+                }
 
                 break;
         }

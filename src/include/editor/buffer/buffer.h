@@ -35,13 +35,14 @@ struct line_list_element {
 struct text_buffer {
         char *name;
         FILE *file;
+        int cx;
+        int cy;
         struct line_list_element *head;
 };
 
 struct syntax_highlight {
         char *extension;
         char **symbols;
-
 };
 
 struct text_buffer *new_buffer(char *name, FILE *file);

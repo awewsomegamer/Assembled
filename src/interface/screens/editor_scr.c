@@ -19,11 +19,40 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "editor/buffer/buffer.h"
+#include "editor/buffer/editor.h"
 #include "interface/interface.h"
+#include <curses.h>
 #include <interface/screens/editor_scr.h>
+#include <string.h>
+
+#define LEFT_MARGIN 5
+#define CURSOR_X (current_active_text_buffer->cx)
+#define CURSOR_Y (current_active_text_buffer->cy)
+
+static int line_length = 0;
 
 static void render(struct render_context *context) {
+        struct line_list_element *current = current_active_text_buffer->head;
+        int y = 0;
 
+        while (current->next != NULL && y < context->max_y) {
+                mvprintw(y, 0, "%d", current->line);
+                mvaddch(y, LEFT_MARGIN - 1, '|');
+                mvprintw(y++, LEFT_MARGIN, "%s", current->contents);
+
+                if (current->line == CURSOR_Y + 1) {
+                        line_length = strlen(current->contents);
+                }
+
+                current = current->next;
+        }
+
+        if (CURSOR_X > line_length + (LEFT_MARGIN - 1)) {
+                CURSOR_X = line_length + (LEFT_MARGIN - 1);
+        }
+
+        move(CURSOR_Y, CURSOR_X);
 }
 
 static void update(struct render_context *context) {
@@ -31,7 +60,33 @@ static void update(struct render_context *context) {
 }
 
 static void local(int code) {
+        switch (code) {
+        case LOCAL_ARROW_UP: {
+                CURSOR_Y--;
 
+                break;
+        }
+
+        case LOCAL_ARROW_DOWN: {
+                CURSOR_Y++;
+
+                break;
+        }
+
+        case LOCAL_ARROW_LEFT: {
+                if (CURSOR_X > LEFT_MARGIN)
+                        CURSOR_X--;
+
+                break;
+        }
+
+        case LOCAL_ARROW_RIGHT: {
+                if (CURSOR_X < line_length + (LEFT_MARGIN - 1))
+                        CURSOR_X++;
+
+                break;
+        }
+        }
 }
 
 void register_editor_screen() {
