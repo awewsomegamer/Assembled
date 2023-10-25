@@ -65,6 +65,8 @@ void interpret_token_stream(struct cfg_token *token) {
 }
 
 // TODO: Implement includes
+// ERROR: Trailing commas may cause errors if they are
+//        are directly followed by a comment.
 struct cfg_token *cfg_lex(FILE *file) {
         struct cfg_token *head = (struct cfg_token *)malloc(sizeof(struct cfg_token));
         

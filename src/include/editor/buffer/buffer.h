@@ -50,6 +50,7 @@ struct text_buffer *new_buffer(char *name, FILE *file);
 void save_buffer(struct text_buffer *buffer);
 void destroy_buffer(struct text_buffer *buffer);
 
-void insert_into_buffer(char c);
+void buffer_char_insert(char c);
+void buffer_char_del();
 
 #endif

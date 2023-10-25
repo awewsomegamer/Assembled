@@ -81,7 +81,7 @@ void collapse_stack() {
                 return;
         }
 
-        insert_into_buffer(key_stack[--key_stack_ptr].key);
+        buffer_char_insert(key_stack[--key_stack_ptr].key);
 }
 
 // Acknowledge a key, put it on the stack, ask
@@ -94,6 +94,11 @@ void key(char c) {
         //              keys than MAX_KEY_ELEMENTS)
         if (key_stack_ptr >= MAX_KEY_ELEMENTS) {
                 key_stack_ptr = 0;
+        }
+
+        if (c == '\b' || c == 7) {
+                buffer_char_del();
+                return;
         }
 
         // Push new value to stack

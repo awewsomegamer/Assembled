@@ -29,6 +29,11 @@
 int next_free_buffer = 0;
 struct text_buffer *buffers[MAX_BUFFERS];
 
+// TODO: Create free function for the
+//       line list elements and buffers
+//       to make cleaning up a little
+//       bit easier
+
 int allocate_buffer() {
         for (int i = 0; i < MAX_BUFFERS; i++) {
                 if (buffers[i] == NULL) {
@@ -100,24 +105,96 @@ void destroy_buffer(struct text_buffer *buffer) {
 }
 
 // Buffer is the current active buffer
-void insert_into_buffer(char c) {
+void buffer_char_insert(char c) {
         struct line_list_element *element = current_active_text_buffer->head;
 
         for (int i = 0; i < current_active_text_buffer->cy; i++) {
                 element = element->next;
         }
 
-        char *new_string = (char *)malloc(strlen(element->contents) + 2); // New character and NULL terminaator
-        memset(new_string, 0, strlen(element->contents) + 2);
+        switch (c) {
+        case '\n': {
+                struct line_list_element *next_element = (struct line_list_element *)malloc(sizeof(struct line_list_element));
+                next_element->next = element->next;
 
-        memcpy(new_string, element->contents, current_active_text_buffer->cx);
-        new_string[current_active_text_buffer->cx] = c;
-        strcat(new_string, element->contents + current_active_text_buffer->cx);
+                char *contents = (char *)malloc(1);
+                *contents = '\n';
+
+                next_element->contents = contents;
+                
+                struct line_list_element *current = next_element;
+                int line = element->line + 1;
+
+                while (current->next != NULL) {
+                        current->line = line++;
+                        
+                        current = current->next;
+                }
+
+                element->next = next_element;
+
+                (current_active_text_buffer->cy)++;
+
+                break;
+        }
+
+        default: {
+                char *new_string = (char *)malloc(strlen(element->contents) + 2); // New character and NULL terminaator
+                memset(new_string, 0, strlen(element->contents) + 2);
+
+                strncpy(new_string, element->contents, current_active_text_buffer->cx);
+                new_string[current_active_text_buffer->cx] = c;
+                strcat(new_string, element->contents + current_active_text_buffer->cx);
+
+                free(element->contents);
+                element->contents = new_string;
+
+                (current_active_text_buffer->cx)++;
+        }
+        }
+
+        save_buffer(current_active_text_buffer);
+}
+
+void buffer_char_del() {
+        struct line_list_element *element = current_active_text_buffer->head;
+
+        for (int i = 0; i < current_active_text_buffer->cy - (current_active_text_buffer->cx <= 0); i++) {
+                element = element->next;
+        }
+
+        // TODO: Check if the line still has characters
+        //       on it.
+        // ERROR: Segmentation fault when deleting a whole
+        //        line.
+        if (current_active_text_buffer->cx <= 0) {
+                int line = element->line + 1;
+
+                struct line_list_element *current = element->next->next;
+                
+                free(element->next);
+                element->next = current;
+
+                while (current->next != NULL) {
+                        current->line = line++;
+
+                        current = current->next;
+                }
+
+                save_buffer(current_active_text_buffer);
+
+                return;
+        }
+
+        char *new_string = strdup(element->contents);
+        strncpy(new_string + current_active_text_buffer->cx -1, element->contents + current_active_text_buffer->cx, strlen(element->contents) - current_active_text_buffer->cx);
+        new_string[strlen(new_string) - 1] = 0;
 
         free(element->contents);
+
         element->contents = new_string;
 
-        (current_active_text_buffer->cx)++;
+        (current_active_text_buffer->cx)--;
 
         save_buffer(current_active_text_buffer);
 }
