@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "editor/buffer/buffer.h"
 #include <ctype.h>
 #include <curses.h>
 #include <ncurses.h>
@@ -64,8 +65,7 @@ void collapse_stack() {
                 
                 // NULL? Empty stack and return
                 if (func_ptr == NULL) {
-                        key_stack_ptr = 0;
-                        return;
+                        break;
                 }
 
                 // Layer down? Change current layer to next layer and continue to next char
@@ -77,7 +77,11 @@ void collapse_stack() {
                 // Finally found the function, call it and reset stack
                 (func_ptr)();
                 key_stack_ptr = 0;
+
+                return;
         }
+
+        insert_into_buffer(key_stack[--key_stack_ptr].key);
 }
 
 // Acknowledge a key, put it on the stack, ask

@@ -35,6 +35,7 @@ struct line_list_element {
 struct text_buffer {
         char *name;
         FILE *file;
+        int load_offset;
         int cx;
         int cy;
         struct line_list_element *head;
@@ -46,6 +47,9 @@ struct syntax_highlight {
 };
 
 struct text_buffer *new_buffer(char *name, FILE *file);
+void save_buffer(struct text_buffer *buffer);
 void destroy_buffer(struct text_buffer *buffer);
+
+void insert_into_buffer(char c);
 
 #endif

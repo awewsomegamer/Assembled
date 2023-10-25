@@ -30,7 +30,6 @@ extern int editor_column;
 extern struct text_buffer *current_active_text_buffer;
 
 struct text_buffer *load_file(char *name);
-void save_buffer(struct text_buffer *buffer);
 void edit_file();
 
 struct cfg_token *init_editor(struct cfg_token *token);

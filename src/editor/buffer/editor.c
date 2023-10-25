@@ -70,22 +70,6 @@ struct text_buffer *load_file(char *name) {
         return current_active_text_buffer;
 }
 
-void save_buffer(struct text_buffer *buffer) {
-        // Assume current offset into file is equivalent
-        // to the first byte of the first line
-        DEBUG_MSG("Saving buffer \"%s\" to offset %d\n", buffer->name, ftell(buffer->file));
-
-        struct line_list_element *current = buffer->head;
-        
-        while (current->next != NULL) {
-                fwrite(current->contents, 1, strlen(current->contents), buffer->file);
-
-                current = current->next;
-        }
-
-        DEBUG_MSG("Saved\n");
-}
-
 void edit_file() {
 
 }

@@ -48,11 +48,11 @@ static void render(struct render_context *context) {
                 current = current->next;
         }
 
-        if (CURSOR_X > line_length + (LEFT_MARGIN - 1)) {
-                CURSOR_X = line_length + (LEFT_MARGIN - 1);
+        if (CURSOR_X > line_length) {
+                CURSOR_X = line_length;
         }
 
-        move(CURSOR_Y, CURSOR_X);
+        move(CURSOR_Y, CURSOR_X + LEFT_MARGIN);
 }
 
 static void update(struct render_context *context) {
@@ -74,14 +74,14 @@ static void local(int code) {
         }
 
         case LOCAL_ARROW_LEFT: {
-                if (CURSOR_X > LEFT_MARGIN)
+                if (CURSOR_X > 0)
                         CURSOR_X--;
 
                 break;
         }
 
         case LOCAL_ARROW_RIGHT: {
-                if (CURSOR_X < line_length + (LEFT_MARGIN - 1))
+                if (CURSOR_X < line_length)
                         CURSOR_X++;
 
                 break;
