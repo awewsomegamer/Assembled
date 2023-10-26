@@ -115,23 +115,32 @@ void destroy_buffer(struct text_buffer *buffer) {
 }
 
 // Buffer is the current active buffer
+
+// Insert character c into the current active buffer
 void buffer_char_insert(char c) {
+        // Get the element at which we need to insert the buffer
         struct line_list_element *element = current_active_text_buffer->head;
 
         for (int i = 0; i < current_active_text_buffer->cy; i++) {
                 element = element->next;
         }
 
+        // Check for special cases
         switch (c) {
         case '\n': {
+                // Create new line
+                // Create new element and start to insert it after the element user is on
                 struct line_list_element *next_element = (struct line_list_element *)malloc(sizeof(struct line_list_element));
                 next_element->next = element->next;
 
+                // Allocate new contents
                 char *contents = (char *)malloc(1);
                 *contents = 0;
 
+                // Set contents
                 next_element->contents = contents;
                 
+                // Update line integers from the new element to the last
                 struct line_list_element *current = next_element;
                 int line = element->line + 1;
 
@@ -141,8 +150,10 @@ void buffer_char_insert(char c) {
                         current = current->next;
                 }
 
+                // Complete insertion
                 element->next = next_element;
 
+                // Increment cy and reset cx
                 (current_active_text_buffer->cy)++;
                 (current_active_text_buffer->cx) = 0; 
 
@@ -150,20 +161,22 @@ void buffer_char_insert(char c) {
         }
 
         default: {
-                if (c < 32) {
-                        break;
-                }
-
+                // Default, create new string
                 char *new_string = (char *)malloc(strlen(element->contents) + 2); // New character and NULL terminaator
                 memset(new_string, 0, strlen(element->contents) + 2);
 
+                // Copy 0 -> cx
                 strncpy(new_string, element->contents, current_active_text_buffer->cx);
+                // Set space after first portion to new character
                 new_string[current_active_text_buffer->cx] = c;
+                // Concatenate the last bit of the string
                 strcat(new_string, element->contents + current_active_text_buffer->cx);
 
+                // Memory Manage, replace string
                 free(element->contents);
                 element->contents = new_string;
-
+                
+                // Move cursor
                 (current_active_text_buffer->cx)++;
 
                 break;
@@ -176,12 +189,16 @@ void buffer_char_insert(char c) {
 void buffer_char_del() {
         struct line_list_element *element = current_active_text_buffer->head;
 
+        // See if the user is aiming to remove the line
         int line_remove = (current_active_text_buffer->cx <= 0);
 
         for (int i = 0; i < current_active_text_buffer->cy - line_remove; i++) {
                 element = element->next;
         }
 
+        // TODO: Make lines with more than one character
+        //       be stacked onto the one before it instead
+        //       of being deleted.
         if (line_remove) {
                 int line = element->line + 1;
 
