@@ -20,19 +20,21 @@
 */
 
 #include "editor/buffer/editor.h"
+#include <ctype.h>
 #include <editor/buffer/buffer.h>
 #include <global.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 int next_free_buffer = 0;
 struct text_buffer *buffers[MAX_BUFFERS];
 
-// TODO: Create free function for the
-//       line list elements and buffers
-//       to make cleaning up a little
-//       bit easier
+void free_line_list_element(struct line_list_element *element) {
+        free(element->contents);
+        free(element);
+}
 
 int allocate_buffer() {
         for (int i = 0; i < MAX_BUFFERS; i++) {
@@ -48,6 +50,7 @@ int allocate_buffer() {
 
 struct text_buffer *new_buffer(char *name, FILE *file) {
         struct text_buffer *buffer = (struct text_buffer *)malloc(sizeof(struct text_buffer));
+        memset(buffer, 0, sizeof(struct text_buffer));
 
         buffer->name = name;
         buffer->file = file;
@@ -56,6 +59,7 @@ struct text_buffer *new_buffer(char *name, FILE *file) {
         buffer->load_offset = 0;
         
         buffer->head = (struct line_list_element *)malloc(sizeof(struct line_list_element));
+        memset(buffer->head, 0, sizeof(struct line_list_element));
 
         int i = allocate_buffer();
 
@@ -79,12 +83,18 @@ void save_buffer(struct text_buffer *buffer) {
         fseek(buffer->file, buffer->load_offset, SEEK_SET);
 
         struct line_list_element *current = buffer->head;
-        
+        size_t file_size = 0;
+
         while (current->next != NULL) {
                 fwrite(current->contents, 1, strlen(current->contents), buffer->file);
+                fputc('\n', buffer->file);
+
+                file_size += strlen(current->contents);
 
                 current = current->next;
         }
+
+        ftruncate(fileno(buffer->file), file_size + 1);
 
         DEBUG_MSG("Saved\n");
 }
@@ -94,7 +104,7 @@ void destroy_buffer(struct text_buffer *buffer) {
 
         struct line_list_element *current = buffer->head;
 
-        while (current->next != NULL) {
+        while (current != NULL) {
                 struct line_list_element *temp = current->next;
                 free(current->contents);
                 
@@ -118,14 +128,14 @@ void buffer_char_insert(char c) {
                 next_element->next = element->next;
 
                 char *contents = (char *)malloc(1);
-                *contents = '\n';
+                *contents = 0;
 
                 next_element->contents = contents;
                 
                 struct line_list_element *current = next_element;
                 int line = element->line + 1;
 
-                while (current->next != NULL) {
+                while (current != NULL) {
                         current->line = line++;
                         
                         current = current->next;
@@ -134,11 +144,16 @@ void buffer_char_insert(char c) {
                 element->next = next_element;
 
                 (current_active_text_buffer->cy)++;
+                (current_active_text_buffer->cx) = 0; 
 
                 break;
         }
 
         default: {
+                if (c < 32) {
+                        break;
+                }
+
                 char *new_string = (char *)malloc(strlen(element->contents) + 2); // New character and NULL terminaator
                 memset(new_string, 0, strlen(element->contents) + 2);
 
@@ -150,6 +165,8 @@ void buffer_char_insert(char c) {
                 element->contents = new_string;
 
                 (current_active_text_buffer->cx)++;
+
+                break;
         }
         }
 
@@ -159,26 +176,29 @@ void buffer_char_insert(char c) {
 void buffer_char_del() {
         struct line_list_element *element = current_active_text_buffer->head;
 
-        for (int i = 0; i < current_active_text_buffer->cy - (current_active_text_buffer->cx <= 0); i++) {
+        int line_remove = (current_active_text_buffer->cx <= 0);
+
+        for (int i = 0; i < current_active_text_buffer->cy - line_remove; i++) {
                 element = element->next;
         }
 
-        // TODO: Check if the line still has characters
-        //       on it.
-        // ERROR: Segmentation fault when deleting a whole
-        //        line.
-        if (current_active_text_buffer->cx <= 0) {
+        if (line_remove) {
                 int line = element->line + 1;
 
                 struct line_list_element *current = element->next->next;
                 
-                free(element->next);
+                free_line_list_element(element->next);
                 element->next = current;
 
-                while (current->next != NULL) {
+                while (current != NULL) {
                         current->line = line++;
 
                         current = current->next;
+                }
+
+                if (current_active_text_buffer->cy < line) {
+                        (current_active_text_buffer->cx) = strlen(element->contents);
+                        (current_active_text_buffer->cy)--;
                 }
 
                 save_buffer(current_active_text_buffer);

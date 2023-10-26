@@ -21,6 +21,7 @@
 
 #include "editor/buffer/buffer.h"
 #include "editor/buffer/editor.h"
+#include "global.h"
 #include "interface/interface.h"
 #include <curses.h>
 #include <interface/screens/editor_scr.h>
@@ -36,10 +37,18 @@ static void render(struct render_context *context) {
         struct line_list_element *current = current_active_text_buffer->head;
         int y = 0;
 
+        // TODO: current->next != NULL fails
+        //       to display the last line
+        //       current != NULL causes a
+        //       segmentation fault
         while (current->next != NULL && y < context->max_y) {
                 mvprintw(y, 0, "%d", current->line);
                 mvaddch(y, LEFT_MARGIN - 1, '|');
-                mvprintw(y++, LEFT_MARGIN, "%s", current->contents);
+                if (current->contents != NULL) {
+                        mvprintw(y, LEFT_MARGIN, "%s", current->contents);
+                }
+        
+                y++;
 
                 if (current->line == CURSOR_Y + 1) {
                         line_length = strlen(current->contents);

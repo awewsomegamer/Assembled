@@ -31,6 +31,9 @@ int editor_line = 0;
 int editor_column = 0;
 struct text_buffer *current_active_text_buffer = NULL;
 
+// TODO: Unable to load empty files
+//       and edit imemdiately. Make
+//       this possible.
 struct text_buffer *load_file(char *name) {
         FILE *file = fopen(name, "r+");
 
@@ -48,6 +51,10 @@ struct text_buffer *load_file(char *name) {
         struct line_list_element *cur_element = current_active_text_buffer->head;
 
         while (getline(&contents, &size, file) != -1) {
+                if (contents[strlen(contents) - 1] == '\n') {
+                        contents[strlen(contents) - 1] = 0;
+                }
+                
                 memset(cur_element, 0, sizeof(struct line_list_element));
 
                 cur_element->contents = strdup(contents);
@@ -55,15 +62,23 @@ struct text_buffer *load_file(char *name) {
                 cur_element->line = line_count++;
                 cur_element->next = (struct line_list_element *)malloc(sizeof(struct line_list_element));
                 memset(cur_element->next, 0, sizeof(struct line_list_element));
-
+                
                 free(contents);
                 contents = NULL;
-
+                
                 cur_element = cur_element->next;
         }
 
-        free(contents);
-        contents = NULL;
+        cur_element->line = line_count;
+
+        if (contents != NULL) {
+                free(contents);
+                contents = NULL;
+        }
+
+        if (current_active_text_buffer->head->contents == NULL) {
+                current_active_text_buffer->head->contents = (char *)malloc(1);
+        }
 
         fseek(file, 0, SEEK_SET);
 
