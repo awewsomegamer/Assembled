@@ -90,15 +90,17 @@ void editor() {
         if (c > -1)
                 key(c);
 
-        if (active_screen != NULL)
+        if (active_screen != NULL) {
                 active_screen->update(&current_render_context);
+        }
 }
 
 void interface() {
         erase();
 
-        if (active_screen != NULL)
+        if (active_screen != NULL) {
                 active_screen->render(&current_render_context);
+        }
         
         refresh();
 }

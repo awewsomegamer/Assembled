@@ -31,18 +31,23 @@ int editor_line = 0;
 int editor_column = 0;
 struct text_buffer *current_active_text_buffer = NULL;
 
-// ERROR: Unable to create new files
-//        and use them immeddiately.
 struct text_buffer *load_file(char *name) {
         FILE *file = fopen(name, "r+");
-
-        current_active_text_buffer = new_buffer(name, file);
 
         if (file == NULL) {
                 DEBUG_MSG("File %s does not exist, creating it\n", name);
 
                 file = fopen(name, "w+");
+
+                // TODO: Replace with a compatible assert
+                if (file == NULL) {
+                        DEBUG_MSG("Failed to open file %s, exiting\n");
+                
+                        exit(1);
+                }
         }
+
+        current_active_text_buffer = new_buffer(name, file);
         
         char *contents;
         size_t size = 0;
