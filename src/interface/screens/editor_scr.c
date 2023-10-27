@@ -37,16 +37,10 @@ static void render(struct render_context *context) {
         struct line_list_element *current = current_active_text_buffer->head;
         int y = 0;
 
-        // TODO: current->next != NULL fails
-        //       to display the last line
-        //       current != NULL causes a
-        //       segmentation fault
-        while (current->next != NULL && y < context->max_y) {
+        while (current != NULL && y < context->max_y) {
                 mvprintw(y, 0, "%d", current->line);
                 mvaddch(y, LEFT_MARGIN - 1, '|');
-                if (current->contents != NULL) {
-                        mvprintw(y, LEFT_MARGIN, "%s", current->contents);
-                }
+                mvprintw(y, LEFT_MARGIN, "%s", current->contents);
         
                 y++;
 

@@ -85,16 +85,19 @@ void save_buffer(struct text_buffer *buffer) {
         struct line_list_element *current = buffer->head;
         size_t file_size = 0;
 
-        while (current->next != NULL) {
+        while (current != NULL) {
                 fwrite(current->contents, 1, strlen(current->contents), buffer->file);
-                fputc('\n', buffer->file);
+
+                if (current->next != NULL) {
+                        fputc('\n', buffer->file);
+                }
 
                 file_size += strlen(current->contents);
 
                 current = current->next;
         }
 
-        ftruncate(fileno(buffer->file), file_size + 1);
+        ftruncate(fileno(buffer->file), file_size);
 
         DEBUG_MSG("Saved\n");
 }

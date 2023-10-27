@@ -31,18 +31,17 @@ int editor_line = 0;
 int editor_column = 0;
 struct text_buffer *current_active_text_buffer = NULL;
 
-// TODO: Unable to load empty files
-//       and edit imemdiately. Make
-//       this possible.
+// ERROR: Unable to create new files
+//        and use them immeddiately.
 struct text_buffer *load_file(char *name) {
         FILE *file = fopen(name, "r+");
 
         current_active_text_buffer = new_buffer(name, file);
 
         if (file == NULL) {
-                DEBUG_MSG("File %s does not exist, creating a new buffer\n", name);
+                DEBUG_MSG("File %s does not exist, creating it\n", name);
 
-                return current_active_text_buffer;
+                file = fopen(name, "w+");
         }
         
         char *contents;
@@ -70,6 +69,9 @@ struct text_buffer *load_file(char *name) {
         }
 
         cur_element->line = line_count;
+        cur_element->contents = (char *)malloc(1);
+        *(cur_element->contents) = 0;
+        cur_element->next = NULL;
 
         if (contents != NULL) {
                 free(contents);
