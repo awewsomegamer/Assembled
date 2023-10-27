@@ -133,9 +133,30 @@ void buffer_char_insert(char c) {
                 struct line_list_element *next_element = (struct line_list_element *)malloc(sizeof(struct line_list_element));
                 next_element->next = element->next;
 
+                // See if user pressed enter within the line
+                size_t new_line_size = strlen(element->contents) - current_active_text_buffer->cx;
+        
                 // Allocate new contents
-                char *contents = (char *)malloc(1);
-                *contents = 0;
+                char *contents = (char *)malloc(max(new_line_size, 1));
+                memset(contents, 0, max(new_line_size, 1));        
+
+                // If the user pressed enter within the line then
+                if (new_line_size > 0) {
+                        // Copy everything after the cursor to the new line
+                        strcpy(contents, element->contents + current_active_text_buffer->cx);
+
+                        // Calculate the number of characters left in this line
+                        size_t post_copy_size = strlen(element->contents) - new_line_size;
+                        char *tmp = (char *)malloc(post_copy_size);
+
+                        // Into the newly allocated buffer, copy all the characters left
+                        strncpy(tmp, element->contents, post_copy_size);
+                        // Memory Manage
+                        free(element->contents);
+
+                        // Set the contents to be to up to date
+                        element->contents = tmp;
+                }
 
                 // Set contents
                 next_element->contents = contents;
@@ -187,6 +208,10 @@ void buffer_char_insert(char c) {
 }
 
 void buffer_char_del() {
+        if (current_active_text_buffer->cx == 0 && current_active_text_buffer->cy == 0) {
+                return;
+        }
+
         struct line_list_element *element = current_active_text_buffer->head;
 
         // See if the user is aiming to remove the line
@@ -196,25 +221,36 @@ void buffer_char_del() {
                 element = element->next;
         }
 
-        // TODO: Make lines with more than one character
-        //       be stacked onto the one before it instead
-        //       of being deleted.
+        DEBUG_MSG("%d\n", (element == NULL));
+
         if (line_remove) {
                 int line = element->line + 1;
 
-                struct line_list_element *current = element->next->next;
+                struct line_list_element *line_over = element->next->next;
                 
+                int cx = -1;
+
+                // If the line has characters on it, add them to the previous line
+                if (strlen(element->next->contents) > 0) {
+                        cx = strlen(element->contents);
+
+                        size_t size = cx + strlen(element->next->contents) + 1;
+                        element->contents = (char *)realloc(element->contents, size);
+                        strcat(element->contents, element->next->contents);
+                }
+
                 free_line_list_element(element->next);
-                element->next = current;
+                
+                element->next = line_over;
 
-                while (current != NULL) {
-                        current->line = line++;
+                while (line_over != NULL) {
+                        line_over->line = line++;
 
-                        current = current->next;
+                        line_over = line_over->next;
                 }
 
                 if (current_active_text_buffer->cy < line) {
-                        (current_active_text_buffer->cx) = strlen(element->contents);
+                        (current_active_text_buffer->cx) = cx == -1 ? strlen(element->contents) : cx - 1;
                         (current_active_text_buffer->cy)--;
                 }
 
