@@ -33,12 +33,17 @@ struct line_list_element {
 };
 
 struct text_buffer {
-        char *name;
-        FILE *file;
-        int load_offset;
         int cx;
         int cy;
         struct line_list_element *head;
+};
+
+struct text_file {
+        char *name;
+        FILE *file;
+        int load_offset;
+        struct text_buffer *buffers;
+        struct text_buffer *active_buffer;
 };
 
 struct syntax_highlight {
@@ -46,8 +51,7 @@ struct syntax_highlight {
         char **symbols;
 };
 
-struct text_buffer *new_buffer(char *name, FILE *file);
-void save_buffer(struct text_buffer *buffer);
+struct text_buffer *new_buffer();
 void destroy_buffer(struct text_buffer *buffer);
 
 void buffer_char_insert(char c);

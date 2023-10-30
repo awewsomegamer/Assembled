@@ -29,9 +29,13 @@
 
 int editor_line = 0;
 int editor_column = 0;
-struct text_buffer *current_active_text_buffer = NULL;
 
-struct text_buffer *load_file(char *name) {
+struct text_file *text_files[32];
+int free_text_file = 0;
+
+struct text_file *active_text_file = NULL;
+
+struct text_file *load_file(char *name) {
         FILE *file = fopen(name, "r+");
 
         if (file == NULL) {
@@ -47,12 +51,28 @@ struct text_buffer *load_file(char *name) {
                 }
         }
 
-        current_active_text_buffer = new_buffer(name, file);
-        
+        int x = -1;
+        for (int i = 0; i < 32; i++) {
+                if (text_files[i] == NULL) {
+                        x = i;
+                        break;
+                }
+        }
+
+        if (x == -1) {
+                DEBUG_MSG("Failed to allocate a text buffer");
+                return NULL;
+        }
+
+        active_text_file = (struct text_file *)malloc(sizeof(struct text_file));
+        text_files[x] = active_text_file;
+
+
+
         char *contents;
         size_t size = 0;
         int line_count = 1;
-        struct line_list_element *cur_element = current_active_text_buffer->head;
+        struct line_list_element *cur_element = active_text_file->head;
 
         while (getline(&contents, &size, file) != -1) {
                 if (contents[strlen(contents) - 1] == '\n') {
@@ -83,13 +103,13 @@ struct text_buffer *load_file(char *name) {
                 contents = NULL;
         }
 
-        if (current_active_text_buffer->head->contents == NULL) {
-                current_active_text_buffer->head->contents = (char *)malloc(1);
+        if (active_text_file->head->contents == NULL) {
+                active_text_file->head->contents = (char *)malloc(1);
         }
 
         fseek(file, 0, SEEK_SET);
 
-        return current_active_text_buffer;
+        return active_text_file;
 }
 
 void edit_file() {

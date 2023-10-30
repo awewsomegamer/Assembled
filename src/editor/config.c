@@ -77,6 +77,7 @@ struct cfg_token *cfg_lex(FILE *file) {
         char c = 0;
         bool comment = 0;
         struct cfg_token *current = head;
+        
         while ((c = ((putback == 0) ? fgetc(file) : putback)) != EOF) {
                 putback = 0;
 

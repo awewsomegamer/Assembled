@@ -27,9 +27,9 @@
 
 extern int editor_line;
 extern int editor_column;
-extern struct text_buffer *current_active_text_buffer;
+extern struct text_file *active_text_file;
 
-struct text_buffer *load_file(char *name);
+struct text_file *load_file(char *name);
 void edit_file();
 
 struct cfg_token *init_editor(struct cfg_token *token);

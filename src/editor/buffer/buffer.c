@@ -36,75 +36,20 @@ void free_line_list_element(struct line_list_element *element) {
         free(element);
 }
 
-int allocate_buffer() {
-        for (int i = 0; i < MAX_BUFFERS; i++) {
-                if (buffers[i] == NULL) {
-                        return i;
-                }
-        }
-
-        DEBUG_MSG("Failed to allocate a text buffer\n");
-
-        return -1;
-};
-
-struct text_buffer *new_buffer(char *name, FILE *file) {
+struct text_buffer *new_buffer() {
         struct text_buffer *buffer = (struct text_buffer *)malloc(sizeof(struct text_buffer));
         memset(buffer, 0, sizeof(struct text_buffer));
 
-        buffer->name = name;
-        buffer->file = file;
         buffer->cx = 0;
         buffer->cy = 0;
-        buffer->load_offset = 0;
         
         buffer->head = (struct line_list_element *)malloc(sizeof(struct line_list_element));
         memset(buffer->head, 0, sizeof(struct line_list_element));
 
-        int i = allocate_buffer();
-
-        if (i == -1) {
-                free(buffer->head);
-                free(buffer);
-
-                return NULL;
-        }
-
-        buffers[i] = buffer;
-
         return buffer;
 }
 
-void save_buffer(struct text_buffer *buffer) {
-        // Assume current offset into file is equivalent
-        // to the first byte of the first line
-        DEBUG_MSG("Saving buffer \"%s\" to offset %d\n", buffer->name, buffer->load_offset);
-
-        fseek(buffer->file, buffer->load_offset, SEEK_SET);
-
-        struct line_list_element *current = buffer->head;
-        size_t file_size = 0;
-
-        while (current != NULL) {
-                fwrite(current->contents, 1, strlen(current->contents), buffer->file);
-
-                if (current->next != NULL) {
-                        fputc('\n', buffer->file);
-                }
-
-                file_size += strlen(current->contents);
-
-                current = current->next;
-        }
-
-        ftruncate(fileno(buffer->file), file_size);
-
-        DEBUG_MSG("Saved\n");
-}
-
 void destroy_buffer(struct text_buffer *buffer) {
-        fclose(buffer->file);
-
         struct line_list_element *current = buffer->head;
 
         while (current != NULL) {
@@ -115,6 +60,8 @@ void destroy_buffer(struct text_buffer *buffer) {
 
                 current = temp;
         }
+
+        free(buffer);
 }
 
 // Buffer is the current active buffer
@@ -122,9 +69,12 @@ void destroy_buffer(struct text_buffer *buffer) {
 // Insert character c into the current active buffer
 void buffer_char_insert(char c) {
         // Get the element at which we need to insert the buffer
-        struct line_list_element *element = current_active_text_buffer->head;
 
-        for (int i = 0; i < current_active_text_buffer->cy; i++) {
+        struct text_buffer *active_text_buffer;
+
+        struct line_list_element *element = active_text_buffer->head;
+
+        for (int i = 0; i < active_text_buffer->cy; i++) {
                 element = element->next;
         }
 
@@ -137,7 +87,7 @@ void buffer_char_insert(char c) {
                 next_element->next = element->next;
 
                 // See if user pressed enter within the line
-                size_t new_line_size = strlen(element->contents) - current_active_text_buffer->cx;
+                size_t new_line_size = strlen(element->contents) - active_text_buffer->cx;
         
                 // Allocate new contents
                 char *contents = (char *)malloc(max(new_line_size, 1));
@@ -146,7 +96,7 @@ void buffer_char_insert(char c) {
                 // If the user pressed enter within the line then
                 if (new_line_size > 0) {
                         // Copy everything after the cursor to the new line
-                        strcpy(contents, element->contents + current_active_text_buffer->cx);
+                        strcpy(contents, element->contents + active_text_buffer->cx);
 
                         // Calculate the number of characters left in this line
                         size_t post_copy_size = strlen(element->contents) - new_line_size;
@@ -178,8 +128,8 @@ void buffer_char_insert(char c) {
                 element->next = next_element;
 
                 // Increment cy and reset cx
-                (current_active_text_buffer->cy)++;
-                (current_active_text_buffer->cx) = 0; 
+                (active_text_buffer->cy)++;
+                (active_text_buffer->cx) = 0; 
 
                 break;
         }
@@ -190,37 +140,38 @@ void buffer_char_insert(char c) {
                 memset(new_string, 0, strlen(element->contents) + 2);
 
                 // Copy 0 -> cx
-                strncpy(new_string, element->contents, current_active_text_buffer->cx);
+                strncpy(new_string, element->contents, active_text_buffer->cx);
                 // Set space after first portion to new character
-                new_string[current_active_text_buffer->cx] = c;
+                new_string[active_text_buffer->cx] = c;
                 // Concatenate the last bit of the string
-                strcat(new_string, element->contents + current_active_text_buffer->cx);
+                strcat(new_string, element->contents + active_text_buffer->cx);
 
                 // Memory Manage, replace string
                 free(element->contents);
                 element->contents = new_string;
                 
                 // Move cursor
-                (current_active_text_buffer->cx)++;
+                (active_text_buffer->cx)++;
 
                 break;
         }
         }
-
-        save_buffer(current_active_text_buffer);
+        // save_buffer(active_text_buffer);
 }
 
 void buffer_char_del() {
-        if (current_active_text_buffer->cx == 0 && current_active_text_buffer->cy == 0) {
+        struct text_buffer *active_text_buffer;
+
+        if (active_text_buffer->cx == 0 && active_text_buffer->cy == 0) {
                 return;
         }
 
-        struct line_list_element *element = current_active_text_buffer->head;
+        struct line_list_element *element = active_text_buffer->head;
 
         // See if the user is aiming to remove the line
-        int line_remove = (current_active_text_buffer->cx <= 0);
+        int line_remove = (active_text_buffer->cx <= 0);
 
-        for (int i = 0; i < current_active_text_buffer->cy - line_remove; i++) {
+        for (int i = 0; i < active_text_buffer->cy - line_remove; i++) {
                 element = element->next;
         }
 
@@ -252,25 +203,25 @@ void buffer_char_del() {
                         line_over = line_over->next;
                 }
 
-                if (current_active_text_buffer->cy < line) {
-                        (current_active_text_buffer->cx) = cx == -1 ? strlen(element->contents) : cx - 1;
-                        (current_active_text_buffer->cy)--;
+                if (active_text_buffer->cy < line) {
+                        (active_text_buffer->cx) = cx == -1 ? strlen(element->contents) : cx - 1;
+                        (active_text_buffer->cy)--;
                 }
 
-                save_buffer(current_active_text_buffer);
+                // save_buffer(active_text_buffer);
 
                 return;
         }
 
         char *new_string = strdup(element->contents);
-        strncpy(new_string + current_active_text_buffer->cx -1, element->contents + current_active_text_buffer->cx, strlen(element->contents) - current_active_text_buffer->cx);
+        strncpy(new_string + active_text_buffer->cx -1, element->contents + active_text_buffer->cx, strlen(element->contents) - active_text_buffer->cx);
         new_string[strlen(new_string) - 1] = 0;
 
         free(element->contents);
 
         element->contents = new_string;
 
-        (current_active_text_buffer->cx)--;
+        (active_text_buffer->cx)--;
 
-        save_buffer(current_active_text_buffer);
+        // save_buffer(active_text_buffer);
 }
