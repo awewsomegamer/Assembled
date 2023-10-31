@@ -22,8 +22,6 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-#define MAX_BUFFERS 32
-
 #include <global.h>
 
 struct line_list_element {
@@ -34,16 +32,9 @@ struct line_list_element {
 
 struct text_buffer {
         int cx;
-        int cy;
+        int col_start;
+        int col_end;
         struct line_list_element *head;
-};
-
-struct text_file {
-        char *name;
-        FILE *file;
-        int load_offset;
-        struct text_buffer *buffers;
-        struct text_buffer *active_buffer;
 };
 
 struct syntax_highlight {
@@ -51,7 +42,7 @@ struct syntax_highlight {
         char **symbols;
 };
 
-struct text_buffer *new_buffer();
+struct text_buffer *new_buffer(int col_start, int col_end);
 void destroy_buffer(struct text_buffer *buffer);
 
 void buffer_char_insert(char c);

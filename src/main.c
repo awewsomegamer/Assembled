@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
         register_editor_screen();
 
         if (argc > 1) {
-                save_buffer(load_file(argv[1]));
+                load_file(argv[1]);
                 switch_to_screen("editor");
         } else {
                 switch_to_screen("start");

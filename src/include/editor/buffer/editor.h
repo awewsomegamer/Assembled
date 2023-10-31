@@ -22,11 +22,28 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
+#define MAX_TEXT_FILES 32
+#define MAX_COLUMNS 32
+
 #include <editor/config.h>
 #include <editor/buffer/buffer.h>
 
-extern int editor_line;
-extern int editor_column;
+struct text_file {
+        char *name;
+        FILE *file;
+        int load_offset;
+        int cy;
+        struct text_buffer **buffers;
+        struct text_buffer *active_buffer;
+};
+
+struct column_descriptor {
+        int column_count;
+        int *column_positions;
+        int delimiter;     
+};
+extern struct column_descriptor column_descriptors[];
+
 extern struct text_file *active_text_file;
 
 struct text_file *load_file(char *name);

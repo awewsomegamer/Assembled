@@ -28,21 +28,19 @@
 #include <string.h>
 #include <unistd.h>
 
-int next_free_buffer = 0;
-struct text_buffer *buffers[MAX_BUFFERS];
-
 void free_line_list_element(struct line_list_element *element) {
         free(element->contents);
         free(element);
 }
 
-struct text_buffer *new_buffer() {
+struct text_buffer *new_buffer(int col_start, int col_end) {
         struct text_buffer *buffer = (struct text_buffer *)malloc(sizeof(struct text_buffer));
         memset(buffer, 0, sizeof(struct text_buffer));
 
         buffer->cx = 0;
-        buffer->cy = 0;
-        
+        buffer->col_start = col_start;
+        buffer->col_end = col_end;
+
         buffer->head = (struct line_list_element *)malloc(sizeof(struct line_list_element));
         memset(buffer->head, 0, sizeof(struct line_list_element));
 
@@ -74,7 +72,7 @@ void buffer_char_insert(char c) {
 
         struct line_list_element *element = active_text_buffer->head;
 
-        for (int i = 0; i < active_text_buffer->cy; i++) {
+        for (int i = 0; i < active_text_file->cy; i++) {
                 element = element->next;
         }
 
@@ -128,7 +126,7 @@ void buffer_char_insert(char c) {
                 element->next = next_element;
 
                 // Increment cy and reset cx
-                (active_text_buffer->cy)++;
+                (active_text_file->cy)++;
                 (active_text_buffer->cx) = 0; 
 
                 break;
@@ -162,7 +160,7 @@ void buffer_char_insert(char c) {
 void buffer_char_del() {
         struct text_buffer *active_text_buffer;
 
-        if (active_text_buffer->cx == 0 && active_text_buffer->cy == 0) {
+        if (active_text_buffer->cx == 0 && active_text_file->cy == 0) {
                 return;
         }
 
@@ -171,7 +169,7 @@ void buffer_char_del() {
         // See if the user is aiming to remove the line
         int line_remove = (active_text_buffer->cx <= 0);
 
-        for (int i = 0; i < active_text_buffer->cy - line_remove; i++) {
+        for (int i = 0; i < active_text_file->cy - line_remove; i++) {
                 element = element->next;
         }
 
@@ -203,9 +201,9 @@ void buffer_char_del() {
                         line_over = line_over->next;
                 }
 
-                if (active_text_buffer->cy < line) {
+                if (active_text_file->cy < line) {
                         (active_text_buffer->cx) = cx == -1 ? strlen(element->contents) : cx - 1;
-                        (active_text_buffer->cy)--;
+                        (active_text_file->cy)--;
                 }
 
                 // save_buffer(active_text_buffer);

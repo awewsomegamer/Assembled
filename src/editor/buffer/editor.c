@@ -27,14 +27,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-int editor_line = 0;
-int editor_column = 0;
+struct text_file *text_files[MAX_TEXT_FILES] = { 0 };
+struct column_descriptor column_descriptors[MAX_COLUMNS] = { 0 };
 
-struct text_file *text_files[32];
 int free_text_file = 0;
 
 struct text_file *active_text_file = NULL;
 
+        int data[] = {0, 20, 40};
 struct text_file *load_file(char *name) {
         FILE *file = fopen(name, "r+");
 
@@ -51,61 +51,131 @@ struct text_file *load_file(char *name) {
                 }
         }
 
+        // Find a free space
         int x = -1;
-        for (int i = 0; i < 32; i++) {
+        for (int i = 0; i < MAX_TEXT_FILES; i++) {
                 if (text_files[i] == NULL) {
                         x = i;
                         break;
                 }
         }
 
+        // Check if there is an allocated position
         if (x == -1) {
                 DEBUG_MSG("Failed to allocate a text buffer");
                 return NULL;
         }
-
+        
+        // Allocate text file structure
         active_text_file = (struct text_file *)malloc(sizeof(struct text_file));
         text_files[x] = active_text_file;
 
+        // TEMPORARY
+        column_descriptors[0].column_count = 2;
+        column_descriptors[0].column_positions = data;
+        column_descriptors[0].delimiter = '\t';
+        // /TEMPORARY
 
+        
+        // Allocate text buffers (columns)
+        int column_count = column_descriptors[0].column_count;
+        active_text_file->buffers = (struct text_buffer **)calloc(column_count, sizeof(struct text_buffer *));
+        struct line_list_element **currents = (struct line_list_element **)calloc(column_count, sizeof(struct line_list_element *));
 
+        int prev_column = 0;
+        for (int i = 0; i < column_count; i++) {
+                struct text_buffer *buffer = new_buffer(prev_column, column_descriptors[0].column_positions[i]);
+                prev_column = column_descriptors[0].column_positions[i];
+                
+                active_text_file->buffers[i] = buffer;
+                currents[i] = buffer->head;
+        }
+
+        // Read file
         char *contents;
         size_t size = 0;
         int line_count = 1;
-        struct line_list_element *cur_element = active_text_file->head;
 
         while (getline(&contents, &size, file) != -1) {
                 if (contents[strlen(contents) - 1] == '\n') {
                         contents[strlen(contents) - 1] = 0;
                 }
                 
-                memset(cur_element, 0, sizeof(struct line_list_element));
+                int buffer = 0;
+                int prev_i = 0;
 
-                cur_element->contents = strdup(contents);
+                // TODO: If our current delimiter > column count
+                //       then continue, when we reach the end of
+                //       the line, insert the string.
+                for (int i = 0; i < strlen(contents) + 1; i++) {
+                        if (contents[i] != column_descriptors[0].delimiter && i != strlen(contents)) {
+                                continue;
+                        }
 
-                cur_element->line = line_count++;
-                cur_element->next = (struct line_list_element *)malloc(sizeof(struct line_list_element));
-                memset(cur_element->next, 0, sizeof(struct line_list_element));
-                
+                        int buffer_index = min(buffer, column_count - 1);
+
+                        // Clear memory
+                        memset(currents[buffer_index], 0, sizeof(struct line_list_element));
+
+                        // Allocate contents
+                        currents[buffer_index]->contents = (char *)malloc(i - prev_i + 1);
+                        memset(currents[buffer_index]->contents, 0, i - prev_i + 1);
+
+                        // Copy line and set line count
+                        strncpy(currents[buffer_index]->contents, contents + prev_i, (i - prev_i));
+                        currents[buffer_index]->line = line_count;
+
+                        // Allocate new line
+                        currents[buffer_index]->next = (struct line_list_element *)malloc(sizeof(struct line_list_element));
+                        memset(currents[buffer_index]->next, 0, sizeof(struct line_list_element));
+
+                        // Advance
+                        currents[buffer_index] = currents[buffer_index]->next;
+                        
+                        // Move onto next region of text
+                        prev_i = i + 1;
+
+                        // Advance to next column / buffer
+                        buffer++;
+                }
+
+                // Fill up rest of the columns
+                for (int i = buffer; i < column_count; i++) {
+                        // Allocate contents
+                        currents[i]->contents = (char *)malloc(1);
+                        *currents[i]->contents = 0;
+
+                        // Copy line and set line count
+                        currents[i]->line = line_count;
+
+                        // Allocate new line
+                        currents[i]->next = (struct line_list_element *)malloc(sizeof(struct line_list_element));
+                        memset(currents[i]->next, 0, sizeof(struct line_list_element));
+
+                        currents[i] = currents[i]->next;
+
+                }
+
+                line_count++;
+
+                // Memory Manage
                 free(contents);
                 contents = NULL;
-                
-                cur_element = cur_element->next;
         }
-
-        cur_element->line = line_count;
-        cur_element->contents = (char *)malloc(1);
-        *(cur_element->contents) = 0;
-        cur_element->next = NULL;
+        
+        for (int i = 0; i < column_count; i++) {
+                currents[i]->line = line_count;
+                currents[i]->contents = (char *)malloc(1);
+                *(currents[i]->contents) = 0;
+                currents[i]->next = NULL;
+        }
 
         if (contents != NULL) {
                 free(contents);
                 contents = NULL;
         }
 
-        if (active_text_file->head->contents == NULL) {
-                active_text_file->head->contents = (char *)malloc(1);
-        }
+        active_text_file->active_buffer = active_text_file->buffers[0];
 
         fseek(file, 0, SEEK_SET);
 

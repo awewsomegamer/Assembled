@@ -1,4 +1,4 @@
-single line
-data systems
-
-does this work?
+label:  mov rax, 0x0
+        mov rbx, 0x1
+        mov rcx, 0x2
+        mov rdx, 0x3
