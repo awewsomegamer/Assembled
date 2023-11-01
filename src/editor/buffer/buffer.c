@@ -63,12 +63,14 @@ void destroy_buffer(struct text_buffer *buffer) {
 }
 
 // Buffer is the current active buffer
+// No longer a single buffer, there are multiple.
+// New lines and line deletions have to effect all buffers
+// ^ Ties into ERROR left buffer_char_del();
 
 // Insert character c into the current active buffer
 void buffer_char_insert(char c) {
         // Get the element at which we need to insert the buffer
-
-        struct text_buffer *active_text_buffer;
+        struct text_buffer *active_text_buffer = active_text_file->active_buffer;
 
         struct line_list_element *element = active_text_buffer->head;
 
@@ -154,11 +156,11 @@ void buffer_char_insert(char c) {
                 break;
         }
         }
-        // save_buffer(active_text_buffer);
+        save_file(active_text_file);
 }
 
 void buffer_char_del() {
-        struct text_buffer *active_text_buffer;
+        struct text_buffer *active_text_buffer = active_text_file->active_buffer;
 
         if (active_text_buffer->cx == 0 && active_text_file->cy == 0) {
                 return;
@@ -175,6 +177,7 @@ void buffer_char_del() {
 
         DEBUG_MSG("%d\n", (element == NULL));
 
+	// ERROR: Lines aren't being removed
         if (line_remove) {
                 int line = element->line + 1;
 
@@ -206,7 +209,7 @@ void buffer_char_del() {
                         (active_text_file->cy)--;
                 }
 
-                // save_buffer(active_text_buffer);
+                save_file(active_text_file);
 
                 return;
         }
@@ -221,5 +224,5 @@ void buffer_char_del() {
 
         (active_text_buffer->cx)--;
 
-        // save_buffer(active_text_buffer);
+        save_file(active_text_file);
 }

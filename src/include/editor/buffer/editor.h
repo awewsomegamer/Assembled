@@ -47,6 +47,7 @@ extern struct column_descriptor column_descriptors[];
 extern struct text_file *active_text_file;
 
 struct text_file *load_file(char *name);
+void save_file(struct text_file *file);
 void edit_file();
 
 struct cfg_token *init_editor(struct cfg_token *token);

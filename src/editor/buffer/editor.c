@@ -23,9 +23,11 @@
 #include <editor/config.h>
 #include <global.h>
 #include <editor/buffer/editor.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 struct text_file *text_files[MAX_TEXT_FILES] = { 0 };
 struct column_descriptor column_descriptors[MAX_COLUMNS] = { 0 };
@@ -34,7 +36,7 @@ int free_text_file = 0;
 
 struct text_file *active_text_file = NULL;
 
-        int data[] = {0, 20, 40};
+int data[] = {0, 40};
 struct text_file *load_file(char *name) {
         FILE *file = fopen(name, "r+");
 
@@ -63,11 +65,18 @@ struct text_file *load_file(char *name) {
         // Check if there is an allocated position
         if (x == -1) {
                 DEBUG_MSG("Failed to allocate a text buffer");
+		
                 return NULL;
         }
         
         // Allocate text file structure
         active_text_file = (struct text_file *)malloc(sizeof(struct text_file));
+	memset(active_text_file, 0, sizeof(struct text_file));
+	
+	active_text_file->file = file;
+	active_text_file->name = name;
+	active_text_file->load_offset = 0;
+
         text_files[x] = active_text_file;
 
         // TEMPORARY
@@ -76,7 +85,6 @@ struct text_file *load_file(char *name) {
         column_descriptors[0].delimiter = '\t';
         // /TEMPORARY
 
-        
         // Allocate text buffers (columns)
         int column_count = column_descriptors[0].column_count;
         active_text_file->buffers = (struct text_buffer **)calloc(column_count, sizeof(struct text_buffer *));
@@ -179,7 +187,43 @@ struct text_file *load_file(char *name) {
 
         fseek(file, 0, SEEK_SET);
 
+	// Memory Manage
+	free(currents);
+
         return active_text_file;
+}
+
+void save_file(struct text_file *file) {
+	int column_count = column_descriptors[0].column_count;
+
+	struct line_list_element **currents = (struct line_list_element **)calloc(column_count, sizeof(struct line_list_element *));
+	
+	for (int i = 0; i < column_count; i++) {
+		currents[i] = file->buffers[i]->head;
+	}
+
+	size_t file_size = 0;
+
+	fseek(file->file, file->load_offset, SEEK_SET);
+
+	while (currents[0]->next != NULL) {
+		for (int i = 0; i < column_count; i++) {
+			fputs(currents[i]->contents, file->file);
+
+			if (i < column_count - 1) {
+				fputc(column_descriptors[0].delimiter, file->file);
+			}
+
+			currents[i] = currents[i]->next;
+		}
+
+		fputc('\n', file->file);
+	}
+
+	ftruncate(fileno(file->file), file_size);
+
+	// Memory Manage
+	free(currents);
 }
 
 void edit_file() {
