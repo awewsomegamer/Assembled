@@ -42,14 +42,15 @@ struct column_descriptor {
         int *column_positions;
         int delimiter;     
 };
-extern struct column_descriptor column_descriptors[];
 
 extern struct text_file *active_text_file;
+extern struct column_descriptor column_descriptors[];
+extern int current_column_descriptor;
 
 struct text_file *load_file(char *name);
 void save_file(struct text_file *file);
 void edit_file();
 
-struct cfg_token *init_editor(struct cfg_token *token);
+struct cfg_token *configure_editor(struct cfg_token *token);
 
 #endif

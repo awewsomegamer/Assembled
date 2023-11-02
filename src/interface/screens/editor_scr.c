@@ -34,12 +34,12 @@
 static int line_length = 0;
 
 static void render(struct render_context *context) {
-        for (int i = 0; i < column_descriptors[0].column_count; i++) {
+        for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
                 struct line_list_element *current = active_text_file->buffers[i]->head;
                 int y = 0;
 
                 while (current != NULL && y < context->max_y - 1) {
-			mvprintw(y, column_descriptors[0].column_positions[i], "%s", current->contents);
+			mvprintw(y, column_descriptors[current_column_descriptor].column_positions[i], "%s", current->contents);
                         y++;
 
                         current = current->next;
@@ -47,10 +47,13 @@ static void render(struct render_context *context) {
 
 		mvprintw(context->max_y - 1, 0, "EDITING (%d, %d)", CURSOR_X + 1, CURSOR_Y + 1);
 
-                if (CURSOR_X > strlen(active_text_file->active_buffer->current_element->contents)) {
-                        CURSOR_X = line_length;
-                }
         }
+
+	line_length = strlen(active_text_file->active_buffer->current_element->contents);
+
+	if (CURSOR_X > line_length) {
+		CURSOR_X = line_length;
+	}
 
         move(CURSOR_Y, CURSOR_X);
 }
@@ -82,15 +85,17 @@ static void local(int code) {
         }
 
         case LOCAL_ARROW_LEFT: {
-                if (CURSOR_X > 0)
+                if (CURSOR_X > 0) {
                         CURSOR_X--;
+		}
 
                 break;
         }
 
         case LOCAL_ARROW_RIGHT: {
-                if (CURSOR_X < line_length)
+                if (CURSOR_X < line_length) {
                         CURSOR_X++;
+		}
 
                 break;
         }

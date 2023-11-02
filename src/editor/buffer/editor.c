@@ -31,12 +31,14 @@
 
 struct text_file *text_files[MAX_TEXT_FILES] = { 0 };
 struct column_descriptor column_descriptors[MAX_COLUMNS] = { 0 };
+int current_column_descriptor = 0;
 
 int free_text_file = 0;
 
 struct text_file *active_text_file = NULL;
 
-int data[] = {0, 40};
+int default_column_definition[] = { 0 };
+
 struct text_file *load_file(char *name) {
         FILE *file = fopen(name, "r+");
 
@@ -79,21 +81,15 @@ struct text_file *load_file(char *name) {
 
         text_files[x] = active_text_file;
 
-        // TEMPORARY
-        column_descriptors[0].column_count = 2;
-        column_descriptors[0].column_positions = data;
-        column_descriptors[0].delimiter = '\t';
-        // /TEMPORARY
-
         // Allocate text buffers (columns)
-        int column_count = column_descriptors[0].column_count;
+        int column_count = column_descriptors[current_column_descriptor].column_count;
         active_text_file->buffers = (struct text_buffer **)calloc(column_count, sizeof(struct text_buffer *));
         struct line_list_element **currents = (struct line_list_element **)calloc(column_count, sizeof(struct line_list_element *));
 
         int prev_column = 0;
         for (int i = 0; i < column_count; i++) {
-                struct text_buffer *buffer = new_buffer(prev_column, column_descriptors[0].column_positions[i]);
-                prev_column = column_descriptors[0].column_positions[i];
+                struct text_buffer *buffer = new_buffer(prev_column, column_descriptors[current_column_descriptor].column_positions[i]);
+                prev_column = column_descriptors[current_column_descriptor].column_positions[i];
                 
                 active_text_file->buffers[i] = buffer;
                 currents[i] = buffer->head;
@@ -117,7 +113,7 @@ struct text_file *load_file(char *name) {
                 //       then continue, when we reach the end of
                 //       the line, insert the string.
                 for (int i = 0; i < strlen(contents) + 1; i++) {
-                        if (contents[i] != column_descriptors[0].delimiter && i != strlen(contents)) {
+                        if (contents[i] != column_descriptors[current_column_descriptor].delimiter && i != strlen(contents)) {
                                 continue;
                         }
 
@@ -167,9 +163,13 @@ struct text_file *load_file(char *name) {
                 free(contents);
                 contents = NULL;
         }
-        
 
-        for (int i = 0; (i < column_count && line_count > 1); i++) {
+	// TODO: Limit this to only happen when there is one line
+	//	 this adds the new line at the end of files, but
+	//	 it also allows the program to function.
+	//	 Have and file is not empty? Segmentation fault, but
+	//	 no segmentation fault when file is empty.
+        for (int i = 0; (i < column_count); i++) {
                 currents[i]->contents = (char *)malloc(1);
                 *(currents[i]->contents) = 0;
                 currents[i]->next = NULL;
@@ -191,7 +191,7 @@ struct text_file *load_file(char *name) {
 }
 
 void save_file(struct text_file *file) {
-	int column_count = column_descriptors[0].column_count;
+	int column_count = column_descriptors[current_column_descriptor].column_count;
 
 	struct line_list_element **currents = (struct line_list_element **)calloc(column_count, sizeof(struct line_list_element *));
 	
@@ -205,11 +205,10 @@ void save_file(struct text_file *file) {
 
 	while (currents[0] != NULL) {
 		for (int i = 0; i < column_count; i++) {
-                        DEBUG_MSG("%s\n", currents[i]->contents);
 			fputs(currents[i]->contents, file->file);
 
 			if (i < column_count - 1) {
-				fputc(column_descriptors[0].delimiter, file->file);
+				fputc(column_descriptors[current_column_descriptor].delimiter, file->file);
 			}
 
 			currents[i] = currents[i]->next;
@@ -232,6 +231,90 @@ void edit_file() {
 
 }
 
-struct cfg_token *init_editor(struct cfg_token *token) {
+struct cfg_token *configure_editor(struct cfg_token *token) {
+	// column define:[0, 1, 2, 3, 4, 5, 6]:'c':0
+	// column default:0
+	EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected keyword")
+	
+	int value = token->value;
+	
+	NEXT_TOKEN
+
+	switch (value) {
+	case CFG_LOOKUP_DEFINE: {
+		EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
+		NEXT_TOKEN
+		EXPECT_TOKEN(CFG_TOKEN_SQR, "Expected square bracket")
+		NEXT_TOKEN
+
+		size_t size = 1;
+		int *columns = (int *)malloc(sizeof(int) * size);
+
+		while (token->type != CFG_TOKEN_SQR) {
+			if (token->type == CFG_TOKEN_INT) {
+				*(columns + size - 1) = token->value;
+				columns = (int *)realloc(columns, sizeof(int) * (++size));
+			}
+
+			NEXT_TOKEN
+		}
+
+		EXPECT_TOKEN(CFG_TOKEN_SQR, "Expected square bracket")
+		
+		NEXT_TOKEN
+		EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
+		NEXT_TOKEN
+		EXPECT_TOKEN(CFG_TOKEN_INT, "Expected integer")
+
+		int delimiter = token->value;
+		
+		NEXT_TOKEN
+		EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
+		NEXT_TOKEN
+		EXPECT_TOKEN(CFG_TOKEN_INT, "Expected integer")
+		
+		int column_descriptor_i = token->value;
+
+		column_descriptors[column_descriptor_i].column_count = size;
+		column_descriptors[column_descriptor_i].column_positions = columns;
+		column_descriptors[column_descriptor_i].delimiter = delimiter;
+
+		break;
+	}
+
+	case CFG_LOOKUP_DEFAULT: {
+		EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
+		NEXT_TOKEN
+		EXPECT_TOKEN(CFG_TOKEN_INT, "Expected integer")
+
+		if (column_descriptors[token->value].column_positions == NULL) {
+			printf("Warning: default column %d is undefined, switching to a defined column\n", token->value);
+			DEBUG_MSG("Warning: default column %d is undefined, switching to a defined column\n", token->value);
+		}
+
+		current_column_descriptor = -1;
+
+		for (int i = 0; i < MAX_COLUMNS; i++) {
+			if (column_descriptors[i].column_positions != NULL) {
+				current_column_descriptor = i;
+			}
+		}
+
+		if (current_column_descriptor != -1) {
+			break;
+		}
+
+		printf("Failed to find a user defined column, defining a single column\n");
+		DEBUG_MSG("Failed to find a user defined column, defining a single column\n");
+
+		current_column_descriptor = 0;
+		column_descriptors[current_column_descriptor].column_positions = default_column_definition;
+		column_descriptors[current_column_descriptor].column_count = 1;
+		column_descriptors[current_column_descriptor].delimiter = 0;
+
+		break;
+	}
+	}
+
         return token;
 }

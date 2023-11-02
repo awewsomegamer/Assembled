@@ -25,12 +25,12 @@
 #include <global.h>
 
 #define CFG_TOKEN_EOF 0 // ''
-#define CFG_TOKEN_TAB 1 // '\t'
-#define CFG_TOKEN_COL 2 // ':'
-#define CFG_TOKEN_STR 3 // "Sdfsdfaioietuaeadfbvx"
-#define CFG_TOKEN_INT 4 // 123452
-#define CFG_TOKEN_COM 5 // ','
-#define CFG_TOKEN_KEY 6 // keyword like "keyseq" or "use" or "themes" (any string in str_lookup)
+#define CFG_TOKEN_COL 1 // ':'
+#define CFG_TOKEN_STR 2 // "Sdfsdfaioietuaeadfbvx"
+#define CFG_TOKEN_INT 3 // 123452
+#define CFG_TOKEN_COM 4 // ','
+#define CFG_TOKEN_KEY 5 // keyword like "keyseq" or "use" or "themes" (any string in str_lookup)
+#define CFG_TOKEN_SQR 6 // '[' ']'
 
 #define NEXT_TOKEN token = token->next;
 
@@ -54,16 +54,24 @@ enum STR_LOOKUP_IDXS {
         CFG_LOOKUP_BG_DISABLE,
         CFG_LOOKUP_KEYSEQ,
 	CFG_LOOKUP_LOGO_BMP,
+	CFG_LOOKUP_COLUMNS,
+	CFG_LOOKUP_DEFAULT,
+	CFG_LOOKUP_DEFINE,
+	CFG_LOOKUP_INCLUDE,
 };
 
 static const char *str_lookup[] = {
-        [CFG_LOOKUP_KEYBOARD]    = "keyboard",
-        [CFG_LOOKUP_START_SCR]   = "start_screen",
-        [CFG_LOOKUP_THEMES]      = "themes",
-        [CFG_LOOKUP_USE]         = "use",
-        [CFG_LOOKUP_BG_DISABLE]  = "background_disable",
-        [CFG_LOOKUP_KEYSEQ]      = "keyseq",
-	[CFG_LOOKUP_LOGO_BMP]    = "logo_bmp",
+        [CFG_LOOKUP_KEYBOARD]   = "keyboard",
+        [CFG_LOOKUP_START_SCR]  = "start_screen",
+        [CFG_LOOKUP_THEMES]     = "themes",
+        [CFG_LOOKUP_USE]        = "use",
+        [CFG_LOOKUP_BG_DISABLE] = "background_disable",
+        [CFG_LOOKUP_KEYSEQ]     = "keyseq",
+	[CFG_LOOKUP_LOGO_BMP]   = "logo_bmp",
+	[CFG_LOOKUP_COLUMNS]  	= "columns",
+	[CFG_LOOKUP_DEFAULT] 	= "default",
+	[CFG_LOOKUP_DEFINE]	= "define",
+	[CFG_LOOKUP_INCLUDE]	= "include",
 };
 
 struct cfg_token {

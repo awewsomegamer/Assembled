@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "editor/buffer/editor.h"
 #include <global.h>
 #include <interface/interface.h>
 #include <curses.h>
@@ -46,10 +47,41 @@ static void enter() {
         active_screen->local(LOCAL_ENTER);
 }
 
+// TODO: Optimize
+static void buffer_left() {
+	int i = 0;
+
+	for (; i < column_descriptors[current_column_descriptor].column_count; i++) {
+		if (active_text_file->buffers[i] == active_text_file->active_buffer) {
+			break;
+		}
+	}
+
+	if (i + 1 < column_descriptors[current_column_descriptor].column_count) { 
+		active_text_file->active_buffer = active_text_file->buffers[i + 1];
+	}
+}
+
+static void buffer_right() {
+	int i = 0;
+
+	for (; i < column_descriptors[current_column_descriptor].column_count; i++) {
+		if (active_text_file->buffers[i] == active_text_file->active_buffer) {
+			break;
+		}
+	}
+
+	if (i - 1 > 0) {
+		active_text_file->active_buffer = active_text_file->buffers[i - 1];
+	}
+}
+
 void (*functions[MAX_FUNCTION_COUNT])() = {
         [UP_IDX] = cursor_up,
         [DOWN_IDX] = cursor_down,
         [LEFT_IDX] = cursor_left,
         [RIGHT_IDX] = cursor_right,
         [ENTER_IDX] = enter,
+	[BUFFER_LEFT_IDX] = buffer_left,
+	[BUFFER_RIGHT_IDX] = buffer_right,
 };

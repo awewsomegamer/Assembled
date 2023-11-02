@@ -79,7 +79,7 @@ void buffer_char_insert(char c) {
         // Check for special cases
         switch (c) {
         case '\n': {
-                for (int i = 0; i < column_descriptors[0].column_count; i++) {
+                for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
                         if (active_text_file->buffers[i] != active_text_buffer) {
                                 struct line_list_element *tmp = active_text_file->buffers[i]->current_element;
 

@@ -109,6 +109,8 @@ void terminate(int signal) {
         running = 0;
 }
 
+// TODO: Implement a SIGINT handler in order
+//	 to quickly blit data to a file
 int main(int argc, char **argv) {
         DEBUG_CODE( debug_log_file = fopen("debug.log", "w"); )
 
