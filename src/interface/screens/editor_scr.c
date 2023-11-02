@@ -30,7 +30,6 @@
 
 #define CURSOR_X (active_text_file->active_buffer->cx)
 #define CURSOR_Y (active_text_file->cy)
-#define LEFT_MARGIN 5
 
 static int line_length = 0;
 
@@ -39,28 +38,21 @@ static void render(struct render_context *context) {
                 struct line_list_element *current = active_text_file->buffers[i]->head;
                 int y = 0;
 
-                while (current != NULL && y < context->max_y) {
-			mvprintw(y, 0, "%d", current->line);
-			mvprintw(y, 4, "|");
-			
-			mvprintw(y, column_descriptors[0].column_positions[i] + LEFT_MARGIN, "%s", current->contents);
+                while (current != NULL && y < context->max_y - 1) {
+			mvprintw(y, column_descriptors[0].column_positions[i], "%s", current->contents);
                         y++;
-
-                        if (current->line == CURSOR_Y + 1 && active_text_file->buffers[i] == active_text_file->active_buffer) {
-                                line_length = strlen(current->contents);
-                        }
 
                         current = current->next;
                 }
 
-		mvprintw(5, 50, "(%d, %d, %d)", CURSOR_X, CURSOR_Y + 1, line_length);
+		mvprintw(context->max_y - 1, 0, "EDITING (%d, %d)", CURSOR_X + 1, CURSOR_Y + 1);
 
-                if (CURSOR_X > line_length) {
+                if (CURSOR_X > strlen(active_text_file->active_buffer->current_element->contents)) {
                         CURSOR_X = line_length;
                 }
         }
 
-        move(CURSOR_Y, CURSOR_X + LEFT_MARGIN);
+        move(CURSOR_Y, CURSOR_X);
 }
 
 static void update(struct render_context *context) {
@@ -68,15 +60,23 @@ static void update(struct render_context *context) {
 }
 
 static void local(int code) {
+        struct line_list_element *current = active_text_file->active_buffer->current_element;
+
         switch (code) {
         case LOCAL_ARROW_UP: {
-                CURSOR_Y--;
+                if (current->prev != NULL) {
+                        active_text_file->active_buffer->current_element = current->prev;
+                        CURSOR_Y--;
+                }
 
                 break;
         }
 
         case LOCAL_ARROW_DOWN: {
-                CURSOR_Y++;
+                if (current->next != NULL) {
+                        active_text_file->active_buffer->current_element = current->next;
+                        CURSOR_Y++;
+                }
 
                 break;
         }

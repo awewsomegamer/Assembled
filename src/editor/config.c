@@ -250,6 +250,7 @@ int read_config() {
         }
         DEBUG_MSG("List end\n");
 
+        // Memory Manage
         free(path);
         fclose(file);
 

@@ -47,7 +47,7 @@ struct text_file *load_file(char *name) {
 
                 // TODO: Replace with a compatible assert
                 if (file == NULL) {
-                        DEBUG_MSG("Failed to open file %s, exiting\n");
+                        DEBUG_MSG("Failed to open file %s, exiting\n", name);
                 
                         exit(1);
                 }
@@ -97,6 +97,7 @@ struct text_file *load_file(char *name) {
                 
                 active_text_file->buffers[i] = buffer;
                 currents[i] = buffer->head;
+                buffer->current_element = currents[i];
         }
 
         // Read file
@@ -109,7 +110,7 @@ struct text_file *load_file(char *name) {
                         contents[strlen(contents) - 1] = 0;
                 }
                 
-                int buffer = 0;
+                int element = 0;
                 int prev_i = 0;
 
                 // TODO: If our current delimiter > column count
@@ -120,46 +121,42 @@ struct text_file *load_file(char *name) {
                                 continue;
                         }
 
-                        int buffer_index = min(buffer, column_count - 1);
-
-                        // Clear memory
-                        memset(currents[buffer_index], 0, sizeof(struct line_list_element));
+                        int element_index = min(element, column_count - 1);
 
                         // Allocate contents
-                        currents[buffer_index]->contents = (char *)malloc(i - prev_i + 1);
-                        memset(currents[buffer_index]->contents, 0, i - prev_i + 1);
+                        currents[element_index]->contents = (char *)malloc(i - prev_i + 1);
+                        memset(currents[element_index]->contents, 0, i - prev_i + 1);
 
-                        // Copy line and set line count
-                        strncpy(currents[buffer_index]->contents, contents + prev_i, (i - prev_i));
-                        currents[buffer_index]->line = line_count;
+                        // Copy line
+                        strncpy(currents[element_index]->contents, contents + prev_i, (i - prev_i));
 
                         // Allocate new line
-                        currents[buffer_index]->next = (struct line_list_element *)malloc(sizeof(struct line_list_element));
-                        memset(currents[buffer_index]->next, 0, sizeof(struct line_list_element));
+                        currents[element_index]->next = (struct line_list_element *)malloc(sizeof(struct line_list_element));
+                        memset(currents[element_index]->next, 0, sizeof(struct line_list_element));
 
                         // Advance
-                        currents[buffer_index] = currents[buffer_index]->next;
+                        currents[element_index]->next->prev = currents[element_index];
+                        currents[element_index] = currents[element_index]->next;
                         
                         // Move onto next region of text
                         prev_i = i + 1;
 
                         // Advance to next column / buffer
-                        buffer++;
+                        element++;
                 }
 
                 // Fill up rest of the columns
-                for (int i = buffer; i < column_count; i++) {
+
+                for (int i = element; i < column_count; i++) {
                         // Allocate contents
                         currents[i]->contents = (char *)malloc(1);
                         *currents[i]->contents = 0;
-
-                        // Copy line and set line count
-                        currents[i]->line = line_count;
 
                         // Allocate new line
                         currents[i]->next = (struct line_list_element *)malloc(sizeof(struct line_list_element));
                         memset(currents[i]->next, 0, sizeof(struct line_list_element));
 
+                        currents[i]->next->prev = currents[i];
                         currents[i] = currents[i]->next;
 
                 }
@@ -171,8 +168,8 @@ struct text_file *load_file(char *name) {
                 contents = NULL;
         }
         
-        for (int i = 0; i < column_count; i++) {
-                currents[i]->line = line_count;
+
+        for (int i = 0; (i < column_count && line_count > 1); i++) {
                 currents[i]->contents = (char *)malloc(1);
                 *(currents[i]->contents) = 0;
                 currents[i]->next = NULL;
@@ -206,8 +203,9 @@ void save_file(struct text_file *file) {
 
 	fseek(file->file, file->load_offset, SEEK_SET);
 
-	while (currents[0]->next != NULL) {
+	while (currents[0] != NULL) {
 		for (int i = 0; i < column_count; i++) {
+                        DEBUG_MSG("%s\n", currents[i]->contents);
 			fputs(currents[i]->contents, file->file);
 
 			if (i < column_count - 1) {
@@ -216,8 +214,12 @@ void save_file(struct text_file *file) {
 
 			currents[i] = currents[i]->next;
 		}
-
-		fputc('\n', file->file);
+                
+                // BUG: Extraneous new line is being added.
+                //      Stop that.
+                if (currents[0] != NULL) {
+		        fputc('\n', file->file);
+                }
 	}
 
 	ftruncate(fileno(file->file), file_size);

@@ -26,8 +26,8 @@
 
 struct line_list_element {
         char *contents;
-        int line;
         struct line_list_element *next;
+        struct line_list_element *prev;
 };
 
 struct text_buffer {
@@ -35,6 +35,7 @@ struct text_buffer {
         int col_start;
         int col_end;
         struct line_list_element *head;
+        struct line_list_element *current_element;
 };
 
 struct syntax_highlight {
