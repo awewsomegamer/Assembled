@@ -33,9 +33,17 @@
 
 static int line_length = 0;
 
+static int differential = 0;
+static int offset = 0;
+
 static void render(struct render_context *context) {
         for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
                 struct line_list_element *current = active_text_file->buffers[i]->head;
+
+		for (int j = 0; j < offset; j++) {
+			current = current->next;
+		}
+
                 int y = 0;
 
                 while (current != NULL && y < context->max_y - 1) {
@@ -44,10 +52,9 @@ static void render(struct render_context *context) {
 
                         current = current->next;
                 }
-
-		mvprintw(context->max_y - 1, 0, "EDITING (%d, %d)", CURSOR_X + 1, CURSOR_Y + 1);
-
         }
+
+	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d)", CURSOR_Y + 1, CURSOR_X + 1);
 
 	line_length = strlen(active_text_file->active_buffer->current_element->contents);
 
@@ -55,33 +62,59 @@ static void render(struct render_context *context) {
 		CURSOR_X = line_length;
 	}
 
-        move(CURSOR_Y, CURSOR_X);
+        move(CURSOR_Y - offset, CURSOR_X);
 }
 
 static void update(struct render_context *context) {
-
+	if (differential > context->max_y - 2) {
+		differential = context->max_y - 2;
+		offset++;
+	} else if (differential < 0) {
+		differential = 0;
+		offset = max(--offset, 0);
+	}
 }
 
 static void local(int code) {
-        struct line_list_element *current = active_text_file->active_buffer->current_element;
-
         switch (code) {
         case LOCAL_ARROW_UP: {
-                if (current->prev != NULL) {
-                        active_text_file->active_buffer->current_element = current->prev;
-                        CURSOR_Y--;
-                }
+		bool moved = 0;
+
+		for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
+        		struct line_list_element *current = active_text_file->buffers[i]->current_element;
+			
+			if (current->prev != NULL) {
+				active_text_file->buffers[i]->current_element = current->prev;
+				moved = 1;
+			}
+		}
+
+		if (CURSOR_Y > 0 && moved) {
+			CURSOR_Y--;
+			differential--;
+		}
 
                 break;
         }
 
         case LOCAL_ARROW_DOWN: {
-                if (current->next != NULL) {
-                        active_text_file->active_buffer->current_element = current->next;
-                        CURSOR_Y++;
-                }
+		bool moved = 0;
 
-                break;
+                for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
+        		struct line_list_element *current = active_text_file->buffers[i]->current_element;
+			
+			if (current->next != NULL) {
+				active_text_file->buffers[i]->current_element = current->next;
+				moved = 1;
+			}
+		}
+
+		if (moved) {
+			CURSOR_Y++;
+			differential++;
+		}
+
+		break;
         }
 
         case LOCAL_ARROW_LEFT: {
@@ -99,6 +132,14 @@ static void local(int code) {
 
                 break;
         }
+	
+	// TODO: When new lines are inserted, buffer
+	//	 desync is experienced.
+	case LOCAL_ENTER: {
+		buffer_char_insert('\n');
+		
+		differential++;
+	}
         }
 }
 

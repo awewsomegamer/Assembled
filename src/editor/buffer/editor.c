@@ -102,6 +102,10 @@ struct text_file *load_file(char *name) {
         int line_count = 1;
 
         while (getline(&contents, &size, file) != -1) {
+		if (size < 0) {
+			break;
+		}
+
                 if (contents[strlen(contents) - 1] == '\n') {
                         contents[strlen(contents) - 1] = 0;
                 }

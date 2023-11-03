@@ -71,6 +71,10 @@ void destroy_buffer(struct text_buffer *buffer) {
 // Buffer is the current active buffer
 
 // Insert character c into the current active buffer
+// TODO: Update the current element across
+//	 all buffers
+// TODO: New lines cannot be initiated on the first
+//	 line, fix this
 void buffer_char_insert(char c) {
         // Get the element at which we need to insert the buffer
         struct text_buffer *active_text_buffer = active_text_file->active_buffer;
@@ -177,6 +181,8 @@ void buffer_char_insert(char c) {
         save_file(active_text_file);
 }
 
+// TODO: Update the current element across
+//	 all buffers
 void buffer_char_del() {
         // Get the element at which we need to insert the buffer
         struct text_buffer *active_text_buffer = active_text_file->active_buffer;
@@ -216,7 +222,11 @@ void buffer_char_del() {
 
                 // Update cursor
                 (active_text_buffer->cx) = cx == -1 ? strlen(element->contents) : cx - 1;
-                (active_text_file->cy)--;
+		(active_text_file->cy)--;
+
+		if (active_text_buffer->cx < 0) {
+			active_text_buffer->cx = 0;
+		}
 
                 // Manage
                 active_text_buffer->current_element = element;
