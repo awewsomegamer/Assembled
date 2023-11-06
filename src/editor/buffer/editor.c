@@ -87,6 +87,7 @@ struct text_file *load_file(char *name) {
         struct line_list_element **currents = (struct line_list_element **)calloc(column_count, sizeof(struct line_list_element *));
 
         int prev_column = 0;
+
         for (int i = 0; i < column_count; i++) {
                 struct text_buffer *buffer = new_buffer(prev_column, column_descriptors[current_column_descriptor].column_positions[i]);
                 prev_column = column_descriptors[current_column_descriptor].column_positions[i];
@@ -113,13 +114,17 @@ struct text_file *load_file(char *name) {
                 int element = 0;
                 int prev_i = 0;
 
-                // TODO: If our current delimiter > column count
-                //       then continue, when we reach the end of
-                //       the line, insert the string.
                 for (int i = 0; i < strlen(contents) + 1; i++) {
+			if (element == column_count - 2) {
+				i = strlen(contents) + 1;
+				goto read_column;
+			}
+
                         if (contents[i] != column_descriptors[current_column_descriptor].delimiter && i != strlen(contents)) {
                                 continue;
                         }
+
+			read_column:;
 
                         int element_index = min(element, column_count - 1);
 
@@ -195,6 +200,8 @@ struct text_file *load_file(char *name) {
 }
 
 void save_file(struct text_file *file) {
+	DEBUG_MSG("Saving file %s\n", file->name);
+
 	int column_count = column_descriptors[current_column_descriptor].column_count;
 
 	struct line_list_element **currents = (struct line_list_element **)calloc(column_count, sizeof(struct line_list_element *));
@@ -231,6 +238,33 @@ void save_file(struct text_file *file) {
 	free(currents);
 }
 
+void save_all() {
+	DEBUG_MSG("Saving all text files\n");
+
+	for (int i = 0; i < MAX_TEXT_FILES; i++) {
+		save_file(text_files[i]);
+	}
+}
+
+void destroy_file(struct text_file *file) {
+	fclose(file->file);
+	
+	for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
+		destroy_buffer(file->buffers[i]);
+	}
+
+	free(file->name);
+	free(file);
+}
+
+void destroy_all_files() {
+	DEBUG_MSG("Destroying all text files\n");
+
+	for (int i = 0; i < MAX_TEXT_FILES; i++) {
+		destroy_file(text_files[i]);
+	}
+}
+
 void edit_file() {
 
 }
@@ -262,6 +296,10 @@ struct cfg_token *configure_editor(struct cfg_token *token) {
 
 			NEXT_TOKEN
 		}
+		
+		// Remove extra on the end
+		size--;
+		columns = (int *)realloc(columns, sizeof(int) * (size));
 
 		EXPECT_TOKEN(CFG_TOKEN_SQR, "Expected square bracket")
 		

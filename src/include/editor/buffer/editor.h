@@ -35,6 +35,7 @@ struct text_file {
         int cy;
         struct text_buffer **buffers;
         struct text_buffer *active_buffer;
+	int active_buffer_idx;
 };
 
 struct column_descriptor {
@@ -49,6 +50,7 @@ extern int current_column_descriptor;
 
 struct text_file *load_file(char *name);
 void save_file(struct text_file *file);
+void save_all();
 void edit_file();
 
 struct cfg_token *configure_editor(struct cfg_token *token);

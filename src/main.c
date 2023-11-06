@@ -106,7 +106,9 @@ void interface() {
 }
 
 void terminate(int signal) {
-        running = 0;
+	save_all();
+
+	running = 0;
 }
 
 // TODO: Implement a SIGINT handler in order

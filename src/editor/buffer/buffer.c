@@ -71,10 +71,6 @@ void destroy_buffer(struct text_buffer *buffer) {
 // Buffer is the current active buffer
 
 // Insert character c into the current active buffer
-// TODO: Update the current element across
-//	 all buffers
-// TODO: New lines cannot be initiated on the first
-//	 line, fix this
 void buffer_char_insert(char c) {
         // Get the element at which we need to insert the buffer
         struct text_buffer *active_text_buffer = active_text_file->active_buffer;
@@ -100,6 +96,8 @@ void buffer_char_insert(char c) {
                                 }
 
                                 tmp->next = new_element;
+
+				active_text_file->buffers[i]->current_element = new_element;
                         }
                 }
 
@@ -181,8 +179,6 @@ void buffer_char_insert(char c) {
         save_file(active_text_file);
 }
 
-// TODO: Update the current element across
-//	 all buffers
 void buffer_char_del() {
         // Get the element at which we need to insert the buffer
         struct text_buffer *active_text_buffer = active_text_file->active_buffer;
@@ -196,40 +192,45 @@ void buffer_char_del() {
 
         // Remove a line
         if (active_text_buffer->cx <= 0) {
-                struct line_list_element *line_over = element->next;
-                element = element->prev;
-                
-                int cx = -1;
+		for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
+			element = active_text_file->buffers[i]->current_element;
 
-                // If the line has characters on it, add them to the previous line
-                if (strlen(element->next->contents) > 0) {
-                        cx = strlen(element->contents);
+			struct line_list_element *line_over = element->next;
+			element = element->prev;
+			
+			int cx = -1;
 
-                        size_t size = cx + strlen(element->next->contents) + 1;
-                        element->contents = (char *)realloc(element->contents, size);
-                        strcat(element->contents, element->next->contents);
-                }
+			// If the line has characters on it, add them to the previous line
+			if (strlen(element->next->contents) > 0) {
+				cx = strlen(element->contents);
 
-                // Memory Manage
-                free_line_list_element(element->next);
-                
-                // Update links
-                element->next = line_over;
+				size_t size = cx + strlen(element->next->contents) + 1;
+				element->contents = (char *)realloc(element->contents, size);
+				strcat(element->contents, element->next->contents);
+			}
 
-                if (line_over != NULL) {
-                        line_over->prev = element;
-                }
+			// Memory Manage
+			free_line_list_element(element->next);
+			
+			// Update links
+			element->next = line_over;
 
-                // Update cursor
-                (active_text_buffer->cx) = cx == -1 ? strlen(element->contents) : cx - 1;
-		(active_text_file->cy)--;
+			if (line_over != NULL) {
+				line_over->prev = element;
+			}
 
-		if (active_text_buffer->cx < 0) {
-			active_text_buffer->cx = 0;
+			// Update cursor
+			(active_text_file->buffers[i]->cx) = cx == -1 ? strlen(element->contents) : cx - 1;
+
+			if (active_text_file->buffers[i]->cx < 0) {
+				active_text_file->buffers[i]->cx = 0;
+			}
+
+			// Manage
+			active_text_file->buffers[i]->current_element = element;
 		}
 
-                // Manage
-                active_text_buffer->current_element = element;
+		(active_text_file->cy)--;
 
                 // Temporary save
                 save_file(active_text_file);

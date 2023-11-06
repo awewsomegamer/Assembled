@@ -47,32 +47,21 @@ static void enter() {
         active_screen->local(LOCAL_ENTER);
 }
 
-// TODO: Optimize
 static void buffer_left() {
-	int i = 0;
+	int i = active_text_file->active_buffer_idx;
 
-	for (; i < column_descriptors[current_column_descriptor].column_count; i++) {
-		if (active_text_file->buffers[i] == active_text_file->active_buffer) {
-			break;
-		}
-	}
-
-	if (i + 1 < column_descriptors[current_column_descriptor].column_count) { 
-		active_text_file->active_buffer = active_text_file->buffers[i + 1];
+	if (i - 1 >= 0) {
+		active_text_file->active_buffer = active_text_file->buffers[i - 1];
+		(active_text_file->active_buffer_idx)--;
 	}
 }
 
 static void buffer_right() {
-	int i = 0;
+	int i = active_text_file->active_buffer_idx;
 
-	for (; i < column_descriptors[current_column_descriptor].column_count; i++) {
-		if (active_text_file->buffers[i] == active_text_file->active_buffer) {
-			break;
-		}
-	}
-
-	if (i - 1 > 0) {
-		active_text_file->active_buffer = active_text_file->buffers[i - 1];
+	if (i + 1 < column_descriptors[current_column_descriptor].column_count) { 
+		active_text_file->active_buffer = active_text_file->buffers[i + 1];
+		(active_text_file->active_buffer_idx)++;
 	}
 }
 

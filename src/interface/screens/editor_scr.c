@@ -36,8 +36,15 @@ static int line_length = 0;
 static int differential = 0;
 static int offset = 0;
 
+// TODO: Line wrapping
 static void render(struct render_context *context) {
-        for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
+	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
+	// Line wrapping variables.
+	// Line wrapping makes everything messy.
+	int xoff = 0;
+	int yoff = 0;
+
+        for (int i = 0; i < descriptor.column_count; i++) {
                 struct line_list_element *current = active_text_file->buffers[i]->head;
 
 		for (int j = 0; j < offset; j++) {
@@ -45,16 +52,32 @@ static void render(struct render_context *context) {
 		}
 
                 int y = 0;
+		int max_length = context->max_x - descriptor.column_positions[i];
+
+		if (i + 1 < descriptor.column_count) {
+			max_length = descriptor.column_positions[i + 1] - descriptor.column_positions[i];
+		}
 
                 while (current != NULL && y < context->max_y - 1) {
-			mvprintw(y, column_descriptors[current_column_descriptor].column_positions[i], "%s", current->contents);
-                        y++;
+			if (strlen(current->contents) > max_length) {
+				int count = (strlen(current->contents) / max_length) + 1;
+
+				for (int x = 0; x < count; x++) {
+					mvprintw(y++, descriptor.column_positions[i], "%.*s", max_length, current->contents + (max_length * x));
+				}
+				
+				yoff += strlen(current->contents) / max_length;
+				xoff -= max_length * (count - 1);
+			} else {
+				mvprintw(y++, descriptor.column_positions[i], "%.*s", max_length, current->contents);
+			}
 
                         current = current->next;
                 }
+
         }
 
-	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d)", CURSOR_Y + 1, CURSOR_X + 1);
+	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d)", CURSOR_Y + yoff + 1, CURSOR_X + xoff + 1);
 
 	line_length = strlen(active_text_file->active_buffer->current_element->contents);
 
@@ -62,7 +85,7 @@ static void render(struct render_context *context) {
 		CURSOR_X = line_length;
 	}
 
-        move(CURSOR_Y - offset, CURSOR_X);
+        move(CURSOR_Y - offset + yoff, CURSOR_X + xoff + descriptor.column_positions[active_text_file->active_buffer_idx]);
 }
 
 static void update(struct render_context *context) {
@@ -75,12 +98,15 @@ static void update(struct render_context *context) {
 	}
 }
 
+// TODO: Scrolling is broken, can't go up
 static void local(int code) {
+	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
+
         switch (code) {
         case LOCAL_ARROW_UP: {
 		bool moved = 0;
 
-		for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
+		for (int i = 0; i < descriptor.column_count; i++) {
         		struct line_list_element *current = active_text_file->buffers[i]->current_element;
 			
 			if (current->prev != NULL) {
@@ -100,7 +126,7 @@ static void local(int code) {
         case LOCAL_ARROW_DOWN: {
 		bool moved = 0;
 
-                for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
+                for (int i = 0; i < descriptor.column_count; i++) {
         		struct line_list_element *current = active_text_file->buffers[i]->current_element;
 			
 			if (current->next != NULL) {
