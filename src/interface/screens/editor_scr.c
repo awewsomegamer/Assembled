@@ -143,12 +143,16 @@ static void local(int code) {
                 break;
         }
 	
-	// TODO: When new lines are inserted, buffer
-	//	 desync is experienced.
-	case LOCAL_ENTER: {
-		buffer_char_insert('\n');
-		
+	case LOCAL_LINE_INSERT: {
 		differential++;
+
+		break;
+	}
+
+	case LOCAL_LINE_DELETION: {
+		differential--;
+
+		break;
 	}
         }
 }

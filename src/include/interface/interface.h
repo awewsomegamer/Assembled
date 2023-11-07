@@ -32,6 +32,8 @@
 #define LOCAL_ARROW_LEFT        2
 #define LOCAL_ARROW_RIGHT       3
 #define LOCAL_ENTER             4
+#define LOCAL_LINE_INSERT	5
+#define LOCAL_LINE_DELETION	6
 
 struct bound {
         int x;                  // Starting X

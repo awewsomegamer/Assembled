@@ -20,6 +20,7 @@
 */
 
 #include "editor/buffer/editor.h"
+#include "interface/interface.h"
 #include <ctype.h>
 #include <editor/buffer/buffer.h>
 #include <global.h>
@@ -75,9 +76,6 @@ void destroy_buffer(struct text_buffer *buffer) {
 // ERROR: New lines sometimes result in leaks 
 //	  (random characters on a string due
 //	   a lack of a zero terminator)
-// ERROR: New lines sometimes split the lines
-//	  where one column goes down, and the
-//	  others stay behind
 void buffer_char_insert(char c) {
         // Get the element at which we need to insert the buffer
         struct text_buffer *active_text_buffer = active_text_file->active_buffer;
@@ -87,25 +85,42 @@ void buffer_char_insert(char c) {
         switch (c) {
         case '\n': {
                 for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
-                        if (active_text_file->buffers[i] != active_text_buffer) {
-                                struct line_list_element *tmp = active_text_file->buffers[i]->current_element;
+                        if (active_text_file->buffers[i] == active_text_buffer) {
+				continue;
+			}
 
-                                struct line_list_element *new_element = (struct line_list_element *)malloc(sizeof(struct line_list_element));
+			struct line_list_element *tmp = active_text_file->buffers[i]->current_element;
 
-                                new_element->contents = (char *)malloc(1);
-                                *(new_element->contents) = 0;
+			struct line_list_element *new_element = (struct line_list_element *)malloc(sizeof(struct line_list_element));
 
-                                new_element->next = tmp->next;
-                                new_element->prev = tmp;
-                                
-                                if (tmp->next != NULL) {
-                                        tmp->next->prev = new_element;
-                                }
+			new_element->contents = (char *)malloc(1);
+			*(new_element->contents) = 0;
 
-                                tmp->next = new_element;
+			if (active_text_buffer->cx > 0) {
+				new_element->next = tmp->next;
+				new_element->prev = tmp;
+				
+				if (tmp->next != NULL) {
+					tmp->next->prev = new_element;
+				}
 
-				active_text_file->buffers[i]->current_element = new_element;
-                        }
+				tmp->next = new_element;
+			} else {
+				new_element->next = tmp;
+				new_element->prev = tmp->prev;
+
+				if (tmp->prev != NULL) {
+					tmp->prev->next = new_element;
+				}
+
+				tmp->prev = new_element;
+
+				if (tmp == active_text_file->buffers[i]->head) {
+					active_text_file->buffers[i]->head = new_element;
+				}
+			}
+
+			active_text_file->buffers[i]->current_element = active_text_buffer->cx > 0 ? new_element : tmp;  
                 }
 
                 // Create new element
@@ -155,6 +170,8 @@ void buffer_char_insert(char c) {
 
                 // Manage
                 active_text_buffer->current_element = next_element;
+
+		active_screen->local(LOCAL_LINE_INSERT);
 
                 break;
         }
@@ -238,6 +255,8 @@ void buffer_char_del() {
 		}
 
 		(active_text_file->cy)--;
+
+		active_screen->local(LOCAL_LINE_DELETION);
 
                 // Temporary save
                 save_file(active_text_file);
