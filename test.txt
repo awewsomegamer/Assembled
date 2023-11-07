@@ -1,0 +1,5 @@
+		
+p+V	equ 0xE85250D6	
+MAGIC		
+ARCH	equ 0	
+		

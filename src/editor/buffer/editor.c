@@ -115,7 +115,7 @@ struct text_file *load_file(char *name) {
                 int prev_i = 0;
 
                 for (int i = 0; i < strlen(contents) + 1; i++) {
-			if (element == column_count - 2) {
+			if (element == column_count - 1) {
 				i = strlen(contents) + 1;
 				goto read_column;
 			}
@@ -151,7 +151,6 @@ struct text_file *load_file(char *name) {
                 }
 
                 // Fill up rest of the columns
-
                 for (int i = element; i < column_count; i++) {
                         // Allocate contents
                         currents[i]->contents = (char *)malloc(1);
@@ -163,7 +162,6 @@ struct text_file *load_file(char *name) {
 
                         currents[i]->next->prev = currents[i];
                         currents[i] = currents[i]->next;
-
                 }
 
                 line_count++;
@@ -173,16 +171,18 @@ struct text_file *load_file(char *name) {
                 contents = NULL;
         }
 
-	// TODO: Limit this to only happen when there is one line
-	//	 this adds the new line at the end of files, but
-	//	 it also allows the program to function.
-	//	 Have and file is not empty? Segmentation fault, but
-	//	 no segmentation fault when file is empty.
-        for (int i = 0; (i < column_count); i++) {
-                currents[i]->contents = (char *)malloc(1);
-                *(currents[i]->contents) = 0;
-                currents[i]->next = NULL;
-        }
+	if (line_count <= 1) {
+		for (int i = 0; (i < column_count); i++) {
+			currents[i]->contents = (char *)malloc(1);
+			*(currents[i]->contents) = 0;
+			currents[i]->next = NULL;
+		}
+	} else {
+		for (int i = 0; (i < column_count); i++) {
+			currents[i]->prev->next = NULL;
+			free(currents[i]);
+		}
+	}
 
         if (contents != NULL) {
                 free(contents);
@@ -200,6 +200,10 @@ struct text_file *load_file(char *name) {
 }
 
 void save_file(struct text_file *file) {
+	if (file == NULL) {
+		return;
+	}
+
 	DEBUG_MSG("Saving file %s\n", file->name);
 
 	int column_count = column_descriptors[current_column_descriptor].column_count;
@@ -216,7 +220,9 @@ void save_file(struct text_file *file) {
 
 	while (currents[0] != NULL) {
 		for (int i = 0; i < column_count; i++) {
-			fputs(currents[i]->contents, file->file);
+			if (currents[i]->contents != NULL) {
+				fputs(currents[i]->contents, file->file);
+			}
 
 			if (i < column_count - 1) {
 				fputc(column_descriptors[current_column_descriptor].delimiter, file->file);
@@ -225,8 +231,6 @@ void save_file(struct text_file *file) {
 			currents[i] = currents[i]->next;
 		}
                 
-                // BUG: Extraneous new line is being added.
-                //      Stop that.
                 if (currents[0] != NULL) {
 		        fputc('\n', file->file);
                 }
@@ -247,6 +251,10 @@ void save_all() {
 }
 
 void destroy_file(struct text_file *file) {
+	if (file == NULL) {
+		return;
+	}
+
 	fclose(file->file);
 	
 	for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {

@@ -71,6 +71,13 @@ void destroy_buffer(struct text_buffer *buffer) {
 // Buffer is the current active buffer
 
 // Insert character c into the current active buffer
+
+// ERROR: New lines sometimes result in leaks 
+//	  (random characters on a string due
+//	   a lack of a zero terminator)
+// ERROR: New lines sometimes split the lines
+//	  where one column goes down, and the
+//	  others stay behind
 void buffer_char_insert(char c) {
         // Get the element at which we need to insert the buffer
         struct text_buffer *active_text_buffer = active_text_file->active_buffer;
