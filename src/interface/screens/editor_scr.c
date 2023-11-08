@@ -39,6 +39,8 @@ static int offset = 0;
 static void render(struct render_context *context) {
 	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
 
+	int y_wrap_distortion = 0;
+
         for (int i = 0; i < descriptor.column_count; i++) {
                 struct line_list_element *current = active_text_file->buffers[i]->head;
 
@@ -54,7 +56,17 @@ static void render(struct render_context *context) {
 		}
 
                 while (current != NULL && y < context->max_y - 1) {
-			mvprintw(y++, descriptor.column_positions[i], "%.*s", max_length, current->contents);
+			if (CURSOR_Y - offset > y) {
+				y_wrap_distortion += strlen(current->contents) / max_length;
+			}
+
+			for (int x = 0; x < strlen(current->contents); x += max_length) {
+				mvprintw(y++, descriptor.column_positions[i], "%.*s", max_length, (current->contents + x));
+			}
+
+			if (strlen(current->contents) == 0) {
+				y++;
+			}
 
                         current = current->next;
                 }
@@ -69,7 +81,7 @@ static void render(struct render_context *context) {
 		CURSOR_X = line_length;
 	}
 
-        move(CURSOR_Y - offset, CURSOR_X + descriptor.column_positions[active_text_file->active_buffer_idx]);
+        move(CURSOR_Y - offset + y_wrap_distortion, CURSOR_X + descriptor.column_positions[active_text_file->active_buffer_idx]);
 }
 
 static void update(struct render_context *context) {

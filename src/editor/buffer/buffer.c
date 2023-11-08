@@ -150,15 +150,10 @@ void buffer_char_insert(char c) {
 
                         // Calculate the number of characters left in this line
                         size_t post_copy_size = strlen(element->contents) - new_line_size;
-                        char *tmp = (char *)malloc(post_copy_size);
-
-                        // Into the newly allocated buffer, copy all the characters left
-                        strncpy(tmp, element->contents, post_copy_size);
-                        // Memory Manage
-                        free(element->contents);
-
-                        // Set the contents to be to up to date
-                        element->contents = tmp;
+			// Adjust allocation
+			element->contents = (char *)realloc(element->contents, post_copy_size + 1);
+			// Null terminate
+			*(element->contents + post_copy_size) = 0;
                 }
 
                 // Set contents
