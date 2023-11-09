@@ -61,6 +61,10 @@ void collapse_stack() {
         // Increment through list of pressed keys
         for (int i = 0; i < key_stack_ptr; i++) {
                 // Retrieve current function of the key on the current layer
+		// if (key_stack[i].key > 255) {
+		// 	continue;
+		// }
+
                 void (*func_ptr)() = layer->function[key_stack[i].key];
                 
                 // NULL? Empty stack and return
@@ -89,6 +93,7 @@ void collapse_stack() {
 // CONVIENENCE: Create an End of Command char
 //              that will tell us when to
 //              collapse the stack
+// int c 
 void key(char c) {
         // Wrap around (should never happen unless user has more
         //              keys than MAX_KEY_ELEMENTS)
@@ -100,6 +105,8 @@ void key(char c) {
                 buffer_char_del();
                 return;
         }
+
+	DEBUG_MSG("Key pressed: %X\n", c);
 
         // Push new value to stack
         key_stack[key_stack_ptr].key = c;

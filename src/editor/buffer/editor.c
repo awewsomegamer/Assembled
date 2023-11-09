@@ -81,16 +81,16 @@ struct text_file *load_file(char *name) {
 
         text_files[x] = active_text_file;
 
+	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
+        int column_count = descriptor.column_count;
+
         // Allocate text buffers (columns)
-        int column_count = column_descriptors[current_column_descriptor].column_count;
         active_text_file->buffers = (struct text_buffer **)calloc(column_count, sizeof(struct text_buffer *));
         struct line_list_element **currents = (struct line_list_element **)calloc(column_count, sizeof(struct line_list_element *));
 
-        int prev_column = 0;
-
         for (int i = 0; i < column_count; i++) {
-                struct text_buffer *buffer = new_buffer(prev_column, column_descriptors[current_column_descriptor].column_positions[i]);
-                prev_column = column_descriptors[current_column_descriptor].column_positions[i];
+                struct text_buffer *buffer = new_buffer(descriptor.column_positions[i], (i + 1 >= column_count) ? -1 :
+													   descriptor.column_positions[i + 1]);
                 
                 active_text_file->buffers[i] = buffer;
                 currents[i] = buffer->head;
@@ -120,7 +120,7 @@ struct text_file *load_file(char *name) {
 				goto read_column;
 			}
 
-                        if (contents[i] != column_descriptors[current_column_descriptor].delimiter && i != strlen(contents)) {
+                        if (contents[i] != descriptor.delimiter && i != strlen(contents)) {
                                 continue;
                         }
 

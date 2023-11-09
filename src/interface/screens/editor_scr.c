@@ -25,6 +25,7 @@
 #include "interface/interface.h"
 #include <curses.h>
 #include <interface/screens/editor_scr.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -39,8 +40,6 @@ static int offset = 0;
 static void render(struct render_context *context) {
 	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
 
-	int y_wrap_distortion = 0;
-
 	struct line_list_element **currents = (struct line_list_element **)calloc(descriptor.column_count, sizeof(struct line_list_element *));
 
 	for (int i = 0; i < descriptor.column_count; i++) {
@@ -51,9 +50,14 @@ static void render(struct render_context *context) {
 		}
 	}
 
+	int cy_wrap_distortion = 0;
+	int element_wrap_distortion = 0;
 	int y = 0;
 
 	while (currents[0] != NULL) {
+		int applied_cy_distortion = 0;
+		int applied_element_distortion = 0;
+
 		for (int i = 0; i < descriptor.column_count; i++) {
 			struct line_list_element *current = currents[i];
 
@@ -63,16 +67,26 @@ static void render(struct render_context *context) {
 				max_length = descriptor.column_positions[i + 1] - descriptor.column_positions[i];
 			}
 
-			if (CURSOR_Y - offset > y) {
-				y_wrap_distortion += strlen(current->contents) / max_length;
+			int distortion = strlen(current->contents) / max_length;
+
+			if (distortion - applied_element_distortion > 0) {
+				applied_element_distortion += distortion - applied_element_distortion;
+			}
+
+			if (CURSOR_Y - offset > y && (distortion - applied_cy_distortion > 0)) {
+				applied_cy_distortion += distortion - applied_cy_distortion;
 			}
 
 			for (int x = 0; x < strlen(current->contents); x += max_length) {
-				mvprintw(y + (x / max_length), descriptor.column_positions[i], "%.*s", max_length, (current->contents + x));
+				mvprintw(y + (x / max_length) + element_wrap_distortion, descriptor.column_positions[i], "%.*s", max_length, (current->contents + x));
 			}
 
 			currents[i] = currents[i]->next;
 		}
+		
+		cy_wrap_distortion += applied_cy_distortion;
+		
+		element_wrap_distortion += applied_element_distortion;
 
 		y++;
 	}
@@ -84,8 +98,11 @@ static void render(struct render_context *context) {
 	if (CURSOR_X > line_length) {
 		CURSOR_X = line_length;
 	}
+	
+	int column_start = active_text_file->active_buffer->col_start;
+	int column_length = (active_text_file->active_buffer->col_end == -1 ? context->max_x : active_text_file->active_buffer->col_end) - column_start;
 
-        move(CURSOR_Y - offset + y_wrap_distortion, CURSOR_X + descriptor.column_positions[active_text_file->active_buffer_idx]);
+        move(CURSOR_Y - offset + cy_wrap_distortion + (CURSOR_X / column_length), (CURSOR_X % column_length) + column_start);
 }
 
 static void update(struct render_context *context) {

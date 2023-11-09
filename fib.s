@@ -1,8 +1,3 @@
-; Compile Command		
-; nasm -f elf64 -o fib.o fib.s		
-; gcc -static fib.o -o fib.out		
-; ./fib.out		
-		
 %define FIBONACCI_COUNT 35		
 		
 global main		
@@ -44,8 +39,3 @@ section .data
 n1:	dq 0	; First number
 n2:	dq 1	; Second number
 string:	db "%d is at %d in the fibonacci sequence", 0xA, 0x0	; String format
-		
-		
-		
-		
-		

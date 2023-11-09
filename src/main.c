@@ -86,10 +86,12 @@ void editor() {
         // W & D move  cursor successfully, any other key
         // freezes everything.
         int c = getch();
-        
-        if (c > -1)
+	
+        if (c > -1) {
+        	// DEBUG_MSG("Key: %d\n", c);
                 key(c);
-
+	}
+	
         if (active_screen != NULL) {
                 active_screen->update(&current_render_context);
         }
@@ -146,7 +148,7 @@ int main(int argc, char **argv) {
         register_editor_screen();
 
         if (argc > 1) {
-                save_file(load_file(argv[1]));
+                load_file(argv[1]);
                 switch_to_screen("editor");
         } else {
                 switch_to_screen("start");
