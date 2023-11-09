@@ -118,7 +118,8 @@ void interpret_token_stream(struct cfg_token *token) {
 //        are directly followed by a comment.
 struct cfg_token *cfg_lex(FILE *file) {
         struct cfg_token *head = (struct cfg_token *)malloc(sizeof(struct cfg_token));
-        
+	memset(head, 0, sizeof(struct cfg_token));
+	
         int line = 1;
         int column = 1;
         char putback = 0;
@@ -157,8 +158,8 @@ struct cfg_token *cfg_lex(FILE *file) {
                 }
 
                 struct cfg_token *next = (struct cfg_token *)malloc(sizeof(struct cfg_token));
-                memset(next, 0, sizeof(struct cfg_token));
-
+		memset(next, 0, sizeof(struct cfg_token));
+		
                 current->next = next;
                 current->line = line;
                 current->column = column;

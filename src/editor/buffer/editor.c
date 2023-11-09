@@ -31,7 +31,7 @@
 
 struct text_file *text_files[MAX_TEXT_FILES] = { 0 };
 struct column_descriptor column_descriptors[MAX_COLUMNS] = { 0 };
-int current_column_descriptor = 0;
+int current_column_descriptor = -1;
 
 int free_text_file = 0;
 
@@ -341,8 +341,6 @@ struct cfg_token *configure_editor(struct cfg_token *token) {
 			printf("Warning: default column %d is undefined, switching to a defined column\n", token->value);
 			DEBUG_MSG("Warning: default column %d is undefined, switching to a defined column\n", token->value);
 		}
-
-		current_column_descriptor = -1;
 
 		for (int i = 0; i < MAX_COLUMNS; i++) {
 			if (column_descriptors[i].column_positions != NULL) {

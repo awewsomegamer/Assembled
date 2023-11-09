@@ -41,37 +41,41 @@ static void render(struct render_context *context) {
 
 	int y_wrap_distortion = 0;
 
-        for (int i = 0; i < descriptor.column_count; i++) {
-                struct line_list_element *current = active_text_file->buffers[i]->head;
+	struct line_list_element **currents = (struct line_list_element **)calloc(descriptor.column_count, sizeof(struct line_list_element *));
+
+	for (int i = 0; i < descriptor.column_count; i++) {
+		currents[i] = active_text_file->buffers[i]->head;
 
 		for (int j = 0; j < offset; j++) {
-			current = current->next;
+			currents[i] = currents[i]->next;
 		}
+	}
 
-                int y = 0;
-		int max_length = context->max_x - descriptor.column_positions[i];
+	int y = 0;
 
-		if (i + 1 < descriptor.column_count) {
-			max_length = descriptor.column_positions[i + 1] - descriptor.column_positions[i];
-		}
+	while (currents[0] != NULL) {
+		for (int i = 0; i < descriptor.column_count; i++) {
+			struct line_list_element *current = currents[i];
 
-                while (current != NULL && y < context->max_y - 1) {
+			int max_length = context->max_x - descriptor.column_positions[i];
+
+			if (i + 1 < descriptor.column_count) {
+				max_length = descriptor.column_positions[i + 1] - descriptor.column_positions[i];
+			}
+
 			if (CURSOR_Y - offset > y) {
 				y_wrap_distortion += strlen(current->contents) / max_length;
 			}
 
 			for (int x = 0; x < strlen(current->contents); x += max_length) {
-				mvprintw(y++, descriptor.column_positions[i], "%.*s", max_length, (current->contents + x));
+				mvprintw(y + (x / max_length), descriptor.column_positions[i], "%.*s", max_length, (current->contents + x));
 			}
 
-			if (strlen(current->contents) == 0) {
-				y++;
-			}
+			currents[i] = currents[i]->next;
+		}
 
-                        current = current->next;
-                }
-
-        }
+		y++;
+	}
 
 	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d)", CURSOR_Y + 1, CURSOR_X + 1);
 

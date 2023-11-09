@@ -63,7 +63,7 @@ static void read_theme(FILE *file) {
         DEBUG_MSG("Token list:\n");
         while (current != NULL) {
                 DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
-                struct cfg_token *tmp = current->next;
+		struct cfg_token *tmp = current->next;
 
                 free(current);
 

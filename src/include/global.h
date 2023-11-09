@@ -36,15 +36,15 @@
 #include <pwd.h>
 #include <unistd.h>
 
-extern FILE *debug_log_file;
+extern FILE *__DEBUG_LOG_FILE__;
 
 #ifdef DEBUG_MODE
 #define DEBUG_CODE(code) code
-#define DEBUG_MSG(...)  { \
-                                for (int __i__ = fprintf(debug_log_file, "[%s:%d]: ", __FILE_NAME__, __LINE__); __i__ < 24; __i__++) \
-                                   fputc(' ', debug_log_file); \
-                                fprintf(debug_log_file, __VA_ARGS__); \
-                        }
+#define DEBUG_MSG(...) { \
+			for (int __i__ = fprintf(__DEBUG_LOG_FILE__, "[%s:%d]: ", __FILE_NAME__, __LINE__); __i__ < 24; __i__++) \
+				fputc(' ', __DEBUG_LOG_FILE__); \
+			fprintf(__DEBUG_LOG_FILE__, __VA_ARGS__); \
+		       }
 #else
 #define DEBUG_CODE(code)
 #define DEBUG_MSG(...)

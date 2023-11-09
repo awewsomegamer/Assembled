@@ -43,7 +43,7 @@
 
 bool running = 1;
 int currently_active_screen = 0;
-FILE *debug_log_file = NULL;
+FILE *__DEBUG_LOG_FILE__ = NULL;
 
 void init_ncurses() {
         DEBUG_MSG("Initializing ncurses\n");
@@ -114,9 +114,34 @@ void terminate(int signal) {
 // TODO: Implement a SIGINT handler in order
 //	 to quickly blit data to a file
 int main(int argc, char **argv) {
-        DEBUG_CODE( debug_log_file = fopen("debug.log", "w"); )
+        DEBUG_CODE( 
+		__DEBUG_LOG_FILE__ = fopen("debug.log", "w"); 
+		if (__DEBUG_LOG_FILE__ == NULL) {
+			printf("Failed to open ./debug.log\n");
+			
+			return 1;
+		}		
+		)
 
         read_config();
+
+	for (int i = 0; i < MAX_COLUMNS; i++) {
+		if (column_descriptors[i].column_positions != NULL) {
+			current_column_descriptor = i;
+		}
+	}
+
+	if (current_column_descriptor == -1) {
+		printf("Failed to find a user defined column, defining a single column\n");
+		DEBUG_MSG("Failed to find a user defined column, defining a single column\n");
+
+		current_column_descriptor = 0;
+		column_descriptors[current_column_descriptor].column_positions = default_column_definition;
+		column_descriptors[current_column_descriptor].column_count = 1;
+		column_descriptors[current_column_descriptor].delimiter = 0;
+	}
+
+
         register_start_screen();
         register_editor_screen();
 
@@ -168,7 +193,7 @@ int main(int argc, char **argv) {
 
         DEBUG_MSG("Successfuly exited\n");
 
-        DEBUG_CODE( fclose(debug_log_file); )
+        DEBUG_CODE( fclose(__DEBUG_LOG_FILE__); )
 
         return 0;
 }

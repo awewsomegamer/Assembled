@@ -47,6 +47,7 @@ struct column_descriptor {
 extern struct text_file *active_text_file;
 extern struct column_descriptor column_descriptors[];
 extern int current_column_descriptor;
+extern int default_column_definition[];
 
 struct text_file *load_file(char *name);
 void save_file(struct text_file *file);
