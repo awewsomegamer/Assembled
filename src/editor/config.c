@@ -87,8 +87,8 @@ void interpret_token_stream(struct cfg_token *token) {
 
 			FILE *file = fopen(file_path, "r");
 
+			// Read new file and interpret it
 			struct cfg_token *new_stream = cfg_lex(file);
-
 			interpret_token_stream(new_stream);
 
 			DEBUG_MSG("Token list:\n");

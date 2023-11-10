@@ -39,7 +39,8 @@ static int offset = 0;
 
 static void render(struct render_context *context) {
 	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
-
+	
+	// Create and initialize a list of current pointers
 	struct line_list_element **currents = (struct line_list_element **)calloc(descriptor.column_count, sizeof(struct line_list_element *));
 
 	for (int i = 0; i < descriptor.column_count; i++) {
@@ -50,55 +51,74 @@ static void render(struct render_context *context) {
 		}
 	}
 
+	// Variables for controlling the y-axis
 	int cy_wrap_distortion = 0;
 	int element_wrap_distortion = 0;
 	int y = 0;
 
+	// While you can read a line
 	while (currents[0] != NULL) {
+		// Variables by which the above change
 		int applied_cy_distortion = 0;
 		int applied_element_distortion = 0;
 
 		for (int i = 0; i < descriptor.column_count; i++) {
 			struct line_list_element *current = currents[i];
 
+			// Calculate the number of characters the current column
+			// can fit
 			int max_length = context->max_x - descriptor.column_positions[i];
 
+			// Special case for the last column (max_x - column_posistion)
 			if (i + 1 < descriptor.column_count) {
 				max_length = descriptor.column_positions[i + 1] - descriptor.column_positions[i];
 			}
 
+			// Calculate the number of lines that will wrap
 			int distortion = strlen(current->contents) / max_length;
 
-			if (distortion - applied_element_distortion > 0) {
-				applied_element_distortion += distortion - applied_element_distortion;
+			// If the current distortion is larger than the one
+			// that will be applied at the end of the loop,
+			// change it
+			if (distortion > applied_element_distortion) {
+				applied_element_distortion = distortion;
 			}
 
-			if (CURSOR_Y - offset > y && (distortion - applied_cy_distortion > 0)) {
-				applied_cy_distortion += distortion - applied_cy_distortion;
+			// If the cursor is under the distorted line and the
+			// current distortion is larger than the applied distortion,
+			// change it
+			if (CURSOR_Y - offset > y && (distortion > applied_cy_distortion)) {
+				applied_cy_distortion = distortion;
 			}
 
+			// Draw each line of the string
 			for (int x = 0; x < strlen(current->contents); x += max_length) {
 				mvprintw(y + (x / max_length) + element_wrap_distortion, descriptor.column_positions[i], "%.*s", max_length, (current->contents + x));
 			}
 
+			// Move onto the next line
 			currents[i] = currents[i]->next;
 		}
 		
+		// Update distortions
 		cy_wrap_distortion += applied_cy_distortion;
-		
 		element_wrap_distortion += applied_element_distortion;
 
+		// Move to the next line index
 		y++;
 	}
 
+	// Print information
 	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d)", CURSOR_Y + 1, CURSOR_X + 1);
 
+	// Restrict cx to the end of the current line
 	line_length = strlen(active_text_file->active_buffer->current_element->contents);
 
 	if (CURSOR_X > line_length) {
 		CURSOR_X = line_length;
 	}
-	
+
+	// Position the cursor appropriately	
 	int column_start = active_text_file->active_buffer->col_start;
 	int column_length = (active_text_file->active_buffer->col_end == -1 ? context->max_x : active_text_file->active_buffer->col_end) - column_start;
 
@@ -106,6 +126,9 @@ static void render(struct render_context *context) {
 }
 
 static void update(struct render_context *context) {
+	// The differential is checked, if it has overflowed
+	// or underflowed the screen, restrict it, and update
+	// the offset
 	if (differential > context->max_y - 2) {
 		differential = context->max_y - 2;
 		offset++;
@@ -115,7 +138,7 @@ static void update(struct render_context *context) {
 	}
 }
 
-// TODO: Scrolling is broken, can't go up
+// TODO: Scrolling sometimes gets stuck
 static void local(int code) {
 	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
 
@@ -123,6 +146,7 @@ static void local(int code) {
         case LOCAL_ARROW_UP: {
 		bool moved = 0;
 
+		// Update all current pointers one up
 		for (int i = 0; i < descriptor.column_count; i++) {
         		struct line_list_element *current = active_text_file->buffers[i]->current_element;
 			
@@ -132,6 +156,8 @@ static void local(int code) {
 			}
 		}
 
+		// If the above managed to move the pointers
+		// up, we can move the cursor
 		if (CURSOR_Y > 0 && moved) {
 			CURSOR_Y--;
 			differential--;
@@ -143,15 +169,18 @@ static void local(int code) {
         case LOCAL_ARROW_DOWN: {
 		bool moved = 0;
 
+		// Update all current pointers one down
                 for (int i = 0; i < descriptor.column_count; i++) {
         		struct line_list_element *current = active_text_file->buffers[i]->current_element;
-			
+		
 			if (current->next != NULL) {
 				active_text_file->buffers[i]->current_element = current->next;
 				moved = 1;
 			}
 		}
 
+		// If the above managed to move the pointers
+		// down, we can move the cursor
 		if (moved) {
 			CURSOR_Y++;
 			differential++;

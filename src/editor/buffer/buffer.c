@@ -84,19 +84,26 @@ void buffer_char_insert(char c) {
         // Check for special cases
         switch (c) {
         case '\n': {
+		// Iterate through all buffers excluding the active one
                 for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
                         if (active_text_file->buffers[i] == active_text_buffer) {
 				continue;
 			}
 
+			// Create a new line and its element
 			struct line_list_element *tmp = active_text_file->buffers[i]->current_element;
-
 			struct line_list_element *new_element = (struct line_list_element *)malloc(sizeof(struct line_list_element));
 
+			// Allocate contents
 			new_element->contents = (char *)malloc(1);
 			*(new_element->contents) = 0;
-
+			
+			// Check if the new line will be at the beginning 
+			// of a line
 			if (active_text_buffer->cx > 0) {
+				// If it won't, link it up normally
+				// by placing the new line after the
+				// current line
 				new_element->next = tmp->next;
 				new_element->prev = tmp;
 				
@@ -106,6 +113,8 @@ void buffer_char_insert(char c) {
 
 				tmp->next = new_element;
 			} else {
+				// If it will, place the new line before
+				// the current line
 				new_element->next = tmp;
 				new_element->prev = tmp->prev;
 
@@ -120,6 +129,7 @@ void buffer_char_insert(char c) {
 				}
 			}
 
+			// Manage the current element
 			active_text_file->buffers[i]->current_element = active_text_buffer->cx > 0 ? new_element : tmp;  
                 }
 
@@ -211,10 +221,14 @@ void buffer_char_del() {
 
         // Remove a line
         if (active_text_buffer->cx <= 0) {
+		// Iterate through all buffers
 		for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
+			// Get the current element
 			element = active_text_file->buffers[i]->current_element;
 
+			// Get the address of the next door neighbour
 			struct line_list_element *line_over = element->next;
+			// Move one house down
 			element = element->prev;
 			
 			int cx = -1;

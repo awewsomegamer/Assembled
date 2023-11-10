@@ -93,7 +93,9 @@ void collapse_stack() {
 // CONVIENENCE: Create an End of Command char
 //              that will tell us when to
 //              collapse the stack
-// int c 
+// TODO: Convert the use of char into
+//	 int to open a wider range of
+//	 key sequences
 void key(char c) {
         // Wrap around (should never happen unless user has more
         //              keys than MAX_KEY_ELEMENTS)
@@ -101,6 +103,8 @@ void key(char c) {
                 key_stack_ptr = 0;
         }
 
+	// TODO: Make this a local function
+	//	 like enter
         if (c == '\b' || c == 7) {
                 buffer_char_del();
                 return;
