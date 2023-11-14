@@ -39,3 +39,4 @@ section .data
 n1:	dq 0	; First number
 n2:	dq 1	; Second number
 string:	db "%d is at %d in the fibonacci sequence", 0xA, 0x0	; String format
+		

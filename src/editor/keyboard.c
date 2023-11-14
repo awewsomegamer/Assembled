@@ -19,7 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "editor/buffer/buffer.h"
+#include <editor/buffer/buffer.h>
 #include <ctype.h>
 #include <curses.h>
 #include <ncurses.h>
@@ -33,59 +33,62 @@
 #include <editor/functions.h>
 #include <editor/config.h>
 
-struct key_layer {
-        void (*function[256])(); // The index within the array is the ASCII code
-        struct key_layer *next;
-        DEBUG_CODE( int level; )
+struct keyseq_list {
+	int code;
+	struct keyseq_list *next;
 };
-static struct key_layer top_layer;
 
-static int key_layer_count = 0;
+struct keyseq {
+	struct keyseq_list *list;
+	void (*function)();
+	struct keyseq *next;
+};
+
+static struct keyseq keyseq_list_head = { 0 };
+static struct keyseq *keyseq_list_last = &keyseq_list_head;
 
 struct key_stack_element {
-        char key;
+        int key;
         time_t time;
 };
+
 static struct key_stack_element key_stack[MAX_KEY_ELEMENTS];
 static int key_stack_ptr = 0;
 
 // Collapse (interpet) current key stack, looking
 // for any valid combinations of keys.
-// TODO: Ensure the stack won't stick together
-//       and lock the user from enter more keys.
-//       Possible fix: make the stack bigger.
 void collapse_stack() {
-        // Start at top layer
-        struct key_layer *layer = &top_layer;
+	struct keyseq *current = &keyseq_list_head;
 
-        // Increment through list of pressed keys
-        for (int i = 0; i < key_stack_ptr; i++) {
-                // Retrieve current function of the key on the current layer
-		// if (key_stack[i].key > 255) {
-		// 	continue;
-		// }
+	while (current != NULL) {
+		struct keyseq_list *element = current->list;
+		int i = 0;
+		
+		for (; i < key_stack_ptr; i++) {
+			if (element == NULL || key_stack[i].key != element->code) {
+				break;
+			}
 
-                void (*func_ptr)() = layer->function[key_stack[i].key];
-                
-                // NULL? Empty stack and return
-                if (func_ptr == NULL) {
-                        break;
-                }
+			element = element->next;
+		}
 
-                // Layer down? Change current layer to next layer and continue to next char
-                if (func_ptr == layer_down) {
-                        layer = layer->next;
-                        continue;
-                }
+		if (i == key_stack_ptr && element == NULL) {
+			// Found function
+			(*current->function)();
 
-                // Finally found the function, call it and reset stack
-                (func_ptr)();
-                key_stack_ptr = 0;
+			key_stack_ptr = 0;
 
-                return;
-        }
+			return;
+		} else if (i > 0) {
+			return;
+		}
 
-        buffer_char_insert(key_stack[--key_stack_ptr].key);
+
+		current = current->next;
+	}
+
+	buffer_char_insert(key_stack[--key_stack_ptr].key);
+	key_stack_ptr = 0;
 }
 
 // Acknowledge a key, put it on the stack, ask
@@ -93,10 +96,7 @@ void collapse_stack() {
 // CONVIENENCE: Create an End of Command char
 //              that will tell us when to
 //              collapse the stack
-// TODO: Convert the use of char into
-//	 int to open a wider range of
-//	 key sequences
-void key(char c) {
+void key(int c) {
         // Wrap around (should never happen unless user has more
         //              keys than MAX_KEY_ELEMENTS)
         if (key_stack_ptr >= MAX_KEY_ELEMENTS) {
@@ -105,12 +105,12 @@ void key(char c) {
 
 	// TODO: Make this a local function
 	//	 like enter
-        if (c == '\b' || c == 7) {
+        if (c == '\b' || c == 263) {
                 buffer_char_del();
                 return;
         }
 
-	DEBUG_MSG("Key pressed: %X\n", c);
+	DEBUG_MSG("Key pressed: %d\n", c);
 
         // Push new value to stack
         key_stack[key_stack_ptr].key = c;
@@ -140,27 +140,36 @@ struct cfg_token *configure_keyboard(struct cfg_token *token) {
 
         DEBUG_MSG("Stack trace for function %X (LD: %X):\n", function, layer_down);
 
-        struct key_layer *current_layer = &top_layer;
-        while (token->type == CFG_TOKEN_INT || token->type == CFG_TOKEN_COM) {
-                if (token->type == CFG_TOKEN_COM) {
-                        NEXT_TOKEN
-                        continue;
-                }
+	struct keyseq_list *list = (struct keyseq_list *)malloc(sizeof(struct keyseq_list));
+	struct keyseq_list *current = list;
+	
+	while (token->type == CFG_TOKEN_INT) {
+		if (token->type == CFG_TOKEN_COM) {
+			NEXT_TOKEN
+			continue;
+		}
 
-                if (current_layer->next == NULL) {
-                        current_layer->next = (struct key_layer *)malloc(sizeof(struct key_layer));
-                        memset(current_layer->next, 0, sizeof(struct key_layer));
-                }
+		current->code = token->value;
+		current->next = NULL;
+		
+		NEXT_TOKEN
 
-                current_layer->function[token->value] = (token->next->type != CFG_TOKEN_INT || token->next->type != CFG_TOKEN_COM)
-                                                        ? function : layer_down; 
+		while (token->type == CFG_TOKEN_COM) {
+			NEXT_TOKEN
+		}
 
-                current_layer = current_layer->next;
-                
-                DEBUG_MSG("%X\n", token->value);
+		if (token->type != CFG_TOKEN_INT) {
+			break;
+		}
 
-                NEXT_TOKEN
-        }
+		current->next = (struct keyseq_list *)malloc(sizeof(struct keyseq_list));
+		current = current->next;
+	}
+
+	keyseq_list_last->list = list;
+	keyseq_list_last->function = function;
+	keyseq_list_last->next = (struct keyseq *)malloc(sizeof(struct keyseq));
+	keyseq_list_last = keyseq_list_last->next;
 
         DEBUG_MSG("Stack end\n")
         

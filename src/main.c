@@ -87,10 +87,9 @@ void editor() {
         // freezes everything.
         int c = getch();
 	
-	// TODO: Optimize. If there is nothing to do, do nothing
+	// TODO: Optimize. If there is nothing to do, sleep
 
         if (c > -1) {
-        	// DEBUG_MSG("Key: %d\n", c);
                 key(c);
 	}
 	
