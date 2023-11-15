@@ -176,7 +176,7 @@ void buffer_char_insert(char c) {
                 // Manage
                 active_text_buffer->current_element = next_element;
 
-		active_screen->local(LOCAL_LINE_INSERT);
+		active_screen->local(LOCAL_LINE_INSERT, 0);
 
                 break;
         }
@@ -265,7 +265,7 @@ void buffer_char_del() {
 
 		(active_text_file->cy)--;
 
-		active_screen->local(LOCAL_LINE_DELETION);
+		active_screen->local(LOCAL_LINE_DELETION, 0);
 
                 // // Temporary save
                 // save_file(active_text_file);

@@ -20,6 +20,7 @@
 */
 
 #include "global.h"
+#include <curses.h>
 #include <interface/interface.h>
 #include <util.h>
 
@@ -37,7 +38,7 @@ int switch_to_screen(char *name) {
         return i;
 }
 
-int register_screen(char *name, void (*render)(struct render_context *), void (*update)(struct render_context *), void (*local)(int)) {
+int register_screen(char *name, void (*render)(struct render_context *), void (*update)(struct render_context *), void (*local)(int, int)) {
         int i = GET_SCR_IDX(name);
 
         screens[i].render = render;
@@ -48,4 +49,21 @@ int register_screen(char *name, void (*render)(struct render_context *), void (*
         DEBUG_MSG("Registered screen \"%s\" at position %d (0x%X, 0x%X, 0x%X)\n", name, i, render, update, local);
 
         return i;
+}
+
+void draw_border(int x, int y, int width, int height) {
+	for (int i = y; i < (y + height); i++) {
+		mvaddch(i, x, '|');
+		mvaddch(i, x + width, '|');
+	}
+	
+	for (int i = x; i < (x + width); i++) {
+		mvaddch(y, i, '-');
+		mvaddch(y + height, i, '-');
+	}
+
+	mvaddch(y, x, '+');
+	mvaddch(y + height, x, '+');
+	mvaddch(y, x + width, '+');
+	mvaddch(y + height, x + width, '+');
 }

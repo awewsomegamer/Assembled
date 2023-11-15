@@ -31,48 +31,36 @@ void layer_down() { }
 
 static void cursor_up() {
 	editor_scr_message = "UP";
-        active_screen->local(LOCAL_ARROW_UP);
+        active_screen->local(LOCAL_ARROW_UP, 0);
 }
 
 static void cursor_down() {
 	editor_scr_message = "DOWN";
-        active_screen->local(LOCAL_ARROW_DOWN);
+        active_screen->local(LOCAL_ARROW_DOWN, 0);
 }
 
 static void cursor_left() {
 	editor_scr_message = "LEFT";
-        active_screen->local(LOCAL_ARROW_LEFT);
+        active_screen->local(LOCAL_ARROW_LEFT, 0);
 }
 
 static void cursor_right() {
 	editor_scr_message = "RIGHT";
-        active_screen->local(LOCAL_ARROW_RIGHT);
+        active_screen->local(LOCAL_ARROW_RIGHT, 0);
 }
 
 static void enter() {
 	editor_scr_message = "ENTER";
-        active_screen->local(LOCAL_ENTER);
+        active_screen->local(LOCAL_ENTER, 0);
 }
 
 static void buffer_left() {
-	int i = active_text_file->active_buffer_idx;
-
-	if (i - 1 >= 0) {
-		active_text_file->active_buffer = active_text_file->buffers[i - 1];
-		(active_text_file->active_buffer_idx)--;
-	}
-
+	active_screen->local(LOCAL_BUFFER_LEFT, 0);
 	editor_scr_message = "BUFFER LEFT";
 }
 
 static void buffer_right() {
-	int i = active_text_file->active_buffer_idx;
-
-	if (i + 1 < column_descriptors[current_column_descriptor].column_count) { 
-		active_text_file->active_buffer = active_text_file->buffers[i + 1];
-		(active_text_file->active_buffer_idx)++;
-	}
-
+	active_screen->local(LOCAL_BUFFER_RIGHT, 0);
 	editor_scr_message = "BUFFER RIGHT";
 }
 
@@ -87,6 +75,7 @@ static void file_save_all() {
 }
 
 static void file_load() {
+	switch_to_screen("file_load");
 	editor_scr_message = "LOADED FILE";
 }
 

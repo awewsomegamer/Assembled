@@ -204,7 +204,7 @@ static void update(struct render_context *context) {
         }
 }
 
-static void local(int code) {
+static void local(int code, int value) {
         int max_y = cx ? sizeof(menu_table_right)/sizeof(menu_table_right[0]) : sizeof(menu_table_left)/sizeof(menu_table_left[0]);
 
         switch(code) {

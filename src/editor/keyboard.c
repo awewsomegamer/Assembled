@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "interface/interface.h"
 #include <editor/buffer/buffer.h>
 #include <ctype.h>
 #include <curses.h>
@@ -83,11 +84,10 @@ void collapse_stack() {
 			return;
 		}
 
-
 		current = current->next;
 	}
-
-	buffer_char_insert(key_stack[--key_stack_ptr].key);
+	
+	active_screen->local(LOCAL_BUFFER_CHAR, key_stack[--key_stack_ptr].key);
 	key_stack_ptr = 0;
 }
 
@@ -101,13 +101,6 @@ void key(int c) {
         //              keys than MAX_KEY_ELEMENTS)
         if (key_stack_ptr >= MAX_KEY_ELEMENTS) {
                 key_stack_ptr = 0;
-        }
-
-	// TODO: Make this a local function
-	//	 like enter
-        if (c == '\b' || c == 263) {
-                buffer_char_del();
-                return;
         }
 
 	DEBUG_MSG("Key pressed: %d\n", c);

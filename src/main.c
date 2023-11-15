@@ -20,7 +20,8 @@
 */
 
 #include <interface/screens/editor_scr.h>
-#include "interface/theming/themes.h"
+#include <interface/screens/file_load_scr.h>
+#include <interface/theming/themes.h>
 #include <bits/time.h>
 #include <curses.h>
 #include <ncurses.h>
@@ -92,7 +93,6 @@ void editor() {
         if (c > -1) {
 		editor_scr_message = NULL;
 
-		DEBUG_MSG("Registering key %d\n", c);
                 key(c);
 	}
 	
@@ -147,9 +147,9 @@ int main(int argc, char **argv) {
 		column_descriptors[current_column_descriptor].delimiter = 0;
 	}
 
-
         register_start_screen();
         register_editor_screen();
+	register_file_load_scr();
 
         if (argc > 1) {
                 load_file(argv[1]);

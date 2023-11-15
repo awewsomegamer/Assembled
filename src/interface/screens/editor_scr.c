@@ -141,7 +141,7 @@ static void update(struct render_context *context) {
 }
 
 // TODO: Scrolling sometimes gets stuck
-static void local(int code) {
+static void local(int code, int value) {
 	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
 
         switch (code) {
@@ -222,7 +222,39 @@ static void local(int code) {
 
 		break;
 	}
+	
+	case LOCAL_BUFFER_LEFT: {
+		int i = active_text_file->active_buffer_idx;
 
+		if (i - 1 >= 0) {
+			active_text_file->active_buffer = active_text_file->buffers[i - 1];
+			(active_text_file->active_buffer_idx)--;
+		}
+
+		break;
+	}
+
+	case LOCAL_BUFFER_RIGHT: {
+		int i = active_text_file->active_buffer_idx;
+
+		if (i + 1 < column_descriptors[current_column_descriptor].column_count) { 
+			active_text_file->active_buffer = active_text_file->buffers[i + 1];
+			(active_text_file->active_buffer_idx)++;
+		}
+
+		break;
+	}
+
+	case LOCAL_BUFFER_CHAR: {
+		if (value == '\b' || value == 263) {
+			buffer_char_del();
+			break;
+		}
+
+		buffer_char_insert(value);
+
+		break;
+	}
         }
 }
 
