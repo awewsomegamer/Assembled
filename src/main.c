@@ -90,6 +90,9 @@ void editor() {
 	// TODO: Optimize. If there is nothing to do, sleep
 
         if (c > -1) {
+		editor_scr_message = NULL;
+
+		DEBUG_MSG("Registering key %d\n", c);
                 key(c);
 	}
 	

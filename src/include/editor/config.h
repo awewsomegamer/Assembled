@@ -46,6 +46,8 @@
                                 DEBUG_MSG("Error on line %d, %d: %s\n", token->line, token->column, __msg__); \
                                 exit(1); \
                         }
+
+// TODO: Optimize placement
 enum STR_LOOKUP_IDXS {
         CFG_LOOKUP_KEYBOARD,
         CFG_LOOKUP_START_SCR,
@@ -58,6 +60,17 @@ enum STR_LOOKUP_IDXS {
 	CFG_LOOKUP_DEFAULT,
 	CFG_LOOKUP_DEFINE,
 	CFG_LOOKUP_INCLUDE,
+
+	CFG_LOOKUP_UP,
+	CFG_LOOKUP_DOWN,
+	CFG_LOOKUP_LEFT,
+	CFG_LOOKUP_RIGHT,
+	CFG_LOOKUP_ENTER,
+	CFG_LOOKUP_BUFFER_LEFT,
+	CFG_LOOKUP_BUFFER_RIGHT,
+	CFG_LOOKUP_FILE_SAVE,
+	CFG_LOOKUP_FILE_SAVE_ALL,
+	CFG_LOOKUP_FILE_LOAD,
 };
 
 static const char *str_lookup[] = {
@@ -72,6 +85,18 @@ static const char *str_lookup[] = {
 	[CFG_LOOKUP_DEFAULT] 	= "default",
 	[CFG_LOOKUP_DEFINE]	= "define",
 	[CFG_LOOKUP_INCLUDE]	= "include",
+
+	[CFG_LOOKUP_UP] = "up",
+	[CFG_LOOKUP_DOWN] = "down",
+	[CFG_LOOKUP_LEFT] = "left",
+	[CFG_LOOKUP_RIGHT] = "right",
+	[CFG_LOOKUP_ENTER] = "enter",
+	[CFG_LOOKUP_BUFFER_LEFT] = "buffer_left",
+	[CFG_LOOKUP_BUFFER_RIGHT] = "buffer_right",
+	[CFG_LOOKUP_FILE_SAVE] = "file_save",
+	[CFG_LOOKUP_FILE_SAVE_ALL] = "file_save_all",
+	[CFG_LOOKUP_FILE_LOAD] = "file_load",
+
 };
 
 struct cfg_token {

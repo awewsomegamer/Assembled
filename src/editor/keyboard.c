@@ -128,10 +128,9 @@ struct cfg_token *configure_keyboard(struct cfg_token *token) {
         EXPECT_VALUE(CFG_LOOKUP_KEYSEQ, "Expected keyword keyseq")
 
         NEXT_TOKEN
-        EXPECT_TOKEN(CFG_TOKEN_STR, "Expected string")
+        EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected keyword")
 
-        DEBUG_MSG("Function name: \"%s\", Hash: %lu, Index: %d\n", token->str, general_hash(token->str), GET_FUNC_IDX(token->str));
-        void (*function)() = functions[GET_FUNC_IDX(token->str)];
+        void (*function)() = functions[token->value];
 
         NEXT_TOKEN
         EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")

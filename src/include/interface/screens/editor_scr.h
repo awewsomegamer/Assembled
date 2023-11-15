@@ -24,6 +24,8 @@
 
 #include <editor/config.h>
 
+extern char *editor_scr_message;
+
 void register_editor_screen();
 struct cfg_token *configure_editor_screen(struct cfg_token *token);
 

@@ -204,8 +204,8 @@ void buffer_char_insert(char c) {
         }
         }
 
-        // Temporary save
-        save_file(active_text_file);
+        // // Temporary save
+        // save_file(active_text_file);
 }
 
 void buffer_char_del() {
@@ -267,8 +267,8 @@ void buffer_char_del() {
 
 		active_screen->local(LOCAL_LINE_DELETION);
 
-                // Temporary save
-                save_file(active_text_file);
+                // // Temporary save
+                // save_file(active_text_file);
 
                 return;
         }
@@ -287,6 +287,6 @@ void buffer_char_del() {
 
         (active_text_buffer->cx)--;
 
-        // Temporary save
-        save_file(active_text_file);
+        // // Temporary save
+        // save_file(active_text_file);
 }

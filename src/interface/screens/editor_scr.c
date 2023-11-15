@@ -37,6 +37,8 @@ static int line_length = 0;
 static int differential = 0;
 static int offset = 0;
 
+char *editor_scr_message = NULL;
+
 static void render(struct render_context *context) {
 	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
 	
@@ -109,8 +111,8 @@ static void render(struct render_context *context) {
 	}
 
 	// Print information
-	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d)", CURSOR_Y + 1, CURSOR_X + 1);
-
+	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d) %s", CURSOR_Y + 1, CURSOR_X + 1, editor_scr_message == NULL ? "" : editor_scr_message);
+	
 	// Restrict cx to the end of the current line
 	line_length = strlen(active_text_file->active_buffer->current_element->contents);
 
@@ -205,6 +207,10 @@ static void local(int code) {
                 break;
         }
 	
+	case LOCAL_ENTER: {
+		buffer_char_insert('\n');
+	}
+
 	case LOCAL_LINE_INSERT: {
 		differential++;
 
@@ -216,6 +222,7 @@ static void local(int code) {
 
 		break;
 	}
+
         }
 }
 
