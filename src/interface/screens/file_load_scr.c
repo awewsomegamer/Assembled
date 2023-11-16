@@ -26,6 +26,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <editor/buffer/editor.h>
+#include <util.h>
 
 static char *file_path = NULL;
 static size_t size = 1;
@@ -43,8 +46,22 @@ static void update(struct render_context *ctx) {
 static void local(int code, int value) {
 	switch (code) {
 	case LOCAL_ENTER: {
-		switch_to_screen("editor");
+		struct stat *st = (struct stat *)malloc(sizeof(struct stat));
+		char *abs = fpath2abs(file_path, 0);
 
+		stat(abs, st);
+
+		if (S_ISDIR(st->st_mode)) {
+			
+		} else if (S_ISREG(st->st_mode)) {
+			load_file(abs);
+			switch_to_screen("editor");
+		}
+		
+		DEBUG_MSG("%s\n", abs);
+
+		free(abs);
+		
 		break;
 	}
 

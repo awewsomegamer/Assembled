@@ -25,5 +25,6 @@
 #include <global.h>
 
 uint64_t general_hash(char *string);
+char *fpath2abs(char *path, int options);
 
 #endif

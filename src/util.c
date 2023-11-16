@@ -19,7 +19,13 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "global.h"
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <util.h>
+#include <pwd.h>
+#include <unistd.h>
 
 uint64_t general_hash(char *string) {
         uint64_t hash = 5381;
@@ -30,4 +36,62 @@ uint64_t general_hash(char *string) {
         }
         
         return hash;
+}
+
+char *fpath2abs(char *path, int options) {
+	if (*path == '/') {
+		// Path is already absolute, ignore
+		return path;
+	}
+
+	char *clean = path;
+
+	// If the path begins with a tilde, remove it
+	if (*path == '~') {
+		clean = strdup(path + 1);
+	}
+
+	char *final = NULL;
+
+	switch (options) {
+	// Relative to user's current working directory
+	case 0: {
+		char *cwd = (char *)malloc(0x1000);
+		memset(cwd, 0, 0x1000);
+		
+		if (getcwd(cwd, 0x1000) != cwd) {
+			DEBUG_MSG("Unable to get current working directory (%s, %s)\n", path, clean);
+			
+			free(cwd);
+			free(clean);
+
+			break;
+		}
+
+		cwd[strlen(cwd)] = '/';
+		strcat(cwd, clean);
+
+		final = strndup(cwd, strlen(cwd));
+
+		free(cwd);
+
+		break;
+	}
+
+	// Relaative to root of configuration file
+	case 1: {
+		struct passwd *pwd = getpwuid(getuid());
+
+		size_t size = strlen(pwd->pw_dir) + strlen("/.config/assembled/") + 1;
+		final = (char *)malloc(size);
+		memset(final, 0, size);
+
+		strcat(final, pwd->pw_dir);
+		strcat(final, "/.config/assembled/");
+		
+		break;
+	}
+	}
+
+	return final;
 }
