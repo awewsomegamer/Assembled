@@ -29,13 +29,24 @@
 #include <sys/stat.h>
 #include <editor/buffer/editor.h>
 #include <util.h>
+#include <dirent.h>
 
 static char *file_path = NULL;
 static size_t size = 1;
 
+static char **directory_listing = NULL;
+static size_t directory_listing_size = 1;
+
 static void render(struct render_context *ctx) {
 	mvprintw(1, (ctx->max_x / 4 + 1), "%s", file_path);
 	draw_border(ctx->max_x / 4, 0, ctx->max_x / 2, 10);
+
+	if (directory_listing != NULL) {
+		for (int i = 0; i < directory_listing_size; i++) {
+			mvprintw(i, 0, "%s", directory_listing[i]);
+		}
+	}
+
 	move(1, (ctx->max_x / 4) + size);
 }
 
@@ -52,7 +63,39 @@ static void local(int code, int value) {
 		stat(abs, st);
 
 		if (S_ISDIR(st->st_mode)) {
+			if (directory_listing != NULL) {
+				int i = 0;
+
+				// ERROR: Segmentation fault here
+				while (directory_listing[i] != NULL) {
+					free(directory_listing[i++]);
+				}
+
+				free(directory_listing);
+				directory_listing = (char **)calloc(1, sizeof(char *));
+				directory_listing_size = 1;
+			} else {
+				directory_listing = (char **)calloc(1, sizeof(char *));
+				directory_listing_size = 1;
+			}
+
+			DIR *dir = opendir(abs);
+
+			if (dir == NULL) {
+				break;
+			}
+
+			struct dirent *dirent = NULL;
+
+			while ((dirent = readdir(dir))) {
+				if (strlen(dirent->d_name) > 0) {
+					directory_listing[directory_listing_size - 1] = strdup(dirent->d_name);
+ 					directory_listing = (char **)realloc(directory_listing, ++directory_listing_size * sizeof(char *));
+				}
+			}
+
 			
+			closedir(dir);
 		} else if (S_ISREG(st->st_mode)) {
 			load_file(abs);
 			switch_to_screen("editor");
