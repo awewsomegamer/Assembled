@@ -21,6 +21,7 @@
 
 #include "editor/buffer/buffer.h"
 #include "editor/buffer/editor.h"
+#include "editor/config.h"
 #include "global.h"
 #include "interface/interface.h"
 #include <curses.h>
@@ -37,7 +38,7 @@ static int line_length = 0;
 static int differential = 0;
 static int offset = 0;
 
-char *editor_scr_message = NULL;
+char editor_scr_message[1024];
 
 static void render(struct render_context *context) {
 	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
@@ -252,6 +253,28 @@ static void local(int code, int value) {
 		}
 
 		buffer_char_insert(value);
+
+		break;
+	}
+
+	case LOCAL_WINDOW_LEFT: {
+		if (active_text_file_idx > 0 && active_text_file[active_text_file_idx - 1].active_buffer != NULL) {
+			active_text_file_idx--;
+			active_text_file = text_files[active_text_file_idx];
+
+			sprintf(editor_scr_message, "SWITCHED TO %s", active_text_file->name);
+		}
+
+		break;
+	}
+
+	case LOCAL_WINDOW_RIGHT: {
+		if (active_text_file_idx < descriptor.column_count && active_text_file[active_text_file_idx + 1].active_buffer != NULL) {
+			active_text_file_idx++;
+			active_text_file = text_files[active_text_file_idx];
+
+			sprintf(editor_scr_message, "SWITCHED TO %s", active_text_file->name);
+		}
 
 		break;
 	}

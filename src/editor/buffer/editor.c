@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 struct text_file *text_files[MAX_TEXT_FILES] = { 0 };
+int active_text_file_idx = 0;
 struct column_descriptor column_descriptors[MAX_COLUMNS] = { 0 };
 int current_column_descriptor = -1;
 
@@ -76,10 +77,11 @@ struct text_file *load_file(char *name) {
 	memset(active_text_file, 0, sizeof(struct text_file));
 	
 	active_text_file->file = file;
-	active_text_file->name = name;
+	active_text_file->name = strdup(name);
 	active_text_file->load_offset = 0;
 
         text_files[x] = active_text_file;
+	active_text_file_idx = x;
 
 	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
         int column_count = descriptor.column_count;

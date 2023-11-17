@@ -44,6 +44,8 @@ struct column_descriptor {
         int delimiter;     
 };
 
+extern struct text_file *text_files[MAX_TEXT_FILES];
+extern int active_text_file_idx;
 extern struct text_file *active_text_file;
 extern struct column_descriptor column_descriptors[];
 extern int current_column_descriptor;

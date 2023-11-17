@@ -37,6 +37,8 @@
 #define LOCAL_BUFFER_LEFT	7
 #define LOCAL_BUFFER_RIGHT	8
 #define LOCAL_BUFFER_CHAR	9
+#define LOCAL_WINDOW_LEFT	10
+#define LOCAL_WINDOW_RIGHT	11
 
 struct bound {
         int x;                  // Starting X

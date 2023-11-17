@@ -1,4 +1,4 @@
-7(bits 32		
+bits 32		
 		
 MAGIC	equ 0xE85250D6	
 ARCH	equ 0	
