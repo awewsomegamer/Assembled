@@ -40,12 +40,14 @@ static int directory_listing_offset = 0;
 
 static void render(struct render_context *ctx) {
 	mvprintw(1, (ctx->max_x / 4 + 1), "%s", file_path);
-	draw_border(ctx->max_x / 4, 0, ctx->max_x / 2, 11);
-	draw_border(ctx->max_x / 4, 2, ctx->max_x / 2, 9);
+	draw_border(ctx->max_x / 4, 0, ctx->max_x / 2, ctx->max_y - 1);
+	draw_border(ctx->max_x / 4, 2, ctx->max_x / 2, ctx->max_y - 3);
 
 	if (directory_listing != NULL) {
-		for (int i = 0; i < 8; i++) {
-			mvprintw(i + 3, ctx->max_x / 4 + 1, "%s", directory_listing[i + directory_listing_offset]);
+		for (int i = 0; i < ctx->max_y - 1; i++) {
+			if (i < directory_listing_size - 1) {
+				mvprintw(i + 3, ctx->max_x / 4 + 1, "%s", directory_listing[i + directory_listing_offset]);
+			}
 		}
 	}
 

@@ -1,4 +1,4 @@
-%define FIBONACCI_COUNT 35		
+%define FIBONACCI_COUNT 40		
 		
 global main		
 extern printf		
