@@ -36,14 +36,16 @@ static size_t size = 1;
 
 static char **directory_listing = NULL;
 static size_t directory_listing_size = 1;
+static int directory_listing_offset = 0;
 
 static void render(struct render_context *ctx) {
 	mvprintw(1, (ctx->max_x / 4 + 1), "%s", file_path);
-	draw_border(ctx->max_x / 4, 0, ctx->max_x / 2, 10);
+	draw_border(ctx->max_x / 4, 0, ctx->max_x / 2, 11);
+	draw_border(ctx->max_x / 4, 2, ctx->max_x / 2, 9);
 
 	if (directory_listing != NULL) {
-		for (int i = 0; i < directory_listing_size; i++) {
-			mvprintw(i, 0, "%s", directory_listing[i]);
+		for (int i = 0; i < 8; i++) {
+			mvprintw(i + 3, ctx->max_x / 4 + 1, "%s", directory_listing[i + directory_listing_offset]);
 		}
 	}
 
@@ -52,6 +54,38 @@ static void render(struct render_context *ctx) {
 
 static void update(struct render_context *ctx) {
 
+}
+
+static void update_directory_listing(char *abs) {
+	if (directory_listing != NULL) {
+		for (int i = 0; i < directory_listing_size - 1; i++) {
+			if (directory_listing[i] != NULL) {
+				free(directory_listing[i]);
+			}
+		}
+
+		free(directory_listing);
+		directory_listing = (char **)calloc(1, sizeof(char *));
+		directory_listing_size = 1;
+	} else {
+		directory_listing = (char **)calloc(1, sizeof(char *));
+		directory_listing_size = 1;
+	}
+
+	DIR *dir = opendir(abs);
+
+	if (dir == NULL) {
+		return;
+	}
+
+	struct dirent *dirent = NULL;
+
+	while ((dirent = readdir(dir)) != NULL) {
+		directory_listing[directory_listing_size - 1] = strdup(dirent->d_name);
+		directory_listing = (char **)realloc(directory_listing, ++directory_listing_size * sizeof(char *));
+	}
+	
+	closedir(dir);
 }
 
 static void local(int code, int value) {
@@ -63,39 +97,7 @@ static void local(int code, int value) {
 		stat(abs, st);
 
 		if (S_ISDIR(st->st_mode)) {
-			if (directory_listing != NULL) {
-				int i = 0;
-
-				// ERROR: Segmentation fault here
-				while (directory_listing[i] != NULL) {
-					free(directory_listing[i++]);
-				}
-
-				free(directory_listing);
-				directory_listing = (char **)calloc(1, sizeof(char *));
-				directory_listing_size = 1;
-			} else {
-				directory_listing = (char **)calloc(1, sizeof(char *));
-				directory_listing_size = 1;
-			}
-
-			DIR *dir = opendir(abs);
-
-			if (dir == NULL) {
-				break;
-			}
-
-			struct dirent *dirent = NULL;
-
-			while ((dirent = readdir(dir))) {
-				if (strlen(dirent->d_name) > 0) {
-					directory_listing[directory_listing_size - 1] = strdup(dirent->d_name);
- 					directory_listing = (char **)realloc(directory_listing, ++directory_listing_size * sizeof(char *));
-				}
-			}
-
-			
-			closedir(dir);
+			update_directory_listing(abs);
 		} else if (S_ISREG(st->st_mode)) {
 			load_file(abs);
 			switch_to_screen("editor");
@@ -129,6 +131,22 @@ static void local(int code, int value) {
 		file_path[size - 1] = (char)value;
 		file_path = (char *)realloc(file_path, ++size);
 		file_path[size - 1] = 0;
+
+		break;
+	}
+
+	case LOCAL_ARROW_DOWN: {
+		if (directory_listing_offset + 9 < directory_listing_size) {
+			directory_listing_offset++;
+		}
+		
+		break;
+	}
+
+	case LOCAL_ARROW_UP: {
+		if (directory_listing_offset > 0) {
+			directory_listing_offset--;
+		}
 
 		break;
 	}

@@ -120,13 +120,6 @@ void terminate(int signal) {
 // TODO: Implement a SIGINT handler in order
 //	 to quickly blit data to a file
 int main(int argc, char **argv) {
-	printf("%s\n", fpath2abs("/test.s", 0));
-	printf("%s\n", fpath2abs("test.s", 0));
-	printf("%s\n", fpath2abs("~/test.s", 0));
-	printf("%s\n", fpath2abs("~/test.s", 1));
-	printf("%s\n", fpath2abs("test.s", 1));
-	printf("%s\n", fpath2abs("/test.s", 1));
-	
         DEBUG_CODE( 
 		__DEBUG_LOG_FILE__ = fopen("debug.log", "w"); 
 		if (__DEBUG_LOG_FILE__ == NULL) {

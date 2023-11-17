@@ -1,5 +1,3 @@
-change		
-		
 %define FIBONACCI_COUNT 35		
 		
 global main		

@@ -41,7 +41,7 @@ uint64_t general_hash(char *string) {
 char *fpath2abs(char *path, int options) {
 	if (*path == '/') {
 		// Path is already absolute, ignore
-		return path;
+		return strdup(path);
 	}
 
 	char *clean = path;
@@ -71,7 +71,7 @@ char *fpath2abs(char *path, int options) {
 		cwd[strlen(cwd)] = '/';
 		strcat(cwd, clean);
 
-		final = strndup(cwd, strlen(cwd));
+		final = strndup(cwd, strlen(cwd) + 1);
 
 		free(cwd);
 
