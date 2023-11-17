@@ -67,6 +67,7 @@ struct screen {
 extern struct screen *active_screen;
 
 int switch_to_screen(char *name);
+int switch_to_last_screen();
 int register_screen(char *name, void (*render)(struct render_context *), void (*update)(struct render_context *), void (*local)(int, int));
 
 void draw_border(int x, int y, int width, int height);

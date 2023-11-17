@@ -26,16 +26,30 @@
 
 struct render_context current_render_context;
 struct screen screens[MAX_SCREEN_COUNT];
-struct screen *active_screen;
+struct screen *active_screen = NULL;
+struct screen *last_screen = NULL;
 
 int switch_to_screen(char *name) {
         int i = GET_SCR_IDX(name);
-        
+
+	last_screen = active_screen;
         active_screen = &screens[i];
 
         DEBUG_MSG("Switched to screen %d (\"%s\")\n", i, name);
 
         return i;
+}
+
+int switch_to_last_screen() {
+	int i = (int)(((uintptr_t)active_screen - (uintptr_t)screens) / sizeof(struct screen));
+
+	struct screen *tmp = last_screen;
+	last_screen = active_screen;
+	active_screen = tmp;
+
+	DEBUG_MSG("Switched to last screen %d (\"%s\")\n", i, screens[i].name);
+
+	return i;
 }
 
 int register_screen(char *name, void (*render)(struct render_context *), void (*update)(struct render_context *), void (*local)(int, int)) {

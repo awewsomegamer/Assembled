@@ -39,6 +39,10 @@ uint64_t general_hash(char *string) {
 }
 
 char *fpath2abs(char *path, int options) {
+	if (path == NULL) {
+		return NULL;
+	}
+
 	if (*path == '/') {
 		// Path is already absolute, ignore
 		return strdup(path);

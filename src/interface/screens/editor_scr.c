@@ -258,24 +258,46 @@ static void local(int code, int value) {
 	}
 
 	case LOCAL_WINDOW_LEFT: {
-		if (active_text_file_idx > 0 && active_text_file[active_text_file_idx - 1].active_buffer != NULL) {
-			active_text_file_idx--;
-			active_text_file = text_files[active_text_file_idx];
+		int i = min(active_text_file_idx - 1, 0);
+
+		for (; i >= 0; i--) {
+			if (text_files[i] != NULL) {
+				break;
+			}
+		}
+
+		if (text_files[i] != NULL) {
+			active_text_file = text_files[i];
+			active_text_file_idx = i;
 
 			sprintf(editor_scr_message, "SWITCHED TO %s", active_text_file->name);
+		} else {
+			sprintf(editor_scr_message, "BEGIN");
 		}
 
 		break;
 	}
 
 	case LOCAL_WINDOW_RIGHT: {
-		if (active_text_file_idx < descriptor.column_count && active_text_file[active_text_file_idx + 1].active_buffer != NULL) {
-			active_text_file_idx++;
-			active_text_file = text_files[active_text_file_idx];
+		int i = min(active_text_file_idx + 1, MAX_TEXT_FILES - 1);
 
-			sprintf(editor_scr_message, "SWITCHED TO %s", active_text_file->name);
+		// TODO: Why does this require a -1? There is a segmentation
+		//	 fault without it, and it does not make sense.
+		for (; i < MAX_TEXT_FILES - 1; i++) {
+			if (text_files[i] != NULL) {
+				break;
+			}
 		}
 
+		if (text_files[i] != NULL) {
+			active_text_file = text_files[i];
+			active_text_file_idx = i;
+
+			sprintf(editor_scr_message, "SWITCHED TO %s %d", active_text_file->name, i);
+		} else {
+			sprintf(editor_scr_message, "END");
+		}
+		
 		break;
 	}
         }

@@ -39,7 +39,7 @@ static size_t directory_listing_size = 1;
 static int directory_listing_offset = 0;
 
 static void render(struct render_context *ctx) {
-	mvprintw(1, (ctx->max_x / 4 + 1), "%s", file_path);
+	mvprintw(1, (ctx->max_x / 4 + 1), "%s", (file_path == NULL ? "" : file_path));
 	draw_border(ctx->max_x / 4, 0, ctx->max_x / 2, ctx->max_y - 1);
 	draw_border(ctx->max_x / 4, 2, ctx->max_x / 2, ctx->max_y - 3);
 
@@ -93,6 +93,10 @@ static void update_directory_listing(char *abs) {
 static void local(int code, int value) {
 	switch (code) {
 	case LOCAL_ENTER: {
+		if (directory_listing_size == 1) {
+			switch_to_last_screen();
+		}
+
 		struct stat *st = (struct stat *)malloc(sizeof(struct stat));
 		char *abs = fpath2abs(file_path, 0);
 
