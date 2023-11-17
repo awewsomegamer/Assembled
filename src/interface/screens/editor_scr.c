@@ -281,13 +281,14 @@ static void local(int code, int value) {
 	case LOCAL_WINDOW_RIGHT: {
 		int i = min(active_text_file_idx + 1, MAX_TEXT_FILES - 1);
 
-		// TODO: Why does this require a -1? There is a segmentation
-		//	 fault without it, and it does not make sense.
-		for (; i < MAX_TEXT_FILES - 1; i++) {
+		for (; i < MAX_TEXT_FILES; i++) {
 			if (text_files[i] != NULL) {
 				break;
 			}
 		}
+
+		// Clamp index
+		i = max(0, min(i, MAX_TEXT_FILES - 1));
 
 		if (text_files[i] != NULL) {
 			active_text_file = text_files[i];
