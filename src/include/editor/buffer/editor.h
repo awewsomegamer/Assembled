@@ -29,18 +29,18 @@
 #include <editor/buffer/buffer.h>
 
 struct text_file {
+        int cy;
+        struct text_buffer *active_buffer;
+        struct text_buffer **buffers;
+        int load_offset;
+	int active_buffer_idx;
         char *name;
         FILE *file;
-        int load_offset;
-        int cy;
-        struct text_buffer **buffers;
-        struct text_buffer *active_buffer;
-	int active_buffer_idx;
 };
 
 struct column_descriptor {
-        int column_count;
         int *column_positions;
+        int column_count;
         int delimiter;     
 };
 

@@ -54,10 +54,6 @@ static void render(struct render_context *ctx) {
 	move(1, (ctx->max_x / 4) + size);
 }
 
-static void update(struct render_context *ctx) {
-
-}
-
 static void update_directory_listing(char *abs) {
 	if (directory_listing != NULL) {
 		for (int i = 0; i < directory_listing_size - 1; i++) {
@@ -160,7 +156,10 @@ static void local(int code, int value) {
 }
 
 void register_file_load_scr() {
-	register_screen("file_load", render, update, local);
+	DEBUG_MSG("Initializing file load screen\n");
+
+	int i = register_screen("file_load", render, NULL, local);
+	screens[i].render_options |= SCR_OPT_ON_UPDATE;
 }
 
 void configure_file_load_scr() {

@@ -43,6 +43,7 @@
 #include <math.h>
 
 bool running = 1;
+bool update = 0;
 int currently_active_screen = 0;
 FILE *__DEBUG_LOG_FILE__ = NULL;
 
@@ -84,19 +85,16 @@ void init_ncurses() {
 }
 
 void editor() {
-        // W & D move  cursor successfully, any other key
-        // freezes everything.
         int c = getch();
-	
-	// TODO: Optimize. If there is nothing to do, sleep
 
         if (c > -1) {
-		sprintf(editor_scr_message, "");
+                sprintf(editor_scr_message, "");
+                update = 1;
 
                 key(c);
-	}
-	
-        if (active_screen != NULL) {
+        }
+
+        if (active_screen != NULL && active_screen->update != NULL) {
                 active_screen->update(&current_render_context);
         }
 }
@@ -104,7 +102,7 @@ void editor() {
 void interface() {
         erase();
 
-        if (active_screen != NULL) {
+        if (active_screen != NULL && active_screen->render != NULL) {
                 active_screen->render(&current_render_context);
         }
         
@@ -112,44 +110,44 @@ void interface() {
 }
 
 void terminate(int signal) {
-	save_all();
+        save_all();
 
-	running = 0;
+        running = 0;
 }
 
 // TODO: Implement a SIGINT handler in order
-//	 to quickly blit data to a file
+//       to quickly blit data to a file
 int main(int argc, char **argv) {
         DEBUG_CODE( 
-		__DEBUG_LOG_FILE__ = fopen("debug.log", "w"); 
-		if (__DEBUG_LOG_FILE__ == NULL) {
-			printf("Failed to open ./debug.log\n");
-			
-			return 1;
-		}		
-		)
+                __DEBUG_LOG_FILE__ = fopen("debug.log", "w");
+                if (__DEBUG_LOG_FILE__ == NULL) {
+                        printf("Failed to open ./debug.log\n");
+
+                        return 1;
+                }
+        )
 
         read_config();
 
-	for (int i = 0; i < MAX_COLUMNS; i++) {
-		if (column_descriptors[i].column_positions != NULL) {
-			current_column_descriptor = i;
-		}
-	}
+        for (int i = 0; i < MAX_COLUMNS; i++) {
+                if (column_descriptors[i].column_positions != NULL) {
+                        current_column_descriptor = i;
+                }
+        }
 
-	if (current_column_descriptor == -1) {
-		printf("Failed to find a user defined column, defining a single column\n");
-		DEBUG_MSG("Failed to find a user defined column, defining a single column\n");
+        if (current_column_descriptor == -1) {
+                printf("Failed to find a user defined column, defining a single column\n");
+                DEBUG_MSG("Failed to find a user defined column, defining a single column\n");
 
-		current_column_descriptor = 0;
-		column_descriptors[current_column_descriptor].column_positions = default_column_definition;
-		column_descriptors[current_column_descriptor].column_count = 1;
-		column_descriptors[current_column_descriptor].delimiter = 0;
-	}
+                current_column_descriptor = 0;
+                column_descriptors[current_column_descriptor].column_positions = default_column_definition;
+                column_descriptors[current_column_descriptor].column_count = 1;
+                column_descriptors[current_column_descriptor].delimiter = 0;
+        }
 
         register_start_screen();
         register_editor_screen();
-	register_file_load_scr();
+        register_file_load_scr();
 
         if (argc > 1) {
                 load_file(argv[1]);
@@ -184,15 +182,22 @@ int main(int argc, char **argv) {
                 while (accumulator >= TARGET_FPS) {
                         editor();
 
+                        if (update == 0) {
+                                accumulator = 0;
+                                break;
+                        }
+
                         accumulator -= TARGET_FPS;
                         render = 1;
                 }
 
-                usleep(1000);
+                usleep(8000);
 
-                if (render) {
+                if (render || (active_screen->render_options & SCR_OPT_ALWAYS)) {
                         interface();
                 }
+
+                update = 0;
         }
 
         endwin();

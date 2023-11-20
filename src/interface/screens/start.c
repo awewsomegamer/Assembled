@@ -250,7 +250,9 @@ static void local(int code, int value) {
 
 void register_start_screen() {
         DEBUG_MSG("Registering start screen\n");
-        register_screen("start", render, update, local);
+
+        int i = register_screen("start", render, update, local);
+        screens[i].render_options |= SCR_OPT_ALWAYS;
 }
 
 struct cfg_token *configure_start_screen(struct cfg_token *token) {

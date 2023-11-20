@@ -41,8 +41,8 @@
 #define LOCAL_WINDOW_RIGHT	11
 
 struct bound {
-        int x;                  // Starting X
-        int y;                  // Starting Y
+        int x;                 // Starting X
+        int y;                 // Starting Y
         int w;                 // Width
         int h;                 // Height
 };
@@ -57,13 +57,19 @@ struct render_context {
 };
 extern struct render_context current_render_context;
 
+
+#define SCR_OPT_ON_UPDATE (1 << 0)
+#define SCR_OPT_ALWAYS    (1 << 1)
+
 struct screen {
         void (*render)(struct render_context *);
         void (*update)(struct render_context *);
         void (*local)(int, int);
+	int render_options;
         char *name;
 };
 
+extern struct screen screens[];
 extern struct screen *active_screen;
 
 int switch_to_screen(char *name);

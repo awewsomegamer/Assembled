@@ -287,10 +287,7 @@ static void local(int code, int value) {
 			}
 		}
 
-		// Clamp index
-		i = max(0, min(i, MAX_TEXT_FILES - 1));
-
-		if (text_files[i] != NULL) {
+		if (text_files[i] != NULL && i < MAX_TEXT_FILES) {
 			active_text_file = text_files[i];
 			active_text_file_idx = i;
 
@@ -306,7 +303,9 @@ static void local(int code, int value) {
 
 void register_editor_screen() {
         DEBUG_MSG("Registering editor screen\n");
-        register_screen("editor", render, update, local);
+
+		int i = register_screen("editor", render, update, local);
+		screens[i].render_options |= SCR_OPT_ON_UPDATE;
 }
 
 struct cfg_token *configure_editor_screen(struct cfg_token *token) {
