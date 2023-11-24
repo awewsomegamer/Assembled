@@ -19,11 +19,11 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "editor/buffer/buffer.h"
-#include "editor/buffer/editor.h"
-#include "editor/config.h"
-#include "global.h"
-#include "interface/interface.h"
+#include <editor/buffer/buffer.h>
+#include <editor/buffer/editor.h>
+#include <editor/config.h>
+#include <global.h>
+#include <interface/interface.h>
 #include <curses.h>
 #include <interface/screens/editor_scr.h>
 #include <stdio.h>
@@ -125,7 +125,7 @@ static void render(struct render_context *context) {
 	int column_start = active_text_file->active_buffer->col_start;
 	int column_length = (active_text_file->active_buffer->col_end == -1 ? context->max_x : active_text_file->active_buffer->col_end) - column_start;
 
-        move(CURSOR_Y - offset + cy_wrap_distortion + (CURSOR_X / column_length), (CURSOR_X % column_length) + column_start);
+	move(CURSOR_Y - offset + cy_wrap_distortion + (CURSOR_X / column_length), (CURSOR_X % column_length) + column_start);
 }
 
 static void update(struct render_context *context) {
@@ -145,13 +145,13 @@ static void update(struct render_context *context) {
 static void local(int code, int value) {
 	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
 
-        switch (code) {
-        case LOCAL_ARROW_UP: {
+	switch (code) {
+	case LOCAL_ARROW_UP: {
 		bool moved = 0;
 
 		// Update all current pointers one up
 		for (int i = 0; i < descriptor.column_count; i++) {
-        		struct line_list_element *current = active_text_file->buffers[i]->current_element;
+			struct line_list_element *current = active_text_file->buffers[i]->current_element;
 			
 			if (current->prev != NULL) {
 				active_text_file->buffers[i]->current_element = current->prev;
@@ -166,15 +166,15 @@ static void local(int code, int value) {
 			differential--;
 		}
 
-                break;
-        }
+		break;
+	}
 
-        case LOCAL_ARROW_DOWN: {
+	case LOCAL_ARROW_DOWN: {
 		bool moved = 0;
 
 		// Update all current pointers one down
-                for (int i = 0; i < descriptor.column_count; i++) {
-        		struct line_list_element *current = active_text_file->buffers[i]->current_element;
+		for (int i = 0; i < descriptor.column_count; i++) {
+			struct line_list_element *current = active_text_file->buffers[i]->current_element;
 		
 			if (current->next != NULL) {
 				active_text_file->buffers[i]->current_element = current->next;
@@ -190,23 +190,23 @@ static void local(int code, int value) {
 		}
 
 		break;
-        }
+	}
 
-        case LOCAL_ARROW_LEFT: {
-                if (CURSOR_X > 0) {
-                        CURSOR_X--;
+	case LOCAL_ARROW_LEFT: {
+		if (CURSOR_X > 0) {
+			CURSOR_X--;
 		}
 
-                break;
-        }
+		break;
+	}
 
-        case LOCAL_ARROW_RIGHT: {
-                if (CURSOR_X < line_length) {
-                        CURSOR_X++;
+	case LOCAL_ARROW_RIGHT: {
+		if (CURSOR_X < line_length) {
+			CURSOR_X++;
 		}
 
-                break;
-        }
+		break;
+	}
 	
 	case LOCAL_ENTER: {
 		buffer_char_insert('\n');
@@ -298,16 +298,16 @@ static void local(int code, int value) {
 		
 		break;
 	}
-        }
+	}
 }
 
 void register_editor_screen() {
-        DEBUG_MSG("Registering editor screen\n");
+	DEBUG_MSG("Registering editor screen\n");
 
 		int i = register_screen("editor", render, update, local);
 		screens[i].render_options |= SCR_OPT_ON_UPDATE;
 }
 
 struct cfg_token *configure_editor_screen(struct cfg_token *token) {
-        return token;
+	return token;
 }
