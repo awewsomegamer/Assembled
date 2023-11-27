@@ -38,6 +38,8 @@ static int line_length = 0;
 static int differential = 0;
 static int offset = 0;
 
+static bool selection = 0;
+
 char editor_scr_message[1024];
 
 static void render(struct render_context *context) {
@@ -93,6 +95,8 @@ static void render(struct render_context *context) {
 			if (CURSOR_Y - offset > y && (distortion > applied_cy_distortion)) {
 				applied_cy_distortion = distortion;
 			}
+
+			// TODO: Handle selection rendering
 
 			// Draw each line of the string
 			for (int x = 0; x < strlen(current->contents); x += max_length) {
@@ -164,6 +168,7 @@ static void local(int code, int value) {
 		if (CURSOR_Y > 0 && moved) {
 			CURSOR_Y--;
 			differential--;
+			(active_text_file->active_buffer->selection_end.y)--;
 		}
 
 		break;
@@ -187,6 +192,7 @@ static void local(int code, int value) {
 		if (moved) {
 			CURSOR_Y++;
 			differential++;
+			(active_text_file->active_buffer->selection_end.y)++;
 		}
 
 		break;
@@ -195,6 +201,7 @@ static void local(int code, int value) {
 	case LOCAL_ARROW_LEFT: {
 		if (CURSOR_X > 0) {
 			CURSOR_X--;
+			(active_text_file->active_buffer->selection_end.x)--;
 		}
 
 		break;
@@ -203,6 +210,7 @@ static void local(int code, int value) {
 	case LOCAL_ARROW_RIGHT: {
 		if (CURSOR_X < line_length) {
 			CURSOR_X++;
+			(active_text_file->active_buffer->selection_end.x)++;
 		}
 
 		break;
@@ -296,6 +304,19 @@ static void local(int code, int value) {
 			sprintf(editor_scr_message, "END");
 		}
 		
+		break;
+	}
+
+	case LOCAL_WINDOW_SELECTION: {
+		selection = !selection;
+
+		if (selection) {
+			active_text_file->active_buffer->selection_start.x = active_text_file->active_buffer->cx;
+			active_text_file->active_buffer->selection_start.y = active_text_file->cy;
+			active_text_file->active_buffer->selection_end.x = active_text_file->active_buffer->cx;
+			active_text_file->active_buffer->selection_end.y = active_text_file->cy;
+		}
+
 		break;
 	}
 	}

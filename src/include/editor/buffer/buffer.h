@@ -23,6 +23,7 @@
 #define BUFFER_H
 
 #include <global.h>
+#include <interface/interface.h>
 
 struct line_list_element {
         char *contents;
@@ -34,6 +35,10 @@ struct text_buffer {
         int cx;
         int col_start;
         int col_end;
+
+	struct bound selection_start;
+	struct bound selection_end;
+
         struct line_list_element *head;
         struct line_list_element *current_element;
 };

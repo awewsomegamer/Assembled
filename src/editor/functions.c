@@ -87,6 +87,10 @@ static void window_right() {
 	active_screen->local(LOCAL_WINDOW_RIGHT, 0);
 }
 
+static void selection() {
+	active_screen->local(LOCAL_WINDOW_SELECTION, 0);
+}
+
 void (*functions[MAX_FUNCTION_COUNT])() = {
         [CFG_LOOKUP_UP]            = cursor_up,
         [CFG_LOOKUP_DOWN]          = cursor_down,
@@ -100,4 +104,5 @@ void (*functions[MAX_FUNCTION_COUNT])() = {
 	[CFG_LOOKUP_FILE_SAVE]     = file_save,
 	[CFG_LOOKUP_FILE_SAVE_ALL] = file_save_all,
 	[CFG_LOOKUP_FILE_LOAD]     = file_load,
+	[CFG_LOOKUP_SELECTION]     = selection,
 };

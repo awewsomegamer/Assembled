@@ -39,6 +39,7 @@
 #define LOCAL_BUFFER_CHAR	9
 #define LOCAL_WINDOW_LEFT	10
 #define LOCAL_WINDOW_RIGHT	11
+#define LOCAL_WINDOW_SELECTION  12
 
 struct bound {
         int x;                 // Starting X

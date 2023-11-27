@@ -6,7 +6,7 @@ all:
 	gcc $(CFILES) $(CFLAGS)
 
 run: all
-	$(PRODUCT) test.txt
+	$(PRODUCT) test/test.txt
 
 debug: CFLAGS += -DDEBUG_MODE
 debug: all
