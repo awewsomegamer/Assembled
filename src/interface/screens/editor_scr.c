@@ -44,7 +44,8 @@ char editor_scr_message[1024];
 
 static void render(struct render_context *context) {
 	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
-	
+	struct text_buffer *active_buffer = active_text_file->active_buffer;
+
 	// Create and initialize a list of current pointers
 	struct line_list_element **currents = (struct line_list_element **)calloc(descriptor.column_count, sizeof(struct line_list_element *));
 
@@ -60,6 +61,13 @@ static void render(struct render_context *context) {
 	int cy_wrap_distortion = 0;
 	int element_wrap_distortion = 0;
 	int y = 0;
+
+	// Restrict cx to the end of the current line
+	line_length = strlen(active_buffer->current_element->contents);
+
+	if (CURSOR_X > line_length) {
+		CURSOR_X = line_length;
+	}
 
 	// While you can read a line
 	while (currents[0] != NULL) {
@@ -96,17 +104,69 @@ static void render(struct render_context *context) {
 				applied_cy_distortion = distortion;
 			}
 
-			// TODO: Handle selection rendering
+			// Selection rendering
+			struct bound *start = &active_buffer->selection_start;
+			struct bound end_v = { .x = CURSOR_X, .y = CURSOR_Y };
+			struct bound *end = &end_v;
+
+			if (start->y > end->y) {
+				struct bound *tmp = start;
+				start = end;
+				end = tmp;
+			}
+
+			if (start->x > end->x) {
+				struct bound *tmp = start;
+				start = end;
+				end = tmp;
+			}
+
+			// The amount of characters needed to be filled in
+			int char_mode = 0;
+			int tmp1 = y + offset;
+
+			if (tmp1 == start->y) {
+			 	char_mode = -start->x;
+			} else if (tmp1 == end->y) {
+			 	char_mode = end->x;
+			}
 
 			// Draw each line of the string
 			for (int x = 0; x < strlen(current->contents); x += max_length) {
+				if (tmp1 == start->y && char_mode == 0 && selection == 1) {
+				 	attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+				} else if (tmp1 == end->y && char_mode == 0 || selection == 0) {
+					attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+				}
+
+				if (char_mode != 0) {
+				 	int l = 0;
+
+				 	for (; l < abs(char_mode); l++) {
+				 		mvaddch(y + (x / max_length) + element_wrap_distortion, descriptor.column_positions[i] + l, *(current->contents + x + l));
+				 	}
+
+				 	if (char_mode > 0) {
+				 		attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+				 	} else if (char_mode < 0) {
+				 		attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+				 	}
+
+					// ERROR: Adds additional characters on wrapped lines
+				 	for (; l < min(max_length, strlen(current->contents)); l++) {
+				 		mvaddch(y + (x / max_length) + element_wrap_distortion, descriptor.column_positions[i] + l, *(current->contents + x + l));
+				 	}
+
+				 	continue;
+				}
+
 				mvprintw(y + (x / max_length) + element_wrap_distortion, descriptor.column_positions[i], "%.*s", max_length, (current->contents + x));
 			}
 
 			// Move onto the next line
 			currents[i] = currents[i]->next;
 		}
-		
+
 		// Update distortions
 		cy_wrap_distortion += applied_cy_distortion;
 		element_wrap_distortion += applied_element_distortion;
@@ -116,18 +176,12 @@ static void render(struct render_context *context) {
 	}
 
 	// Print information
-	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d) %s", CURSOR_Y + 1, CURSOR_X + 1, editor_scr_message == NULL ? "" : editor_scr_message);
-	
-	// Restrict cx to the end of the current line
-	line_length = strlen(active_text_file->active_buffer->current_element->contents);
+	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d) %s", CURSOR_Y + 1, CURSOR_X + 1, editor_scr_message);
 
-	if (CURSOR_X > line_length) {
-		CURSOR_X = line_length;
-	}
 
-	// Position the cursor appropriately	
-	int column_start = active_text_file->active_buffer->col_start;
-	int column_length = (active_text_file->active_buffer->col_end == -1 ? context->max_x : active_text_file->active_buffer->col_end) - column_start;
+	// Position the cursor appropriately
+	int column_start = active_buffer->col_start;
+	int column_length = (active_buffer->col_end == -1 ? context->max_x : active_buffer->col_end) - column_start;
 
 	move(CURSOR_Y - offset + cy_wrap_distortion + (CURSOR_X / column_length), (CURSOR_X % column_length) + column_start);
 }
@@ -168,7 +222,6 @@ static void local(int code, int value) {
 		if (CURSOR_Y > 0 && moved) {
 			CURSOR_Y--;
 			differential--;
-			(active_text_file->active_buffer->selection_end.y)--;
 		}
 
 		break;
@@ -192,7 +245,6 @@ static void local(int code, int value) {
 		if (moved) {
 			CURSOR_Y++;
 			differential++;
-			(active_text_file->active_buffer->selection_end.y)++;
 		}
 
 		break;
@@ -201,7 +253,6 @@ static void local(int code, int value) {
 	case LOCAL_ARROW_LEFT: {
 		if (CURSOR_X > 0) {
 			CURSOR_X--;
-			(active_text_file->active_buffer->selection_end.x)--;
 		}
 
 		break;
@@ -210,7 +261,6 @@ static void local(int code, int value) {
 	case LOCAL_ARROW_RIGHT: {
 		if (CURSOR_X < line_length) {
 			CURSOR_X++;
-			(active_text_file->active_buffer->selection_end.x)++;
 		}
 
 		break;
@@ -313,8 +363,6 @@ static void local(int code, int value) {
 		if (selection) {
 			active_text_file->active_buffer->selection_start.x = active_text_file->active_buffer->cx;
 			active_text_file->active_buffer->selection_start.y = active_text_file->cy;
-			active_text_file->active_buffer->selection_end.x = active_text_file->active_buffer->cx;
-			active_text_file->active_buffer->selection_end.y = active_text_file->cy;
 		}
 
 		break;
