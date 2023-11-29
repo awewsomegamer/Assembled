@@ -121,46 +121,57 @@ static void render(struct render_context *context) {
 				end = tmp;
 			}
 
-			// The amount of characters needed to be filled in
-			int char_mode = 0;
-			int tmp1 = y + offset;
+			int true_y = y + offset;
 
-			if (tmp1 == start->y) {
-			 	char_mode = -start->x;
-			} else if (tmp1 == end->y) {
-			 	char_mode = end->x;
+			int char_mode = 0;
+
+			if (true_y == start->x) {
+				char_mode = -start->x;
+			} else if (true_y == end->y) {
+				char_mode = end->x;
 			}
 
 			// Draw each line of the string
 			for (int x = 0; x < strlen(current->contents); x += max_length) {
-				if (tmp1 == start->y && char_mode == 0 && selection == 1) {
-				 	attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
-				} else if (tmp1 == end->y && char_mode == 0 || selection == 0) {
+				int yc = y + (x / max_length) + element_wrap_distortion;
+				int xc = descriptor.column_positions[i];
+
+				// Highlight contents if selected
+				if (start->y < true_y && end->y > true_y && selection) {
+					attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+				} else {
 					attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 				}
 
-				if (char_mode != 0) {
-				 	int l = 0;
-
-				 	for (; l < abs(char_mode); l++) {
-				 		mvaddch(y + (x / max_length) + element_wrap_distortion, descriptor.column_positions[i] + l, *(current->contents + x + l));
-				 	}
-
-				 	if (char_mode > 0) {
-				 		attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
-				 	} else if (char_mode < 0) {
-				 		attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
-				 	}
-
-					// ERROR: Adds additional characters on wrapped lines
-				 	for (; l < min(max_length, strlen(current->contents)); l++) {
-				 		mvaddch(y + (x / max_length) + element_wrap_distortion, descriptor.column_positions[i] + l, *(current->contents + x + l));
-				 	}
-
-				 	continue;
+				// Draw regular text
+				// TODO: The start line of a selection is basically never
+				// highlighted and visual artifacting occurs when start->x
+				// is > 0
+				if (selection == 0) {
+					mvprintw(yc, xc, "%.*s", max_length, (current->contents + x));
+					continue;
 				}
 
-				mvprintw(y + (x / max_length) + element_wrap_distortion, descriptor.column_positions[i], "%.*s", max_length, (current->contents + x));
+				// Enable or disble highlighting for first segment
+				if (char_mode < 0) {
+					attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+				} else if (char_mode > 0) {
+					attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+				}
+
+				// Draw first segment
+				int length = min(max_length, max(0, abs(char_mode) - x));
+				mvprintw(yc, xc, "%.*s", length, (current->contents + x));
+
+				// Disable or enable highlighting for second segment
+				if (char_mode < 0) {
+					attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+				} else if (char_mode > 0) {
+					attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+				}
+
+				// Draw second segment
+				mvprintw(yc, xc + length, "%.*s", max_length - length, (current->contents + x + length));
 			}
 
 			// Move onto the next line
