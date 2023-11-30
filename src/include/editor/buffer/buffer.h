@@ -36,6 +36,7 @@ struct text_buffer {
         int col_start;
         int col_end;
 
+	uint8_t selection_enabled;
 	struct bound selection_start;
 	struct bound selection_end;
 
@@ -53,5 +54,7 @@ void destroy_buffer(struct text_buffer *buffer);
 
 void buffer_char_insert(char c);
 void buffer_char_del();
+void buffer_move_ln_down();
+void buffer_move_ln_up();
 
 #endif

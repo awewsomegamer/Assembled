@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "editor/buffer/buffer.h"
 #include "editor/config.h"
 #include "interface/screens/editor_scr.h"
 #include <editor/buffer/editor.h>
@@ -91,6 +92,14 @@ static void selection() {
 	active_screen->local(LOCAL_WINDOW_SELECTION, 0);
 }
 
+static void move_line_up() {
+	buffer_move_ln_up();
+}
+
+static void move_line_down() {
+	buffer_move_ln_down();
+}
+
 void (*functions[MAX_FUNCTION_COUNT])() = {
         [CFG_LOOKUP_UP]            = cursor_up,
         [CFG_LOOKUP_DOWN]          = cursor_down,
@@ -105,4 +114,6 @@ void (*functions[MAX_FUNCTION_COUNT])() = {
 	[CFG_LOOKUP_FILE_SAVE_ALL] = file_save_all,
 	[CFG_LOOKUP_FILE_LOAD]     = file_load,
 	[CFG_LOOKUP_SELECTION]     = selection,
+	[CFG_LOOKUP_MOVE_LN_UP]    = move_line_up,
+	[CFG_LOOKUP_MOVE_LN_DOWN]  = move_line_down,
 };

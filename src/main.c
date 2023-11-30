@@ -166,7 +166,9 @@ int main(int argc, char **argv) {
         double delta = 0;
         double accumulator = 0;
 
-        time(NULL);
+	// "Wake-up" cycle
+	editor();
+	interface();
 
         while (running) {
                 bool render = 0;

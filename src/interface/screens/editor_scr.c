@@ -38,8 +38,6 @@ static int line_length = 0;
 static int differential = 0;
 static int offset = 0;
 
-static bool selection = 0;
-
 char editor_scr_message[1024];
 
 static void render(struct render_context *context) {
@@ -77,6 +75,7 @@ static void render(struct render_context *context) {
 
 		for (int i = 0; i < descriptor.column_count; i++) {
 			struct line_list_element *current = currents[i];
+			struct text_buffer *current_buffer = active_text_file->buffers[i];
 
 			// Calculate the number of characters the current column
 			// can fit
@@ -120,6 +119,7 @@ static void render(struct render_context *context) {
 			int char_mode = 0;
 			bool selection_extreme = 0;
 			bool extreme_side = 0;
+			bool selection = current_buffer->selection_enabled && active_buffer == current_buffer;
 
 			if (true_y == start->y) {
 				char_mode = start->x;
@@ -366,9 +366,9 @@ static void local(int code, int value) {
 	}
 
 	case LOCAL_WINDOW_SELECTION: {
-		selection = !selection;
+		active_text_file->active_buffer->selection_enabled = !active_text_file->active_buffer->selection_enabled;
 
-		if (selection) {
+		if (active_text_file->active_buffer->selection_enabled) {
 			active_text_file->active_buffer->selection_start.x = active_text_file->active_buffer->cx;
 			active_text_file->active_buffer->selection_start.y = active_text_file->cy;
 		}

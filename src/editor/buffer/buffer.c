@@ -282,10 +282,34 @@ void buffer_char_del() {
 	(active_text_buffer->cx)--;
 }
 
-void buffer_move_ln_down() {
+void buffer_move_ln_up() {
 
 }
 
-void buffer_move_ln_up() {
+void buffer_move_ln_down() {
+	struct text_buffer *active_buffer = active_text_file->active_buffer;
 
+	if (active_buffer->selection_enabled) {
+		// There is a selection, move selection
+
+		return;
+	}
+
+	// Selection is not enabled, move a single line
+	struct line_list_element *current = active_buffer->current_element;
+	struct line_list_element *next = current->next;
+	struct line_list_element *prev = current->prev;
+
+	if (next == NULL) {
+		return;
+	}
+
+	next->prev = current->prev;
+	current->prev = next;
+	prev->next = next;
+	current->next = next->next;
+
+	if (next->next != NULL) {
+		next->next->prev = current;
+	}
 }

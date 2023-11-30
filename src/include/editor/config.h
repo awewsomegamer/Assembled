@@ -74,6 +74,8 @@ enum STR_LOOKUP_IDXS {
 	CFG_LOOKUP_FILE_SAVE_ALL,
 	CFG_LOOKUP_FILE_LOAD,
 	CFG_LOOKUP_SELECTION,
+	CFG_LOOKUP_MOVE_LN_UP,
+	CFG_LOOKUP_MOVE_LN_DOWN,
 };
 
 static const char *str_lookup[] = {
@@ -102,6 +104,8 @@ static const char *str_lookup[] = {
 	[CFG_LOOKUP_FILE_SAVE_ALL] = "file_save_all",
 	[CFG_LOOKUP_FILE_LOAD]     = "file_load",
 	[CFG_LOOKUP_SELECTION]     = "selection",
+	[CFG_LOOKUP_MOVE_LN_UP]    = "move_line_up",
+	[CFG_LOOKUP_MOVE_LN_DOWN]  = "move_line_down",
 };
 
 struct cfg_token {
