@@ -109,13 +109,7 @@ static void render(struct render_context *context) {
 			struct bound end_v = { .x = CURSOR_X, .y = CURSOR_Y };
 			struct bound *end = &end_v;
 
-			if (start->y > end->y) {
-				struct bound *tmp = start;
-				start = end;
-				end = tmp;
-			}
-
-			if (start->x > end->x) {
+			if (start->y > end->y || start->x > end->x) {
 				struct bound *tmp = start;
 				start = end;
 				end = tmp;
@@ -124,11 +118,17 @@ static void render(struct render_context *context) {
 			int true_y = y + offset;
 
 			int char_mode = 0;
+			bool selection_extreme = 0;
+			bool extreme_side = 0;
 
-			if (true_y == start->x) {
-				char_mode = -start->x;
+			if (true_y == start->y) {
+				char_mode = start->x;
+				selection_extreme = 1;
+				extreme_side = 0;
 			} else if (true_y == end->y) {
 				char_mode = end->x;
+				selection_extreme = 1;
+				extreme_side = 1;
 			}
 
 			// Draw each line of the string
@@ -144,16 +144,13 @@ static void render(struct render_context *context) {
 				}
 
 				// Draw regular text
-				// TODO: The start line of a selection is basically never
-				// highlighted and visual artifacting occurs when start->x
-				// is > 0
-				if (selection == 0) {
+				if (selection == 0 || selection_extreme == 0) {
 					mvprintw(yc, xc, "%.*s", max_length, (current->contents + x));
 					continue;
 				}
 
 				// Enable or disble highlighting for first segment
-				if (char_mode < 0) {
+				if (extreme_side == 0) {
 					attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 				} else if (char_mode > 0) {
 					attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
@@ -164,7 +161,7 @@ static void render(struct render_context *context) {
 				mvprintw(yc, xc, "%.*s", length, (current->contents + x));
 
 				// Disable or enable highlighting for second segment
-				if (char_mode < 0) {
+				if (extreme_side == 0) {
 					attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 				} else if (char_mode > 0) {
 					attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));

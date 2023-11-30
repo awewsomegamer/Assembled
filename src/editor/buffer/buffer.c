@@ -271,7 +271,7 @@ void buffer_char_del() {
 	// Allocate a new string
 	char *new_string = strdup(element->contents);
 	// Copy latter half over the first -1 character
-	strncpy(new_string + active_text_buffer->cx -1, element->contents + active_text_buffer->cx, strlen(element->contents) - active_text_buffer->cx);
+	strncpy(new_string + active_text_buffer->cx - 1, element->contents + active_text_buffer->cx, strlen(element->contents) - active_text_buffer->cx);
 	new_string[strlen(new_string) - 1] = 0;
 
 	// Memory Manage
@@ -280,4 +280,12 @@ void buffer_char_del() {
 	element->contents = new_string;
 
 	(active_text_buffer->cx)--;
+}
+
+void buffer_move_ln_down() {
+
+}
+
+void buffer_move_ln_up() {
+
 }
