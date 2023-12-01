@@ -283,7 +283,39 @@ void buffer_char_del() {
 }
 
 void buffer_move_ln_up() {
+	struct text_buffer *active_buffer = active_text_file->active_buffer;
 
+	if (active_buffer->selection_enabled) {
+		// There is a selection, move selection
+
+		return;
+	}
+
+	// Selection is not enabled, move a single line
+	struct line_list_element *current = active_buffer->current_element;
+	struct line_list_element *next = current->next;
+	struct line_list_element *prev = current->prev;
+
+	if (prev == NULL) {
+		// No where to move the line
+		return;
+	}
+
+	current->next = prev;
+	current->prev = prev->prev;
+
+	if (current->prev == NULL) {
+		active_buffer->head = current;
+	} else {
+		prev->prev->next = current;
+	}
+
+	next->prev = prev;
+
+	prev->next = next;
+	prev->prev = current;
+
+	active_screen->local(LOCAL_ARROW_UP, 1);
 }
 
 void buffer_move_ln_down() {
@@ -301,15 +333,25 @@ void buffer_move_ln_down() {
 	struct line_list_element *prev = current->prev;
 
 	if (next == NULL) {
+		// No where to move the line
 		return;
 	}
-
-	next->prev = current->prev;
-	current->prev = next;
-	prev->next = next;
-	current->next = next->next;
 
 	if (next->next != NULL) {
 		next->next->prev = current;
 	}
+
+	if (prev != NULL) {
+		prev->next = next;
+	} else {
+		active_buffer->head = next;
+	}
+
+	current->next = next->next;
+	next->next = current;
+
+	next->prev = current->prev;
+	current->prev = next;
+
+	active_screen->local(LOCAL_ARROW_DOWN, 1);
 }

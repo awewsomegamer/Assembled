@@ -186,7 +186,6 @@ static void render(struct render_context *context) {
 	// Print information
 	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d) %s", CURSOR_Y + 1, CURSOR_X + 1, editor_scr_message);
 
-
 	// Position the cursor appropriately
 	int column_start = active_buffer->col_start;
 	int column_length = (active_buffer->col_end == -1 ? context->max_x : active_buffer->col_end) - column_start;
@@ -198,8 +197,8 @@ static void update(struct render_context *context) {
 	// The differential is checked, if it has overflowed
 	// or underflowed the screen, restrict it, and update
 	// the offset
-	if (differential > context->max_y - 2) {
-		differential = context->max_y - 2;
+	if (differential >= context->max_y - 2) {
+		differential = context->max_y - 3;
 		offset++;
 	} else if (differential < 0) {
 		differential = 0;
@@ -213,17 +212,22 @@ static void local(int code, int value) {
 
 	switch (code) {
 	case LOCAL_ARROW_UP: {
-		bool moved = 0;
+		bool moved = value & 1;
 
-		// Update all current pointers one up
-		for (int i = 0; i < descriptor.column_count; i++) {
-			struct line_list_element *current = active_text_file->buffers[i]->current_element;
-			
-			if (current->prev != NULL) {
-				active_text_file->buffers[i]->current_element = current->prev;
-				moved = 1;
-			}
-		}
+		if (value == 0) {
+			// Update all current pointers one up
+                        for (int i = 0; i < descriptor.column_count; i++) {
+                                struct line_list_element *current =
+                                    active_text_file->buffers[i]
+                                        ->current_element;
+
+                                if (current->prev != NULL) {
+                                        active_text_file->buffers[i]
+                                            ->current_element = current->prev;
+                                        moved = 1;
+                                }
+                        }
+                }
 
 		// If the above managed to move the pointers
 		// up, we can move the cursor
@@ -236,15 +240,17 @@ static void local(int code, int value) {
 	}
 
 	case LOCAL_ARROW_DOWN: {
-		bool moved = 0;
+		bool moved = value & 1;
 
-		// Update all current pointers one down
-		for (int i = 0; i < descriptor.column_count; i++) {
-			struct line_list_element *current = active_text_file->buffers[i]->current_element;
+		if (value == 0) {
+			// Update all current pointers one down
+			for (int i = 0; i < descriptor.column_count; i++) {
+				struct line_list_element *current = active_text_file->buffers[i]->current_element;
 		
-			if (current->next != NULL) {
-				active_text_file->buffers[i]->current_element = current->next;
-				moved = 1;
+				if (current->next != NULL) {
+					active_text_file->buffers[i]->current_element = current->next;
+					moved = 1;
+				}
 			}
 		}
 
