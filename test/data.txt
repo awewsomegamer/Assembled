@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 		
 fsddsddsfdfsdfjklsdfkjdfjklsdfkjddfjkldsfkjadsfjkladflkjdfjklsdflkjsdfjklsdfkjdfjlsdflkjadsfjkalsdfkjsdfjdkslfšffsdddd00ddasdasdsdasddfsdfjfjksdf?asdasdasdsd	1	gsdfgsdfgs
 b		sdfdfg
@@ -32,3 +33,118 @@ cdsfsdfds	fsdf
 dasdasdafsdfsdasd	ad	
 sdf	fasdf	
 fjjCdsfkfsdfkjsdfkdfjlddflddddddddddddddasdCCCCCCC	dsfadsfasdf	
+=======
+3	1	
+f		
+sd		
+f		
+f		
+		
+1		
+2		
+		
+		
+sdf		
+ds		
+sdfsdfd		
+Look at me!		
+f		
+Cj		
+wn		
+m		
+sd		
+l		
+adf		
+adsf		
+ads		
+f		
+ads		
+f		
+ads		
+sd		
+f		
+adsfhadasdasdasdasdasdasdasdxcvxcvo		
+adsf		
+ads		
+f		
+ads		
+fa		
+dsf		
+ads		
+f		
+ads		
+f		
+[A[BCCCCCklsdflkjsdfjklsdfkjdfjlsdflkjadsfjkalsdfkjsdfjdkslfšffsdddd00ddasdasdsdasddfsdfjfjksdf?asdasdasdsd		
+asd		
+fa		
+sdf		
+as		
+df		
+a		
+df		
+as		
+df		
+asd		
+f		
+asdf		
+a		
+dsf		
+ads		
+f		
+asd		
+f		
+asdf		
+a		
+dsfsdf		
+adf		
+ads		
+f		
+asd		
+f		
+asd		
+fa		
+sdf		
+asd		
+fasdfa		
+sdf		
+ad		
+f		
+ad		
+f		
+ad		
+fa		
+sdf		
+sdf		
+ads		
+f		
+asd		
+f		
+asdf		
+adsf		
+adsf		
+a		
+dsf		
+ad		
+f		
+asd		
+f		
+ads		
+f		
+adsf		
+ads		
+f		
+ads		
+fasd		
+fasd		
+f		
+ads		
+fa		
+sdf		
+a		
+dsf		
+ads		
+f		
+adsf		
+ads		
+f data		
+>>>>>>> origin/development
