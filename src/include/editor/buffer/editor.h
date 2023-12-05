@@ -30,6 +30,7 @@
 
 struct text_file {
         int cy;
+	int selected_buffers;
         struct text_buffer *active_buffer;
         struct text_buffer **buffers;
         int load_offset;

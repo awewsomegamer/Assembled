@@ -119,7 +119,7 @@ static void render(struct render_context *context) {
 			int char_mode = 0;
 			bool selection_extreme = 0;
 			bool extreme_side = 0;
-			bool selection = current_buffer->selection_enabled && active_buffer == current_buffer;
+			bool selection = current_buffer->selection_enabled;
 
 			if (true_y == start->y) {
 				char_mode = start->x;
@@ -137,14 +137,14 @@ static void render(struct render_context *context) {
 				int xc = descriptor.column_positions[i];
 
 				// Highlight contents if selected
-				if (start->y < true_y && end->y > true_y && selection) {
+				if (((start->y < true_y && end->y > true_y) || (start->y <= true_y && end->y >= true_y && active_text_file->selected_buffers != 0)) && selection) {
 					attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 				} else {
 					attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 				}
 
 				// Draw regular text
-				if (selection == 0 || selection_extreme == 0) {
+				if (selection == 0 || selection_extreme == 0 || active_text_file->selected_buffers != 0) {
 					mvprintw(yc, xc, "%.*s", max_length, (current->contents + x));
 					continue;
 				}
@@ -170,6 +170,8 @@ static void render(struct render_context *context) {
 				// Draw second segment
 				mvprintw(yc, xc + length, "%.*s", max_length - length, (current->contents + x + length));
 			}
+
+			attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
 
 			// Move onto the next line
 			currents[i] = currents[i]->next;
@@ -289,24 +291,23 @@ static void local(int code, int value) {
 
 		break;
 	}
-	
-	case LOCAL_BUFFER_LEFT: {
+
+	// TODO: Buffers which have already been selected
+	//       can be deselected.
+	case LOCAL_BUFFER_MOVE: {
 		int i = active_text_file->active_buffer_idx;
 
-		if (i - 1 >= 0) {
-			active_text_file->active_buffer = active_text_file->buffers[i - 1];
-			(active_text_file->active_buffer_idx)--;
-		}
+		if (i + value >= 0 && i + value < descriptor.column_count) {
+			struct bound start = active_text_file->active_buffer->selection_start;
+			uint8_t selection = active_text_file->active_buffer->selection_enabled;
 
-		break;
-	}
+			active_text_file->active_buffer = active_text_file->buffers[i + value];
+			active_text_file->active_buffer->selection_enabled = selection;
+			active_text_file->active_buffer->selection_start.x = start.x;
+			active_text_file->active_buffer->selection_start.y = start.y;
 
-	case LOCAL_BUFFER_RIGHT: {
-		int i = active_text_file->active_buffer_idx;
-
-		if (i + 1 < column_descriptors[current_column_descriptor].column_count) { 
-			active_text_file->active_buffer = active_text_file->buffers[i + 1];
-			(active_text_file->active_buffer_idx)++;
+			active_text_file->selected_buffers += value;
+			active_text_file->active_buffer_idx += value;
 		}
 
 		break;
@@ -368,10 +369,15 @@ static void local(int code, int value) {
 	case LOCAL_WINDOW_SELECTION: {
 		active_text_file->active_buffer->selection_enabled = !active_text_file->active_buffer->selection_enabled;
 
-		if (active_text_file->active_buffer->selection_enabled) {
-			active_text_file->active_buffer->selection_start.x = active_text_file->active_buffer->cx;
-			active_text_file->active_buffer->selection_start.y = active_text_file->cy;
+		if (active_text_file->active_buffer->selection_enabled == 0) {
+			for (int i = 0; i < descriptor.column_count; i++) {
+				active_text_file->buffers[i]->selection_enabled = 0;
+			}
 		}
+
+		active_text_file->active_buffer->selection_start.x = active_text_file->active_buffer->cx;
+		active_text_file->active_buffer->selection_start.y = active_text_file->cy;
+		active_text_file->selected_buffers = 0;
 
 		break;
 	}
@@ -381,8 +387,8 @@ static void local(int code, int value) {
 void register_editor_screen() {
 	DEBUG_MSG("Registering editor screen\n");
 
-		int i = register_screen("editor", render, update, local);
-		screens[i].render_options |= SCR_OPT_ON_UPDATE;
+	int i = register_screen("editor", render, update, local);
+	screens[i].render_options |= SCR_OPT_ON_UPDATE;
 }
 
 struct cfg_token *configure_editor_screen(struct cfg_token *token) {

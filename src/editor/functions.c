@@ -56,12 +56,12 @@ static void enter() {
 }
 
 static void buffer_left() {
-	active_screen->local(LOCAL_BUFFER_LEFT, 0);
+	active_screen->local(LOCAL_BUFFER_MOVE, -1);
 	sprintf(editor_scr_message, "BUFFER LEFT");
 }
 
 static void buffer_right() {
-	active_screen->local(LOCAL_BUFFER_RIGHT, 0);
+	active_screen->local(LOCAL_BUFFER_MOVE, 1);
 	sprintf(editor_scr_message, "BUFFER RIGHT");
 }
 
@@ -89,7 +89,7 @@ static void window_right() {
 }
 
 static void selection() {
-	active_screen->local(LOCAL_WINDOW_SELECTION, 0);
+	active_screen->local(LOCAL_WINDOW_SELECTION, 1);
 }
 
 static void move_line_up() {
