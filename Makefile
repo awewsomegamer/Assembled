@@ -1,6 +1,6 @@
 PRODUCT := ./assembled.out
 CFILES := $(shell find ./src/ -type f -name '*.c')
-CFLAGS := -Isrc/include -lcurses -o $(PRODUCT)
+CFLAGS := -Isrc/include -lcurses -o $(PRODUCT) -g
 
 all:
 	gcc $(CFILES) $(CFLAGS)

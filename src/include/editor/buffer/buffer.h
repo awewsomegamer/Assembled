@@ -42,6 +42,7 @@ struct text_buffer {
 
         struct line_list_element *head;
         struct line_list_element *current_element;
+	struct line_list_element *selection_start_line;
 };
 
 struct syntax_highlight {

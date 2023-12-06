@@ -284,17 +284,16 @@ void buffer_char_del() {
 
 void buffer_move_ln_up() {
 	struct text_buffer *active_buffer = active_text_file->active_buffer;
+	struct line_list_element *current = active_buffer->current_element;
+	struct line_list_element *next = current->next;
+	struct line_list_element *prev = current->prev;
 
 	if (active_buffer->selection_enabled) {
 		// There is a selection, move selection
-
 		return;
 	}
 
 	// Selection is not enabled, move a single line
-	struct line_list_element *current = active_buffer->current_element;
-	struct line_list_element *next = current->next;
-	struct line_list_element *prev = current->prev;
 
 	if (prev == NULL) {
 		// No where to move the line
@@ -323,6 +322,32 @@ void buffer_move_ln_down() {
 
 	if (active_buffer->selection_enabled) {
 		// There is a selection, move selection
+		struct line_list_element *current = active_buffer->current_element;
+		struct line_list_element *next = current->next;
+		struct line_list_element *prev = active_buffer->selection_start_line->prev;
+
+		if (next == NULL) {
+			return;
+		}
+
+		if (next->next != NULL) {
+			next->next->prev = current;
+		}
+
+		if (prev != NULL) {
+			prev->next = next;
+		} else {
+			active_buffer->head = next;
+		}
+
+		current->next = next->next;
+		next->next = active_buffer->selection_start_line;
+
+		next->prev = prev;
+		active_buffer->selection_start_line->prev = next;
+
+		// ERROR: A line is being deleted when moving down,
+		//        missed a pointer
 
 		return;
 	}

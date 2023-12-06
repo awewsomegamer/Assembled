@@ -384,6 +384,7 @@ static void local(int code, int value) {
 		active_text_file->active_buffer->selection_start.x = active_text_file->active_buffer->cx;
 		active_text_file->active_buffer->selection_start.y = active_text_file->cy;
 		active_text_file->selected_buffers = 0;
+		active_text_file->active_buffer->selection_start_line = active_text_file->active_buffer->current_element;
 
 		break;
 	}
