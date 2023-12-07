@@ -1,40 +1,9 @@
-wn		
-a		
-df		gsdfgsdfgs
-a	sdf	sdfdfg
-?d	=======	a	dfgsdfgsdfg
-e	sdf	asdasds
-ad	asdasd	asdasddfg
-fa	df	asdasds
-df	a	asdsdfg
-ad		dfgs
-f	1	sdsdf
-ad	f	sfgsdfg
-f	aasdfsdsd	fgsdfsdgsdf
-ad	CCCdsf	gsdfg
-f	fa	Cdfggss
-adfodf		
-ad		
-fa		
-d		
-fa		
-dfadsf		
-ad		
-fa		
-d		
-mC		
-adf		
-df		
-l		
-		
-f		
-CCCCCCC		
-C<<<<<<< HEAD		
-fsddsddsfdfsdfjklsdfkjdfjklsdfkjddfjkldsfkjadsfjkladflkjdfjklsdflkjsdfjklsdfkjdfjlsdflkjadsfjkalsdfkjsdfjdkslfšffsdddd00ddasdasdsdasddfsdfjfjksdf?asdasdasdsd		
-c		
-f		
-f		
-adf		
-CCb		
-i		
-g		
+d	as	hello
+sd	dasdd	a
+a	asaasasdsd	asd
+sd	sd	asd
+sd	asd	sd
+asd	a	sd
+text	d	a
+asd	asdasd	asdasd
+a	world	asd

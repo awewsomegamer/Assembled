@@ -27,32 +27,37 @@
 #include <interface/interface.h>
 #include <curses.h>
 #include <editor/functions.h>
+#include <stdio.h>
 
 void layer_down() { }
 
+// TODO: Simplify LOCAL codes so that they are
+//       grouped by function (i.e. LOCAL_ARROW
+//       _UP, LOCAL_ARROW_DOWN, etc... -> LOCAL
+//       _ARROW_MOVE)
 static void cursor_up() {
-	sprintf(editor_scr_message, "UP");
         active_screen->local(LOCAL_ARROW_UP, 0);
+	sprintf(editor_scr_message, "UP");
 }
 
 static void cursor_down() {
-	sprintf(editor_scr_message, "DOWN");
         active_screen->local(LOCAL_ARROW_DOWN, 0);
+	sprintf(editor_scr_message, "DOWN");
 }
 
 static void cursor_left() {
-	sprintf(editor_scr_message, "LEFT");
         active_screen->local(LOCAL_ARROW_LEFT, 0);
+	sprintf(editor_scr_message, "LEFT");
 }
 
 static void cursor_right() {
-	sprintf(editor_scr_message, "RIGHT");
         active_screen->local(LOCAL_ARROW_RIGHT, 0);
+	sprintf(editor_scr_message, "RIGHT");
 }
 
 static void enter() {
-	sprintf(editor_scr_message, "ENTER");
         active_screen->local(LOCAL_ENTER, 0);
+	sprintf(editor_scr_message, "ENTER");
 }
 
 static void buffer_left() {
@@ -82,22 +87,27 @@ static void file_load() {
 
 static void window_left() {
 	active_screen->local(LOCAL_WINDOW_LEFT, 0);
+	sprintf(editor_scr_message, "WINDOW LEFT");
 }
 
 static void window_right() {
 	active_screen->local(LOCAL_WINDOW_RIGHT, 0);
+	sprintf(editor_scr_message, "WINDOW RIGHT");
 }
 
 static void selection() {
 	active_screen->local(LOCAL_WINDOW_SELECTION, 1);
+	sprintf(editor_scr_message, "SELECTION");
 }
 
 static void move_line_up() {
-	buffer_move_ln_up();
+	active_screen->local(LOCAL_BUFFER_MOVE_LINE, 1);
+	sprintf(editor_scr_message, "MOVE LINE UP");
 }
 
 static void move_line_down() {
-	buffer_move_ln_down();
+	active_screen->local(LOCAL_BUFFER_MOVE_LINE, 0);
+	sprintf(editor_scr_message, "MOVE LINE DOWN");
 }
 
 void (*functions[MAX_FUNCTION_COUNT])() = {

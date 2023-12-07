@@ -208,28 +208,23 @@ static void update(struct render_context *context) {
 	}
 }
 
-// TODO: Scrolling sometimes gets stuck
+// TODO: Scrolling desynchronizes occasionally
 static void local(int code, int value) {
 	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
 
 	switch (code) {
 	case LOCAL_ARROW_UP: {
-		bool moved = value & 1;
+		bool moved = 0;
 
-		if (value == 0) {
-			// Update all current pointers one up
-                        for (int i = 0; i < descriptor.column_count; i++) {
-                                struct line_list_element *current =
-                                    active_text_file->buffers[i]
-                                        ->current_element;
+		// Update all current pointers one up
+		for (int i = 0; i < descriptor.column_count; i++) {
+			struct line_list_element *current = active_text_file->buffers[i]->current_element;
 
-                                if (current->prev != NULL) {
-                                        active_text_file->buffers[i]
-                                            ->current_element = current->prev;
-                                        moved = 1;
-                                }
-                        }
-                }
+			if (current->prev != NULL) {
+				active_text_file->buffers[i]->current_element = current->prev;
+				moved = 1;
+			}
+               }
 
 		// If the above managed to move the pointers
 		// up, we can move the cursor
@@ -242,17 +237,15 @@ static void local(int code, int value) {
 	}
 
 	case LOCAL_ARROW_DOWN: {
-		bool moved = value & 1;
+		bool moved = 0;
 
-		if (value == 0) {
-			// Update all current pointers one down
-			for (int i = 0; i < descriptor.column_count; i++) {
-				struct line_list_element *current = active_text_file->buffers[i]->current_element;
-		
-				if (current->next != NULL) {
-					active_text_file->buffers[i]->current_element = current->next;
-					moved = 1;
-				}
+		// Update all current pointers one down
+		for (int i = 0; i < descriptor.column_count; i++) {
+			struct line_list_element *current = active_text_file->buffers[i]->current_element;
+
+			if (current->next != NULL) {
+				active_text_file->buffers[i]->current_element = current->next;
+				moved = 1;
 			}
 		}
 
@@ -385,6 +378,61 @@ static void local(int code, int value) {
 		active_text_file->active_buffer->selection_start.y = active_text_file->cy;
 		active_text_file->selected_buffers = 0;
 		active_text_file->active_buffer->selection_start_line = active_text_file->active_buffer->current_element;
+
+		break;
+	}
+
+	case LOCAL_BUFFER_MOVE_LINE: {
+		int lines_moved = 0;
+
+		for (int i = 0; i < abs(active_text_file->selected_buffers) + 1; i++) {
+			struct text_buffer *buffer = active_text_file->active_buffer;
+
+			if (active_text_file->selected_buffers < 0) {
+				buffer = active_text_file->buffers[active_text_file->active_buffer_idx - i];
+			} else if (active_text_file->selected_buffers == 0) {
+				buffer = active_text_file->active_buffer;
+			} else {
+				buffer = active_text_file->buffers[active_text_file->active_buffer_idx + i];
+			}
+
+			if (value == 1) {
+				lines_moved = buffer_move_ln_up(buffer);
+				(buffer->selection_start.y) -= lines_moved;
+
+				continue;
+			}
+
+			lines_moved = buffer_move_ln_down(buffer);
+			(buffer->selection_start.y) += lines_moved;
+		}
+
+		if (lines_moved == 0) {
+			break;
+		}
+
+		int a = min(active_text_file->active_buffer_idx, active_text_file->active_buffer_idx + active_text_file->selected_buffers);
+		int b = max(active_text_file->active_buffer_idx, active_text_file->active_buffer_idx + active_text_file->selected_buffers);
+		bool moved = 0;
+
+		for (int i = 0; i < descriptor.column_count; i++) {
+			if (a < i && i < b || i == active_text_file->active_buffer_idx) {
+				continue;
+			}
+
+			struct line_list_element *element = active_text_file->buffers[i]->current_element;
+			struct line_list_element *new = (value == 0 ? element->next : element->prev);
+
+			if (new != NULL) {
+				active_text_file->buffers[i]->current_element = new;
+				moved = 1;
+			}
+		}
+
+		if (moved == 1) {
+			CURSOR_Y += (value == 0 ? 1 : -1);
+			differential += (value == 0 ? 1 : -1);
+		}
 
 		break;
 	}

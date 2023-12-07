@@ -282,8 +282,13 @@ void buffer_char_del() {
 	(active_text_buffer->cx)--;
 }
 
-void buffer_move_ln_up() {
-	struct text_buffer *active_buffer = active_text_file->active_buffer;
+// ERROR: When called on the last line with no selection,
+//        a segmentation fault happens
+int buffer_move_ln_up(struct text_buffer *active_buffer) {
+	if (active_buffer == NULL) {
+		return 0;
+	}
+
 	struct line_list_element *current = active_buffer->current_element;
 	struct line_list_element *next = current->next;
 	struct line_list_element *prev = current->prev;
@@ -301,7 +306,7 @@ void buffer_move_ln_up() {
 		}
 
 		if (prev == NULL) {
-			return;
+			return 0;
 		}
 
 		head->prev = prev->prev;
@@ -321,16 +326,13 @@ void buffer_move_ln_up() {
 			next->prev = prev;
 		}
 
-		active_screen->local(LOCAL_ARROW_UP, 1);
-		(active_buffer->selection_start.y)--;
-
-		return;
+		return 1;
 	}
 
 	// Selection is not enabled, move a single line
 	if (prev == NULL) {
 		// No where to move the line
-		return;
+		return 0;
 	}
 
 	current->next = prev;
@@ -347,15 +349,14 @@ void buffer_move_ln_up() {
 	prev->next = next;
 	prev->prev = current;
 
-	active_screen->local(LOCAL_ARROW_UP, 1);
-
-	if (active_buffer->selection_enabled) {
-		(active_buffer->selection_start.y)--;
-	}
+	return 1;
 }
 
-void buffer_move_ln_down() {
-	struct text_buffer *active_buffer = active_text_file->active_buffer;
+int buffer_move_ln_down(struct text_buffer *active_buffer) {
+	if (active_buffer == NULL) {
+		return 0;
+	}
+
 	struct line_list_element *current = active_buffer->current_element;
 	struct line_list_element *next = current->next;
 	struct line_list_element *prev = current->prev;
@@ -374,7 +375,7 @@ void buffer_move_ln_down() {
 		}
 
 		if (next == NULL) {
-			return;
+			return 0;
 		}
 
 		if (next->next != NULL) {
@@ -393,16 +394,13 @@ void buffer_move_ln_down() {
 		next->prev = prev;
 		head->prev = next;
 
-		(active_buffer->selection_start.y)++;
-		active_screen->local(LOCAL_ARROW_DOWN, 1);
-
-		return;
+		return 1;
 	}
 
 	// Selection is not enabled, move a single line
 	if (next == NULL) {
 		// No where to move the line
-		return;
+		return 0;
 	}
 
 	if (next->next != NULL) {
@@ -421,9 +419,5 @@ void buffer_move_ln_down() {
 	next->prev = current->prev;
 	current->prev = next;
 
-	active_screen->local(LOCAL_ARROW_DOWN, 1);
-
-	if (active_buffer->selection_enabled) {
-		(active_buffer->selection_start.y)++;
-	}
+	return 1;
 }

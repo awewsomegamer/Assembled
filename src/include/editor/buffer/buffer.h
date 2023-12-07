@@ -55,7 +55,7 @@ void destroy_buffer(struct text_buffer *buffer);
 
 void buffer_char_insert(char c);
 void buffer_char_del();
-void buffer_move_ln_down();
-void buffer_move_ln_up();
+int buffer_move_ln_down(struct text_buffer *active_buffer);
+int buffer_move_ln_up(struct text_buffer *active_buffer);
 
 #endif
