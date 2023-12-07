@@ -1,21 +1,18 @@
-CCb		
-i		
-g		gsdfgsdfgs
-l	sdf	sdfdfg
-=======	a	dfgsdfgsdfg
-f	sdf	asdasds
-CCCCCCC	asdasd	asdasddfg
-C<<<<<<< HEAD	df	asdasds
-fsddsddsfdfsdfjklsdfkjdfjklsdfkjddfjkldsfkjadsfjkladflkjdfjklsdflkjsdfjklsdfkjdfjlsdflkjadsfjkalsdfkjsdfjdkslfšffsdddd00ddasdasdsdasddfsdfjfjksdf?asdasdasdsd	a	asdsdfg
-c		dfgs
-?d	1	sdsdf
-e	f	sfgsdfg
-wn	aasdfsdsd	fgsdfsdgsdf
-mC	CCCdsf	gsdfg
-adf	fa	Cdfggss
-f		
-ad		
-f		
+wn		
+a		
+df		gsdfgsdfgs
+a	sdf	sdfdfg
+?d	=======	a	dfgsdfgsdfg
+e	sdf	asdasds
+ad	asdasd	asdasddfg
+fa	df	asdasds
+df	a	asdsdfg
+ad		dfgs
+f	1	sdsdf
+ad	f	sfgsdfg
+f	aasdfsdsd	fgsdfsdgsdf
+ad	CCCdsf	gsdfg
+f	fa	Cdfggss
 adfodf		
 ad		
 fa		
@@ -25,16 +22,19 @@ dfadsf
 ad		
 fa		
 d		
+mC		
+adf		
+df		
+l		
+		
+f		
+CCCCCCC		
+C<<<<<<< HEAD		
+fsddsddsfdfsdfjklsdfkjdfjklsdfkjddfjkldsfkjadsfjkladflkjdfjklsdflkjsdfjklsdfkjdfjlsdflkjadsfjkalsdfkjsdfjdkslfšffsdddd00ddasdasdsdasddfsdfjfjksdf?asdasdasdsd		
+c		
+f		
 f		
 adf		
-a		
-df		
-a		
-df		
-ad		
-fa		
-df		
-ad		
-f		
-ad		
-f		
+CCb		
+i		
+g		

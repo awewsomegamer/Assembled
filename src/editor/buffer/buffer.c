@@ -288,13 +288,46 @@ void buffer_move_ln_up() {
 	struct line_list_element *next = current->next;
 	struct line_list_element *prev = current->prev;
 
-	if (active_buffer->selection_enabled) {
+	if (active_buffer->selection_enabled && active_text_file->cy != active_buffer->selection_start.y) {
 		// There is a selection, move selection
+		struct line_list_element *head = active_buffer->selection_start_line;
+		prev = head->prev;
+
+		if (active_text_file->cy < active_buffer->selection_start.y) {
+			head = current;
+			prev = current->prev;
+			current = active_buffer->selection_start_line;
+			next = current->next;
+		}
+
+		if (prev == NULL) {
+			return;
+		}
+
+		head->prev = prev->prev;
+
+		if (prev->prev == NULL) {
+			active_buffer->head = head;
+		} else {
+			prev->prev->next = head;
+		}
+
+		prev->prev = current;
+		current->next = prev;
+
+		prev->next = next;
+
+		if (next != NULL) {
+			next->prev = prev;
+		}
+
+		active_screen->local(LOCAL_ARROW_UP, 1);
+		(active_buffer->selection_start.y)--;
+
 		return;
 	}
 
 	// Selection is not enabled, move a single line
-
 	if (prev == NULL) {
 		// No where to move the line
 		return;
@@ -315,16 +348,30 @@ void buffer_move_ln_up() {
 	prev->prev = current;
 
 	active_screen->local(LOCAL_ARROW_UP, 1);
+
+	if (active_buffer->selection_enabled) {
+		(active_buffer->selection_start.y)--;
+	}
 }
 
 void buffer_move_ln_down() {
 	struct text_buffer *active_buffer = active_text_file->active_buffer;
+	struct line_list_element *current = active_buffer->current_element;
+	struct line_list_element *next = current->next;
+	struct line_list_element *prev = current->prev;
 
-	if (active_buffer->selection_enabled) {
+	if (active_buffer->selection_enabled && active_text_file->cy != active_buffer->selection_start.y) {
 		// There is a selection, move selection
-		struct line_list_element *current = active_buffer->current_element;
-		struct line_list_element *next = current->next;
-		struct line_list_element *prev = active_buffer->selection_start_line->prev;
+		struct line_list_element *head = active_buffer->selection_start_line;
+		prev = active_buffer->selection_start_line->prev;
+
+		if (active_text_file->cy < active_buffer->selection_start.y) {
+			// Above pointers are wrong, correct them
+			head = current;
+			prev = current->prev;
+			current = active_buffer->selection_start_line;
+			next = current->next;
+		}
 
 		if (next == NULL) {
 			return;
@@ -341,22 +388,18 @@ void buffer_move_ln_down() {
 		}
 
 		current->next = next->next;
-		next->next = active_buffer->selection_start_line;
+		next->next = head;
 
 		next->prev = prev;
-		active_buffer->selection_start_line->prev = next;
+		head->prev = next;
 
-		// ERROR: A line is being deleted when moving down,
-		//        missed a pointer
+		(active_buffer->selection_start.y)++;
+		active_screen->local(LOCAL_ARROW_DOWN, 1);
 
 		return;
 	}
 
 	// Selection is not enabled, move a single line
-	struct line_list_element *current = active_buffer->current_element;
-	struct line_list_element *next = current->next;
-	struct line_list_element *prev = current->prev;
-
 	if (next == NULL) {
 		// No where to move the line
 		return;
@@ -379,4 +422,8 @@ void buffer_move_ln_down() {
 	current->prev = next;
 
 	active_screen->local(LOCAL_ARROW_DOWN, 1);
+
+	if (active_buffer->selection_enabled) {
+		(active_buffer->selection_start.y)++;
+	}
 }
