@@ -45,10 +45,14 @@
 bool running = 1;
 bool update = 0;
 int currently_active_screen = 0;
-FILE *__DEBUG_LOG_FILE__ = NULL;
+FILE *__AS_DBG_LOG_FILE__ = NULL;
+
+static int default_column_definition[] = { 0 };
+
+struct AS_GlobalCtx as_ctx = { 0 };
 
 void init_ncurses() {
-        DEBUG_MSG("Initializing ncurses\n");
+        AS_DEBUG_MSG("Initializing ncurses\n");
         setlocale(LC_ALL, "UTF-8");
 
         initscr();
@@ -60,50 +64,50 @@ void init_ncurses() {
         nodelay(stdscr, TRUE);
 
         if (has_colors()) {
-                DEBUG_MSG("Terminal has colors\n");
+                AS_DEBUG_MSG("Terminal has colors\n");
                 start_color();
                 use_default_colors();
                 register_custom_colors();
 
-                init_pair(ASSEMBLED_COLOR_HIGHLIGHT, COLOR_BLACK, 16);
-                DEBUG_MSG("Initialized Assembled colors\n");
+                init_pair(AS_COLOR_HIGHLIGHT, COLOR_BLACK, 16);
+                AS_DEBUG_MSG("Initialized Assembled colors\n");
         }
 
         int x = 0, y = 0;
         getmaxyx(stdscr, y, x);
         
-        current_render_context.max_x = x;
-        current_render_context.max_y = y;
+        as_ctx.render_ctx.max_x = x;
+        as_ctx.render_ctx.max_y = y;
 
-        if (current_render_context.max_x == 0 || current_render_context.max_y == 0) {
+        if (as_ctx.render_ctx.max_x == 0 || as_ctx.render_ctx.max_y == 0) {
                 endwin();
-                printf("Max X: %d, Max Y: %d are unsuitable for operation\n", current_render_context.max_x, current_render_context.max_y);
+                printf("Max X: %d, Max Y: %d are unsuitable for operation\n", as_ctx.render_ctx.max_x, as_ctx.render_ctx.max_y);
                 exit(1);
         }
         
-        DEBUG_MSG("Initialized ncurses\n");
+        AS_DEBUG_MSG("Initialized ncurses\n");
 }
 
 void editor() {
         int c = getch();
 
         if (c > -1) {
-                sprintf(editor_scr_message, "");
+                sprintf(as_ctx.editor_scr_message, "");
                 update = 1;
 
                 key(c);
         }
 
-        if (active_screen != NULL && active_screen->update != NULL) {
-                active_screen->update(&current_render_context);
+        if (as_ctx.screen != NULL && as_ctx.screen->update != NULL) {
+                as_ctx.screen->update(&as_ctx.render_ctx);
         }
 }
 
 void interface() {
         erase();
 
-        if (active_screen != NULL && active_screen->render != NULL) {
-                active_screen->render(&current_render_context);
+        if (as_ctx.screen != NULL && as_ctx.screen->render != NULL) {
+                as_ctx.screen->render(&as_ctx.render_ctx);
         }
         
         refresh();
@@ -116,31 +120,36 @@ void terminate(int signal) {
 }
 
 int main(int argc, char **argv) {
-        DEBUG_CODE( 
-                __DEBUG_LOG_FILE__ = fopen("debug.log", "w");
-                if (__DEBUG_LOG_FILE__ == NULL) {
+        AS_DEBUG_CODE( 
+                __AS_DBG_LOG_FILE__ = fopen("debug.log", "w");
+                if (__AS_DBG_LOG_FILE__ == NULL) {
                         printf("Failed to open ./debug.log\n");
 
                         return 1;
                 }
         )
 
+	as_ctx.col_desc_i = -1;
+	
         read_config();
 
-        for (int i = 0; i < MAX_COLUMNS; i++) {
-                if (column_descriptors[i].column_positions != NULL) {
-                        current_column_descriptor = i;
-                }
-        }
+	if (as_ctx.col_desc_i == -1) {
+		for (int i = 0; i < MAX_COLUMNS; i++) {
+			if (as_ctx.col_descs[i].column_positions != NULL) {
+				as_ctx.col_desc_i = i;
+				break;
+			}
+		}
+	}
 
-        if (current_column_descriptor == -1) {
+        if (as_ctx.col_desc_i == -1) {
                 printf("Failed to find a user defined column, defining a single column\n");
-                DEBUG_MSG("Failed to find a user defined column, defining a single column\n");
+                AS_DEBUG_MSG("Failed to find a user defined column, defining a single column\n");
 
-                current_column_descriptor = 0;
-                column_descriptors[current_column_descriptor].column_positions = default_column_definition;
-                column_descriptors[current_column_descriptor].column_count = 1;
-                column_descriptors[current_column_descriptor].delimiter = 0;
+                as_ctx.col_desc_i = 0;
+                as_ctx.col_descs[as_ctx.col_desc_i].column_positions = default_column_definition;
+                as_ctx.col_descs[as_ctx.col_desc_i].column_count = 1;
+                as_ctx.col_descs[as_ctx.col_desc_i].delimiter = 0;
         }
 
         register_start_screen();
@@ -193,7 +202,7 @@ int main(int argc, char **argv) {
 
                 usleep(8000);
 
-                if (render || (active_screen->render_options & SCR_OPT_ALWAYS)) {
+                if (render || (as_ctx.screen->render_options & SCR_OPT_ALWAYS)) {
                         interface();
                 }
 
@@ -202,9 +211,9 @@ int main(int argc, char **argv) {
 
         endwin();
 
-        DEBUG_MSG("Successfuly exited\n");
+        AS_DEBUG_MSG("Successfuly exited\n");
 
-        DEBUG_CODE( fclose(__DEBUG_LOG_FILE__); )
+        AS_DEBUG_CODE( fclose(__AS_DBG_LOG_FILE__); )
 
         return 0;
 }

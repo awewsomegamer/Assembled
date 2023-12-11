@@ -37,21 +37,21 @@ struct assembled_color {
 static struct assembled_color custom_colors[32];
 
 static void read_theme(FILE *file) {
-        struct cfg_token *token = cfg_lex(file);
-        struct cfg_token *current = token;
+        struct AS_CfgTok *token = cfg_lex(file);
+        struct AS_CfgTok *current = token;
 
-        while (token->type != CFG_TOKEN_EOF) {
-                EXPECT_TOKEN(CFG_TOKEN_INT, "Expected integer");
+        while (token->type != AS_CFG_TOKEN_EOF) {
+                AS_EXPECT_TOKEN(AS_CFG_TOKEN_INT, "Expected integer");
                 int idx = token->value;
 
-                NEXT_TOKEN
-                EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon");
+                AS_NEXT_TOKEN
+                AS_EXPECT_TOKEN(AS_CFG_TOKEN_COL, "Expected colon");
 
-                NEXT_TOKEN
-                EXPECT_TOKEN(CFG_TOKEN_INT, "Expected integer")
+                AS_NEXT_TOKEN
+                AS_EXPECT_TOKEN(AS_CFG_TOKEN_INT, "Expected integer")
                 uint32_t color = token->value;
 
-                NEXT_TOKEN
+                AS_NEXT_TOKEN
 
                 if (idx >= 32)
                         continue;
@@ -60,40 +60,40 @@ static void read_theme(FILE *file) {
                 custom_colors[idx].information |= 1;
         }
 
-        DEBUG_MSG("Token list:\n");
+        AS_DEBUG_MSG("Token list:\n");
         while (current != NULL) {
-                DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
-		struct cfg_token *tmp = current->next;
+                AS_DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
+		struct AS_CfgTok *tmp = current->next;
 
                 free(current);
 
                 current = tmp;
         }
-        DEBUG_MSG("List end\n");
+        AS_DEBUG_MSG("List end\n");
 }
 
 void register_custom_colors() {
-        for (int i = 0; i < MAX_CUSTOM_COLORS; i++) {
+        for (int i = 0; i < AS_MAX_CUSTOM_COLORS; i++) {
                 if ((custom_colors[i].information & 1) == 0)
                         continue;
 
-                short red =   (short)(((float)((custom_colors[i].color_value >> RED_MASK  ) & 0xFF) / 256) * 1000);
-                short green = (short)(((float)((custom_colors[i].color_value >> GREEN_MASK) & 0xFF) / 256) * 1000);
-                short blue =  (short)(((float)((custom_colors[i].color_value >> BLUE_MASK ) & 0xFF) / 256) * 1000);
+                short red =   (short)(((float)((custom_colors[i].color_value >> AS_RED_MASK  ) & 0xFF) / 256) * 1000);
+                short green = (short)(((float)((custom_colors[i].color_value >> AS_GREEN_MASK) & 0xFF) / 256) * 1000);
+                short blue =  (short)(((float)((custom_colors[i].color_value >> AS_BLUE_MASK ) & 0xFF) / 256) * 1000);
 
-                init_color(i + CUSTOM_COLOR_START, red, green, blue);
+                init_color(i + AS_CUSTOM_COLOR_START, red, green, blue);
         }
 }
 
-struct cfg_token *configure_theme(struct cfg_token *token) {
-        EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected keyword")
+struct AS_CfgTok *configure_theme(struct AS_CfgTok *token) {
+        AS_EXPECT_TOKEN(AS_CFG_TOKEN_KEY, "Expected keyword")
 
         switch (token->value) {
-        case CFG_LOOKUP_USE: {
-                NEXT_TOKEN
-                EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
-                NEXT_TOKEN
-                EXPECT_TOKEN(CFG_TOKEN_STR, "Expected string")
+        case AS_CFG_LOOKUP_USE: {
+                AS_NEXT_TOKEN
+                AS_EXPECT_TOKEN(AS_CFG_TOKEN_COL, "Expected colon")
+                AS_NEXT_TOKEN
+                AS_EXPECT_TOKEN(AS_CFG_TOKEN_STR, "Expected string")
                 
                 char *path = token->str;
 

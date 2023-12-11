@@ -19,12 +19,13 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef START_H
-#define START_H
+#ifndef AS_START_H
+#define AS_START_H
 
 #include <editor/config.h>
+#include <includes.h>
 
 void register_start_screen();
-struct cfg_token *configure_start_screen(struct cfg_token *token);
+struct AS_CfgTok *configure_start_screen(struct AS_CfgTok *token);
 
 #endif

@@ -23,34 +23,22 @@
 #include <editor/config.h>
 #include <global.h>
 #include <editor/buffer/editor.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-struct text_file *text_files[MAX_TEXT_FILES] = { 0 };
-int active_text_file_idx = 0;
-struct column_descriptor column_descriptors[MAX_COLUMNS] = { 0 };
-int current_column_descriptor = -1;
 
 int free_text_file = 0;
 
-struct text_file *active_text_file = NULL;
+struct AS_TextFile *active_text_file = NULL;
 
-int default_column_definition[] = { 0 };
-
-struct text_file *load_file(char *name) {
+struct AS_TextFile *load_file(char *name) {
         FILE *file = fopen(name, "r+");
 
         if (file == NULL) {
-                DEBUG_MSG("File %s does not exist, creating it\n", name);
+                AS_DEBUG_MSG("File %s does not exist, creating it\n", name);
 
                 file = fopen(name, "w+");
 
                 // TODO: Replace with a compatible assert
                 if (file == NULL) {
-                        DEBUG_MSG("Failed to open file %s, exiting\n", name);
+                        AS_DEBUG_MSG("Failed to open file %s, exiting\n", name);
                 
                         exit(1);
                 }
@@ -59,7 +47,7 @@ struct text_file *load_file(char *name) {
         // Find a free space
         int x = -1;
         for (int i = 0; i < MAX_TEXT_FILES; i++) {
-                if (text_files[i] == NULL) {
+                if (as_ctx.text_files[i] == NULL) {
                         x = i;
                         break;
                 }
@@ -67,31 +55,31 @@ struct text_file *load_file(char *name) {
 
         // Check if there is an allocated position
         if (x == -1) {
-                DEBUG_MSG("Failed to allocate a text buffer");
+                AS_DEBUG_MSG("Failed to allocate a text buffer");
 		
                 return NULL;
         }
         
         // Allocate text file structure
-        active_text_file = (struct text_file *)malloc(sizeof(struct text_file));
-	memset(active_text_file, 0, sizeof(struct text_file));
+        active_text_file = (struct AS_TextFile *)malloc(sizeof(struct AS_TextFile));
+	memset(active_text_file, 0, sizeof(struct AS_TextFile));
 	
 	active_text_file->file = file;
 	active_text_file->name = strdup(name);
 	active_text_file->load_offset = 0;
 
-        text_files[x] = active_text_file;
-	active_text_file_idx = x;
+        as_ctx.text_files[x] = active_text_file;
+	as_ctx.text_file_i = x;
 
-	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
+	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
         int column_count = descriptor.column_count;
 
         // Allocate text buffers (columns)
-        active_text_file->buffers = (struct text_buffer **)calloc(column_count, sizeof(struct text_buffer *));
-        struct line_list_element **currents = (struct line_list_element **)calloc(column_count, sizeof(struct line_list_element *));
+        active_text_file->buffers = (struct AS_TextBuf **)calloc(column_count, sizeof(struct AS_TextBuf *));
+        struct AS_LLElement **currents = (struct AS_LLElement **)calloc(column_count, sizeof(struct AS_LLElement *));
 
         for (int i = 0; i < column_count; i++) {
-                struct text_buffer *buffer = new_buffer(descriptor.column_positions[i], (i + 1 >= column_count) ? -1 :
+                struct AS_TextBuf *buffer = new_buffer(descriptor.column_positions[i], (i + 1 >= column_count) ? -1 :
 													   descriptor.column_positions[i + 1]);
                 
                 active_text_file->buffers[i] = buffer;
@@ -138,8 +126,8 @@ struct text_file *load_file(char *name) {
                         strncpy(currents[element_index]->contents, contents + prev_i, (i - prev_i));
 
                         // Allocate new line
-                        currents[element_index]->next = (struct line_list_element *)malloc(sizeof(struct line_list_element));
-                        memset(currents[element_index]->next, 0, sizeof(struct line_list_element));
+                        currents[element_index]->next = (struct AS_LLElement *)malloc(sizeof(struct AS_LLElement));
+                        memset(currents[element_index]->next, 0, sizeof(struct AS_LLElement));
 
                         // Advance
                         currents[element_index]->next->prev = currents[element_index];
@@ -159,8 +147,8 @@ struct text_file *load_file(char *name) {
                         *currents[i]->contents = 0;
 
                         // Allocate new line
-                        currents[i]->next = (struct line_list_element *)malloc(sizeof(struct line_list_element));
-                        memset(currents[i]->next, 0, sizeof(struct line_list_element));
+                        currents[i]->next = (struct AS_LLElement *)malloc(sizeof(struct AS_LLElement));
+                        memset(currents[i]->next, 0, sizeof(struct AS_LLElement));
 
                         currents[i]->next->prev = currents[i];
                         currents[i] = currents[i]->next;
@@ -201,16 +189,16 @@ struct text_file *load_file(char *name) {
         return active_text_file;
 }
 
-void save_file(struct text_file *file) {
+void save_file(struct AS_TextFile *file) {
 	if (file == NULL) {
 		return;
 	}
 
-	DEBUG_MSG("Saving file %s\n", file->name);
+	AS_DEBUG_MSG("Saving file %s\n", file->name);
 
-	int column_count = column_descriptors[current_column_descriptor].column_count;
+	int column_count = as_ctx.col_descs[as_ctx.col_desc_i].column_count;
 
-	struct line_list_element **currents = (struct line_list_element **)calloc(column_count, sizeof(struct line_list_element *));
+	struct AS_LLElement **currents = (struct AS_LLElement **)calloc(column_count, sizeof(struct AS_LLElement *));
 	
 	for (int i = 0; i < column_count; i++) {
 		currents[i] = file->buffers[i]->head;
@@ -227,7 +215,7 @@ void save_file(struct text_file *file) {
 			}
 
 			if (i < column_count - 1) {
-				fputc(column_descriptors[current_column_descriptor].delimiter, file->file);
+				fputc(as_ctx.col_descs[as_ctx.col_desc_i].delimiter, file->file);
 			}
 
 			currents[i] = currents[i]->next;
@@ -245,21 +233,21 @@ void save_file(struct text_file *file) {
 }
 
 void save_all() {
-	DEBUG_MSG("Saving all text files\n");
+	AS_DEBUG_MSG("Saving all text files\n");
 
 	for (int i = 0; i < MAX_TEXT_FILES; i++) {
-		save_file(text_files[i]);
+		save_file(as_ctx.text_files[i]);
 	}
 }
 
-void destroy_file(struct text_file *file) {
+void destroy_file(struct AS_TextFile *file) {
 	if (file == NULL) {
 		return;
 	}
 
 	fclose(file->file);
 	
-	for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
+	for (int i = 0; i < as_ctx.col_descs[as_ctx.col_desc_i].column_count; i++) {
 		destroy_buffer(file->buffers[i]);
 	}
 
@@ -268,99 +256,89 @@ void destroy_file(struct text_file *file) {
 }
 
 void destroy_all_files() {
-	DEBUG_MSG("Destroying all text files\n");
+	AS_DEBUG_MSG("Destroying all text files\n");
 
 	for (int i = 0; i < MAX_TEXT_FILES; i++) {
-		destroy_file(text_files[i]);
+		destroy_file(as_ctx.text_files[i]);
 	}
 }
 
-void edit_file() {
-
-}
-
-struct cfg_token *configure_editor(struct cfg_token *token) {
+struct AS_CfgTok *configure_editor(struct AS_CfgTok *token) {
 	// column define:[0, 1, 2, 3, 4, 5, 6]:'c':0
 	// column default:0
-	EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected keyword")
+	AS_EXPECT_TOKEN(AS_CFG_TOKEN_KEY, "Expected keyword")
 	
 	int value = token->value;
 	
-	NEXT_TOKEN
+	AS_NEXT_TOKEN
 
 	switch (value) {
-	case CFG_LOOKUP_DEFINE: {
-		EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
-		NEXT_TOKEN
-		EXPECT_TOKEN(CFG_TOKEN_SQR, "Expected square bracket")
-		NEXT_TOKEN
+	case AS_CFG_LOOKUP_DEFINE: {
+		AS_EXPECT_TOKEN(AS_CFG_TOKEN_COL, "Expected colon")
+		AS_NEXT_TOKEN
+		AS_EXPECT_TOKEN(AS_CFG_TOKEN_SQR, "Expected square bracket")
+		AS_NEXT_TOKEN
 
 		size_t size = 1;
 		int *columns = (int *)malloc(sizeof(int) * size);
 
-		while (token->type != CFG_TOKEN_SQR) {
-			if (token->type == CFG_TOKEN_INT) {
+		while (token->type != AS_CFG_TOKEN_SQR) {
+			if (token->type == AS_CFG_TOKEN_INT) {
 				*(columns + size - 1) = token->value;
 				columns = (int *)realloc(columns, sizeof(int) * (++size));
 			}
 
-			NEXT_TOKEN
+			AS_NEXT_TOKEN
 		}
 		
 		// Remove extra on the end
 		size--;
 		columns = (int *)realloc(columns, sizeof(int) * (size));
 
-		EXPECT_TOKEN(CFG_TOKEN_SQR, "Expected square bracket")
+		AS_EXPECT_TOKEN(AS_CFG_TOKEN_SQR, "Expected square bracket")
 		
-		NEXT_TOKEN
-		EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
-		NEXT_TOKEN
-		EXPECT_TOKEN(CFG_TOKEN_INT, "Expected integer")
+		AS_NEXT_TOKEN
+		AS_EXPECT_TOKEN(AS_CFG_TOKEN_COL, "Expected colon")
+		AS_NEXT_TOKEN
+		AS_EXPECT_TOKEN(AS_CFG_TOKEN_INT, "Expected integer")
 
 		int delimiter = token->value;
 		
-		NEXT_TOKEN
-		EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
-		NEXT_TOKEN
-		EXPECT_TOKEN(CFG_TOKEN_INT, "Expected integer")
+		AS_NEXT_TOKEN
+		AS_EXPECT_TOKEN(AS_CFG_TOKEN_COL, "Expected colon")
+		AS_NEXT_TOKEN
+		AS_EXPECT_TOKEN(AS_CFG_TOKEN_INT, "Expected integer")
 		
 		int column_descriptor_i = token->value;
 
-		column_descriptors[column_descriptor_i].column_count = size;
-		column_descriptors[column_descriptor_i].column_positions = columns;
-		column_descriptors[column_descriptor_i].delimiter = delimiter;
+		as_ctx.col_descs[column_descriptor_i].column_count = size;
+		as_ctx.col_descs[column_descriptor_i].column_positions = columns;
+		as_ctx.col_descs[column_descriptor_i].delimiter = delimiter;
 
 		break;
 	}
 
-	case CFG_LOOKUP_DEFAULT: {
-		EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
-		NEXT_TOKEN
-		EXPECT_TOKEN(CFG_TOKEN_INT, "Expected integer")
+	case AS_CFG_LOOKUP_DEFAULT: {
+		AS_EXPECT_TOKEN(AS_CFG_TOKEN_COL, "Expected colon")
+		AS_NEXT_TOKEN
+		AS_EXPECT_TOKEN(AS_CFG_TOKEN_INT, "Expected integer")
 
-		if (column_descriptors[token->value].column_positions == NULL) {
+		if (as_ctx.col_descs[token->value].column_positions == NULL) {
 			printf("Warning: default column %d is undefined, switching to a defined column\n", token->value);
-			DEBUG_MSG("Warning: default column %d is undefined, switching to a defined column\n", token->value);
+			AS_DEBUG_MSG("Warning: default column %d is undefined, switching to a defined column\n", token->value);
 		}
 
 		for (int i = 0; i < MAX_COLUMNS; i++) {
-			if (column_descriptors[i].column_positions != NULL) {
-				current_column_descriptor = i;
+			if (as_ctx.col_descs[i].column_positions != NULL) {
+				as_ctx.col_desc_i = i;
 			}
 		}
 
-		if (current_column_descriptor != -1) {
+		if (as_ctx.col_desc_i != -1) {
 			break;
 		}
 
-		printf("Failed to find a user defined column, defining a single column\n");
-		DEBUG_MSG("Failed to find a user defined column, defining a single column\n");
-
-		current_column_descriptor = 0;
-		column_descriptors[current_column_descriptor].column_positions = default_column_definition;
-		column_descriptors[current_column_descriptor].column_count = 1;
-		column_descriptors[current_column_descriptor].delimiter = 0;
+		AS_DEBUG_MSG("Failed to find any defined column\n");
 
 		break;
 	}

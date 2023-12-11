@@ -19,15 +19,16 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef AS_KEYBOARD_H
+#define AS_KEYBOARD_H
 
 #include <global.h>
 #include <editor/config.h>
+#include <includes.h>
 
 #define MAX_KEY_ELEMENTS 16
 
 void key(int c);
-struct cfg_token *configure_keyboard(struct cfg_token *token);
+struct AS_CfgTok *configure_keyboard(struct AS_CfgTok *token);
 
 #endif

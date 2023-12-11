@@ -21,23 +21,19 @@
 
 #include <editor/buffer/editor.h>
 #include <interface/interface.h>
-#include <ctype.h>
 #include <editor/buffer/buffer.h>
 #include <global.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <includes.h>
 
-void free_line_list_element(struct line_list_element *element) {
+void free_line_list_element(struct AS_LLElement *element) {
 	free(element->contents);
 	free(element);
 }
 
-struct text_buffer *new_buffer(int col_start, int col_end) {
+struct AS_TextBuf *new_buffer(int col_start, int col_end) {
 	// Allocate buffer
-	struct text_buffer *buffer = (struct text_buffer *)malloc(sizeof(struct text_buffer));
-	memset(buffer, 0, sizeof(struct text_buffer));
+	struct AS_TextBuf *buffer = (struct AS_TextBuf *)malloc(sizeof(struct AS_TextBuf));
+	memset(buffer, 0, sizeof(struct AS_TextBuf));
 
 	// Initialzie values
 	buffer->cx = 0;
@@ -45,19 +41,19 @@ struct text_buffer *new_buffer(int col_start, int col_end) {
 	buffer->col_end = col_end;
 
 	// Give it a starting line list element
-	buffer->head = (struct line_list_element *)malloc(sizeof(struct line_list_element));
-	memset(buffer->head, 0, sizeof(struct line_list_element));
+	buffer->head = (struct AS_LLElement *)malloc(sizeof(struct AS_LLElement));
+	memset(buffer->head, 0, sizeof(struct AS_LLElement));
 
 	return buffer;
 }
 
-void destroy_buffer(struct text_buffer *buffer) {
+void destroy_buffer(struct AS_TextBuf *buffer) {
 	// Descend the list of line list elements
 	// Free each one
-	struct line_list_element *current = buffer->head;
+	struct AS_LLElement *current = buffer->head;
 
 	while (current != NULL) {
-		struct line_list_element *temp = current->next;
+		struct AS_LLElement *temp = current->next;
 		free(current->contents);
 
 		free(current);
@@ -78,21 +74,21 @@ void destroy_buffer(struct text_buffer *buffer) {
 //	   a lack of a zero terminator)
 void buffer_char_insert(char c) {
 	// Get the element at which we need to insert the buffer
-	struct text_buffer *active_text_buffer = active_text_file->active_buffer;
-	struct line_list_element *element = active_text_buffer->current_element;
+	struct AS_TextBuf *active_text_buffer = as_ctx.text_file->active_buffer;
+	struct AS_LLElement *element = active_text_buffer->current_element;
 
 	// Check for special cases
 	switch (c) {
 	case '\n': {
 		// Iterate through all buffers excluding the active one
-		for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
-			if (active_text_file->buffers[i] == active_text_buffer) {
+		for (int i = 0; i < as_ctx.col_descs[as_ctx.col_desc_i].column_count; i++) {
+			if (as_ctx.text_file->buffers[i] == active_text_buffer) {
 				continue;
 			}
 
 			// Create a new line and its element
-			struct line_list_element *tmp = active_text_file->buffers[i]->current_element;
-			struct line_list_element *new_element = (struct line_list_element *)malloc(sizeof(struct line_list_element));
+			struct AS_LLElement *tmp = as_ctx.text_file->buffers[i]->current_element;
+			struct AS_LLElement *new_element = (struct AS_LLElement *)malloc(sizeof(struct AS_LLElement));
 
 			// Allocate contents
 			new_element->contents = (char *)malloc(1);
@@ -124,17 +120,17 @@ void buffer_char_insert(char c) {
 
 				tmp->prev = new_element;
 
-				if (tmp == active_text_file->buffers[i]->head) {
-					active_text_file->buffers[i]->head = new_element;
+				if (tmp == as_ctx.text_file->buffers[i]->head) {
+					as_ctx.text_file->buffers[i]->head = new_element;
 				}
 			}
 
 			// Manage the current element
-			active_text_file->buffers[i]->current_element = active_text_buffer->cx > 0 ? new_element : tmp;  
+			as_ctx.text_file->buffers[i]->current_element = active_text_buffer->cx > 0 ? new_element : tmp;  
 		}
 
 		// Create new element
-		struct line_list_element *next_element = (struct line_list_element *)malloc(sizeof(struct line_list_element));
+		struct AS_LLElement *next_element = (struct AS_LLElement *)malloc(sizeof(struct AS_LLElement));
 
 		// Insert it into list
 		next_element->next = element->next;
@@ -170,13 +166,13 @@ void buffer_char_insert(char c) {
 		next_element->contents = contents;
 
 		// Increment cy and reset cx
-		(active_text_file->cy)++;
+		(as_ctx.text_file->cy)++;
 		(active_text_buffer->cx) = 0;
 
 		// Manage
 		active_text_buffer->current_element = next_element;
 
-		active_screen->local(LOCAL_LINE_INSERT, 0);
+		as_ctx.screen->local(LOCAL_LINE_INSERT, 0);
 
 		break;
 	}
@@ -207,24 +203,24 @@ void buffer_char_insert(char c) {
 
 void buffer_char_del() {
 	// Get the element at which we need to insert the buffer
-	struct text_buffer *active_text_buffer = active_text_file->active_buffer;
+	struct AS_TextBuf *active_text_buffer = as_ctx.text_file->active_buffer;
 
 	// Has the cursor reached (0, 0), if so we can't delete further
-	if (active_text_buffer->cx == 0 && active_text_file->cy == 0) {
+	if (active_text_buffer->cx == 0 && as_ctx.text_file->cy == 0) {
 		return;
 	}
 
-	struct line_list_element *element = active_text_buffer->current_element;
+	struct AS_LLElement *element = active_text_buffer->current_element;
 
 	// Remove a line
 	if (active_text_buffer->cx <= 0) {
 		// Iterate through all buffers
-		for (int i = 0; i < column_descriptors[current_column_descriptor].column_count; i++) {
+		for (int i = 0; i < as_ctx.col_descs[as_ctx.col_desc_i].column_count; i++) {
 			// Get the current element
-			element = active_text_file->buffers[i]->current_element;
+			element = as_ctx.text_file->buffers[i]->current_element;
 
 			// Get the address of the next door neighbour
-			struct line_list_element *line_over = element->next;
+			struct AS_LLElement *line_over = element->next;
 			// Move one house down
 			element = element->prev;
 			
@@ -250,19 +246,19 @@ void buffer_char_del() {
 			}
 
 			// Update cursor
-			(active_text_file->buffers[i]->cx) = cx == -1 ? strlen(element->contents) : cx - 1;
+			(as_ctx.text_file->buffers[i]->cx) = cx == -1 ? strlen(element->contents) : cx - 1;
 
-			if (active_text_file->buffers[i]->cx < 0) {
-				active_text_file->buffers[i]->cx = 0;
+			if (as_ctx.text_file->buffers[i]->cx < 0) {
+				as_ctx.text_file->buffers[i]->cx = 0;
 			}
 
 			// Manage
-			active_text_file->buffers[i]->current_element = element;
+			as_ctx.text_file->buffers[i]->current_element = element;
 		}
 
-		(active_text_file->cy)--;
+		(as_ctx.text_file->cy)--;
 
-		active_screen->local(LOCAL_LINE_DELETION, 0);
+		as_ctx.screen->local(LOCAL_LINE_DELETION, 0);
 
 		return;
 	}
@@ -284,21 +280,21 @@ void buffer_char_del() {
 
 // ERROR: When called on the last line with no selection,
 //        a segmentation fault happens
-int buffer_move_ln_up(struct text_buffer *active_buffer) {
+int buffer_move_ln_up(struct AS_TextBuf *active_buffer) {
 	if (active_buffer == NULL) {
 		return 0;
 	}
 
-	struct line_list_element *current = active_buffer->current_element;
-	struct line_list_element *next = current->next;
-	struct line_list_element *prev = current->prev;
+	struct AS_LLElement *current = active_buffer->current_element;
+	struct AS_LLElement *next = current->next;
+	struct AS_LLElement *prev = current->prev;
 
-	if (active_buffer->selection_enabled && active_text_file->cy != active_buffer->selection_start.y) {
+	if (active_buffer->selection_enabled && as_ctx.text_file->cy != active_buffer->selection_start.y) {
 		// There is a selection, move selection
-		struct line_list_element *head = active_buffer->selection_start_line;
+		struct AS_LLElement *head = active_buffer->selection_start_line;
 		prev = head->prev;
 
-		if (active_text_file->cy < active_buffer->selection_start.y) {
+		if (as_ctx.text_file->cy < active_buffer->selection_start.y) {
 			head = current;
 			prev = current->prev;
 			current = active_buffer->selection_start_line;
@@ -352,21 +348,21 @@ int buffer_move_ln_up(struct text_buffer *active_buffer) {
 	return 1;
 }
 
-int buffer_move_ln_down(struct text_buffer *active_buffer) {
+int buffer_move_ln_down(struct AS_TextBuf *active_buffer) {
 	if (active_buffer == NULL) {
 		return 0;
 	}
 
-	struct line_list_element *current = active_buffer->current_element;
-	struct line_list_element *next = current->next;
-	struct line_list_element *prev = current->prev;
+	struct AS_LLElement *current = active_buffer->current_element;
+	struct AS_LLElement *next = current->next;
+	struct AS_LLElement *prev = current->prev;
 
-	if (active_buffer->selection_enabled && active_text_file->cy != active_buffer->selection_start.y) {
+	if (active_buffer->selection_enabled && as_ctx.text_file->cy != active_buffer->selection_start.y) {
 		// There is a selection, move selection
-		struct line_list_element *head = active_buffer->selection_start_line;
+		struct AS_LLElement *head = active_buffer->selection_start_line;
 		prev = active_buffer->selection_start_line->prev;
 
-		if (active_text_file->cy < active_buffer->selection_start.y) {
+		if (as_ctx.text_file->cy < active_buffer->selection_start.y) {
 			// Above pointers are wrong, correct them
 			head = current;
 			prev = current->prev;

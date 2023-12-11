@@ -19,14 +19,27 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef AS_FUNCTIONS_H
-#define AS_FUNCTIONS_H
+#ifndef AS_INCLUDES_H
+#define AS_INCLUDES_H
 
-#include <includes.h>
-#include <util.h>
+#include <bits/time.h>
+#include <curses.h>
+#include <ncurses.h>
+#include <pwd.h>
+#include <locale.h>
+#include <signal.h>
+#include <time.h>
+#include <math.h>
 
-#define MAX_FUNCTION_COUNT 256
+#include <stdio.h>
+#include <stdlib.h>
 
-void layer_down();
+#include <unistd.h>
+#include <stdlib.h>
+#include <stddef.h>
+#include <stdbool.h>
+#include <ctype.h>
+
+#include <string.h>
 
 #endif

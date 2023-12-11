@@ -19,10 +19,10 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef AS_UTIL_H
+#define AS_UTIL_H
 
-#include <global.h>
+#include <includes.h>
 
 uint64_t general_hash(char *string);
 char *fpath2abs(char *path, int options);

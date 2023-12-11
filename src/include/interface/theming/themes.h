@@ -19,20 +19,21 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef THEMES_H
-#define THEMES_H
+#ifndef AS_THEMES_H
+#define AS_THEMES_H
 
 #include <global.h>
 #include <editor/config.h>
+#include <includes.h>
 
-#define MAX_CUSTOM_COLORS  32
-#define CUSTOM_COLOR_START 16
+#define AS_MAX_CUSTOM_COLORS  32
+#define AS_CUSTOM_COLOR_START 16
 
-#define RED_MASK           16
-#define GREEN_MASK         8
-#define BLUE_MASK          0
+#define AS_RED_MASK           16
+#define AS_GREEN_MASK         8
+#define AS_BLUE_MASK          0
 
 void register_custom_colors();
-struct cfg_token *configure_theme(struct cfg_token *token);
+struct AS_CfgTok *configure_theme(struct AS_CfgTok *token);
 
 #endif

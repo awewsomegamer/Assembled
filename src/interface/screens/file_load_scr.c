@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "editor/config.h"
 #include "global.h"
 #include "interface/interface.h"
 #include <curses.h>
@@ -38,7 +39,7 @@ static char **directory_listing = NULL;
 static size_t directory_listing_size = 1;
 static int directory_listing_offset = 0;
 
-static void render(struct render_context *ctx) {
+static void render(struct AS_RenderCtx *ctx) {
 	mvprintw(1, (ctx->max_x / 4 + 1), "%s", (file_path == NULL ? "" : file_path));
 	draw_border(ctx->max_x / 4, 0, ctx->max_x / 2, ctx->max_y - 1);
 	draw_border(ctx->max_x / 4, 2, ctx->max_x / 2, ctx->max_y - 3);
@@ -105,7 +106,7 @@ static void local(int code, int value) {
 			switch_to_screen("editor");
 		}
 		
-		DEBUG_MSG("%s\n", abs);
+		AS_DEBUG_MSG("%s\n", abs);
 
 		free(abs);
 		
@@ -156,12 +157,12 @@ static void local(int code, int value) {
 }
 
 void register_file_load_scr() {
-	DEBUG_MSG("Initializing file load screen\n");
+	AS_DEBUG_MSG("Initializing file load screen\n");
 
 	int i = register_screen("file_load", render, NULL, local);
-	screens[i].render_options |= SCR_OPT_ON_UPDATE;
+	as_ctx.screens[i].render_options |= SCR_OPT_ON_UPDATE;
 }
 
-void configure_file_load_scr() {
-
+struct AS_CfgTok *configure_file_load_scr(struct AS_CfgTok *token) {
+	return token;
 }

@@ -36,94 +36,94 @@ void layer_down() { }
 //       _UP, LOCAL_ARROW_DOWN, etc... -> LOCAL
 //       _ARROW_MOVE)
 static void cursor_up() {
-        active_screen->local(LOCAL_ARROW_UP, 0);
-	sprintf(editor_scr_message, "UP");
+        as_ctx.screen->local(LOCAL_ARROW_UP, 0);
+	sprintf(as_ctx.editor_scr_message, "UP");
 }
 
 static void cursor_down() {
-        active_screen->local(LOCAL_ARROW_DOWN, 0);
-	sprintf(editor_scr_message, "DOWN");
+        as_ctx.screen->local(LOCAL_ARROW_DOWN, 0);
+	sprintf(as_ctx.editor_scr_message, "DOWN");
 }
 
 static void cursor_left() {
-        active_screen->local(LOCAL_ARROW_LEFT, 0);
-	sprintf(editor_scr_message, "LEFT");
+        as_ctx.screen->local(LOCAL_ARROW_LEFT, 0);
+	sprintf(as_ctx.editor_scr_message, "LEFT");
 }
 
 static void cursor_right() {
-        active_screen->local(LOCAL_ARROW_RIGHT, 0);
-	sprintf(editor_scr_message, "RIGHT");
+        as_ctx.screen->local(LOCAL_ARROW_RIGHT, 0);
+	sprintf(as_ctx.editor_scr_message, "RIGHT");
 }
 
 static void enter() {
-        active_screen->local(LOCAL_ENTER, 0);
-	sprintf(editor_scr_message, "ENTER");
+        as_ctx.screen->local(LOCAL_ENTER, 0);
+	sprintf(as_ctx.editor_scr_message, "ENTER");
 }
 
 static void buffer_left() {
-	active_screen->local(LOCAL_BUFFER_MOVE, -1);
-	sprintf(editor_scr_message, "BUFFER LEFT");
+	as_ctx.screen->local(LOCAL_BUFFER_MOVE, -1);
+	sprintf(as_ctx.editor_scr_message, "BUFFER LEFT");
 }
 
 static void buffer_right() {
-	active_screen->local(LOCAL_BUFFER_MOVE, 1);
-	sprintf(editor_scr_message, "BUFFER RIGHT");
+	as_ctx.screen->local(LOCAL_BUFFER_MOVE, 1);
+	sprintf(as_ctx.editor_scr_message, "BUFFER RIGHT");
 }
 
 static void file_save() {
-	save_file(active_text_file);
-	sprintf(editor_scr_message, "SAVED FILE");
+	save_file(as_ctx.text_file);
+	sprintf(as_ctx.editor_scr_message, "SAVED FILE");
 }
 
 static void file_save_all() {
 	save_all();
-	sprintf(editor_scr_message, "SAVED ALL");
+	sprintf(as_ctx.editor_scr_message, "SAVED ALL");
 }
 
 static void file_load() {
 	switch_to_screen("file_load");
-	sprintf(editor_scr_message, "LOADED FILE");
+	sprintf(as_ctx.editor_scr_message, "LOADED FILE");
 }
 
 static void window_left() {
-	active_screen->local(LOCAL_WINDOW_LEFT, 0);
-	sprintf(editor_scr_message, "WINDOW LEFT");
+	as_ctx.screen->local(LOCAL_WINDOW_LEFT, 0);
+	sprintf(as_ctx.editor_scr_message, "WINDOW LEFT");
 }
 
 static void window_right() {
-	active_screen->local(LOCAL_WINDOW_RIGHT, 0);
-	sprintf(editor_scr_message, "WINDOW RIGHT");
+	as_ctx.screen->local(LOCAL_WINDOW_RIGHT, 0);
+	sprintf(as_ctx.editor_scr_message, "WINDOW RIGHT");
 }
 
 static void selection() {
-	active_screen->local(LOCAL_WINDOW_SELECTION, 1);
-	sprintf(editor_scr_message, "SELECTION");
+	as_ctx.screen->local(LOCAL_WINDOW_SELECTION, 1);
+	sprintf(as_ctx.editor_scr_message, "SELECTION");
 }
 
 static void move_line_up() {
-	active_screen->local(LOCAL_BUFFER_MOVE_LINE, 1);
-	sprintf(editor_scr_message, "MOVE LINE UP");
+	as_ctx.screen->local(LOCAL_BUFFER_MOVE_LINE, 1);
+	sprintf(as_ctx.editor_scr_message, "MOVE LINE UP");
 }
 
 static void move_line_down() {
-	active_screen->local(LOCAL_BUFFER_MOVE_LINE, 0);
-	sprintf(editor_scr_message, "MOVE LINE DOWN");
+	as_ctx.screen->local(LOCAL_BUFFER_MOVE_LINE, 0);
+	sprintf(as_ctx.editor_scr_message, "MOVE LINE DOWN");
 }
 
 void (*functions[MAX_FUNCTION_COUNT])() = {
-        [CFG_LOOKUP_UP]            = cursor_up,
-        [CFG_LOOKUP_DOWN]          = cursor_down,
-        [CFG_LOOKUP_LEFT]          = cursor_left,
-        [CFG_LOOKUP_RIGHT]         = cursor_right,
-        [CFG_LOOKUP_ENTER]         = enter,
-	[CFG_LOOKUP_BUFFER_LEFT]   = buffer_left,
-	[CFG_LOOKUP_BUFFER_RIGHT]  = buffer_right,
-	[CFG_LOOKUP_WINDOW_LEFT]   = window_left,
-	[CFG_LOOKUP_WINDOW_RIGHT]  = window_right,
-	[CFG_LOOKUP_FILE_SAVE]     = file_save,
-	[CFG_LOOKUP_FILE_SAVE_ALL] = file_save_all,
-	[CFG_LOOKUP_FILE_LOAD]     = file_load,
-	[CFG_LOOKUP_SELECTION]     = selection,
-	[CFG_LOOKUP_MOVE_LN_UP]    = move_line_up,
-	[CFG_LOOKUP_MOVE_LN_DOWN]  = move_line_down,
+        [AS_CFG_LOOKUP_UP]            = cursor_up,
+        [AS_CFG_LOOKUP_DOWN]          = cursor_down,
+        [AS_CFG_LOOKUP_LEFT]          = cursor_left,
+        [AS_CFG_LOOKUP_RIGHT]         = cursor_right,
+        [AS_CFG_LOOKUP_ENTER]         = enter,
+	[AS_CFG_LOOKUP_BUFFER_LEFT]   = buffer_left,
+	[AS_CFG_LOOKUP_BUFFER_RIGHT]  = buffer_right,
+	[AS_CFG_LOOKUP_WINDOW_LEFT]   = window_left,
+	[AS_CFG_LOOKUP_WINDOW_RIGHT]  = window_right,
+	[AS_CFG_LOOKUP_FILE_SAVE]     = file_save,
+	[AS_CFG_LOOKUP_FILE_SAVE_ALL] = file_save_all,
+	[AS_CFG_LOOKUP_FILE_LOAD]     = file_load,
+	[AS_CFG_LOOKUP_SELECTION]     = selection,
+	[AS_CFG_LOOKUP_MOVE_LN_UP]    = move_line_up,
+	[AS_CFG_LOOKUP_MOVE_LN_DOWN]  = move_line_down,
 };

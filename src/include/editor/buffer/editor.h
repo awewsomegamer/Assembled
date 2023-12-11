@@ -19,44 +19,38 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef EDITOR_H
-#define EDITOR_H
+#ifndef AS_EDITOR_H
+#define AS_EDITOR_H
 
 #define MAX_TEXT_FILES 32
 #define MAX_COLUMNS 32
 
+#include <includes.h>
 #include <editor/config.h>
 #include <editor/buffer/buffer.h>
 
-struct text_file {
+struct AS_TextFile {
         int cy;
 	int selected_buffers;
-        struct text_buffer *active_buffer;
-        struct text_buffer **buffers;
+        struct AS_TextBuf *active_buffer;
+        struct AS_TextBuf **buffers;
         int load_offset;
 	int active_buffer_idx;
         char *name;
         FILE *file;
 };
 
-struct column_descriptor {
+struct AS_ColDesc {
         int *column_positions;
         int column_count;
         int delimiter;     
 };
 
-extern struct text_file *text_files[MAX_TEXT_FILES];
-extern int active_text_file_idx;
-extern struct text_file *active_text_file;
-extern struct column_descriptor column_descriptors[];
-extern int current_column_descriptor;
-extern int default_column_definition[];
-
-struct text_file *load_file(char *name);
-void save_file(struct text_file *file);
+struct AS_TextFile *load_file(char *name);
+void save_file(struct AS_TextFile *file);
 void save_all();
 void edit_file();
 
-struct cfg_token *configure_editor(struct cfg_token *token);
+struct AS_CfgTok *configure_editor(struct AS_CfgTok *token);
 
 #endif

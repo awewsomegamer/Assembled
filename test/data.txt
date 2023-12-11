@@ -1,9 +1,9 @@
-d	as	hello
+1d	as	hello
 sd	dasdd	a
-a	asaasasdsd	asd
-sd	sd	asd
+sd	asaasasdsd	asd
+a	sd	asd
 sd	asd	sd
 asd	a	sd
 text	d	a
 asd	asdasd	asdasd
-a	world	asd
+a	world	asd hello

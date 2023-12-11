@@ -19,30 +19,30 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef BUFFER_H
-#define BUFFER_H
+#ifndef AS_BUFFER_H
+#define AS_BUFFER_H
 
-#include <global.h>
+#include <includes.h>
 #include <interface/interface.h>
 
-struct line_list_element {
+struct AS_LLElement {
         char *contents;
-        struct line_list_element *next;
-        struct line_list_element *prev;
+        struct AS_LLElement *next;
+        struct AS_LLElement *prev;
 };
 
-struct text_buffer {
+struct AS_TextBuf {
         int cx;
         int col_start;
         int col_end;
 
 	uint8_t selection_enabled;
-	struct bound selection_start;
-	struct bound selection_end;
+	struct AS_Bound selection_start;
+	struct AS_Bound selection_end;
 
-        struct line_list_element *head;
-        struct line_list_element *current_element;
-	struct line_list_element *selection_start_line;
+        struct AS_LLElement *head;
+        struct AS_LLElement *current_element;
+	struct AS_LLElement *selection_start_line;
 };
 
 struct syntax_highlight {
@@ -50,12 +50,12 @@ struct syntax_highlight {
         char **symbols;
 };
 
-struct text_buffer *new_buffer(int col_start, int col_end);
-void destroy_buffer(struct text_buffer *buffer);
+struct AS_TextBuf *new_buffer(int col_start, int col_end);
+void destroy_buffer(struct AS_TextBuf *buffer);
 
 void buffer_char_insert(char c);
 void buffer_char_del();
-int buffer_move_ln_down(struct text_buffer *active_buffer);
-int buffer_move_ln_up(struct text_buffer *active_buffer);
+int buffer_move_ln_down(struct AS_TextBuf *active_buffer);
+int buffer_move_ln_up(struct AS_TextBuf *active_buffer);
 
 #endif

@@ -30,25 +30,25 @@
 #include <string.h>
 #include <unistd.h>
 
-#define CURSOR_X (active_text_file->active_buffer->cx)
-#define CURSOR_Y (active_text_file->cy)
+#define CURSOR_X (as_ctx.text_file->active_buffer->cx)
+#define CURSOR_Y (as_ctx.text_file->cy)
 
 static int line_length = 0;
 
 static int differential = 0;
 static int offset = 0;
 
-char editor_scr_message[1024];
+char AS_EditorScrMessage[1024];
 
-static void render(struct render_context *context) {
-	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
-	struct text_buffer *active_buffer = active_text_file->active_buffer;
+static void render(struct AS_RenderCtx *context) {
+	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
+	struct AS_TextBuf *active_buffer = as_ctx.text_file->active_buffer;
 
 	// Create and initialize a list of current pointers
-	struct line_list_element **currents = (struct line_list_element **)calloc(descriptor.column_count, sizeof(struct line_list_element *));
+	struct AS_LLElement **currents = (struct AS_LLElement **)calloc(descriptor.column_count, sizeof(struct AS_LLElement *));
 
 	for (int i = 0; i < descriptor.column_count; i++) {
-		currents[i] = active_text_file->buffers[i]->head;
+		currents[i] = as_ctx.text_file->buffers[i]->head;
 
 		for (int j = 0; j < offset; j++) {
 			currents[i] = currents[i]->next;
@@ -74,8 +74,8 @@ static void render(struct render_context *context) {
 		int applied_element_distortion = 0;
 
 		for (int i = 0; i < descriptor.column_count; i++) {
-			struct line_list_element *current = currents[i];
-			struct text_buffer *current_buffer = active_text_file->buffers[i];
+			struct AS_LLElement *current = currents[i];
+			struct AS_TextBuf *current_buffer = as_ctx.text_file->buffers[i];
 
 			// Calculate the number of characters the current column
 			// can fit
@@ -104,12 +104,12 @@ static void render(struct render_context *context) {
 			}
 
 			// Selection rendering
-			struct bound *start = &active_buffer->selection_start;
-			struct bound end_v = { .x = CURSOR_X, .y = CURSOR_Y };
-			struct bound *end = &end_v;
+			struct AS_Bound *start = &active_buffer->selection_start;
+			struct AS_Bound end_v = { .x = CURSOR_X, .y = CURSOR_Y };
+			struct AS_Bound *end = &end_v;
 
 			if (start->y > end->y || start->x > end->x) {
-				struct bound *tmp = start;
+				struct AS_Bound *tmp = start;
 				start = end;
 				end = tmp;
 			}
@@ -137,23 +137,23 @@ static void render(struct render_context *context) {
 				int xc = descriptor.column_positions[i];
 
 				// Highlight contents if selected
-				if (((start->y < true_y && end->y > true_y) || (start->y <= true_y && end->y >= true_y && active_text_file->selected_buffers != 0)) && selection) {
-					attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+				if (((start->y < true_y && end->y > true_y) || (start->y <= true_y && end->y >= true_y && as_ctx.text_file->selected_buffers != 0)) && selection) {
+					attron(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
 				} else {
-					attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+					attroff(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
 				}
 
 				// Draw regular text
-				if (selection == 0 || selection_extreme == 0 || active_text_file->selected_buffers != 0) {
+				if (selection == 0 || selection_extreme == 0 || as_ctx.text_file->selected_buffers != 0) {
 					mvprintw(yc, xc, "%.*s", max_length, (current->contents + x));
 					continue;
 				}
 
 				// Enable or disble highlighting for first segment
 				if (extreme_side == 0) {
-					attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+					attroff(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
 				} else if (char_mode > 0) {
-					attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+					attron(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
 				}
 
 				// Draw first segment
@@ -162,16 +162,16 @@ static void render(struct render_context *context) {
 
 				// Disable or enable highlighting for second segment
 				if (extreme_side == 0) {
-					attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+					attron(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
 				} else if (char_mode > 0) {
-					attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+					attroff(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
 				}
 
 				// Draw second segment
 				mvprintw(yc, xc + length, "%.*s", max_length - length, (current->contents + x + length));
 			}
 
-			attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+			attroff(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
 
 			// Move onto the next line
 			currents[i] = currents[i]->next;
@@ -186,7 +186,7 @@ static void render(struct render_context *context) {
 	}
 
 	// Print information
-	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d) %s", CURSOR_Y + 1, CURSOR_X + 1, editor_scr_message);
+	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d) %s", CURSOR_Y + 1, CURSOR_X + 1, AS_EditorScrMessage);
 
 	// Position the cursor appropriately
 	int column_start = active_buffer->col_start;
@@ -195,7 +195,7 @@ static void render(struct render_context *context) {
 	move(CURSOR_Y - offset + cy_wrap_distortion + (CURSOR_X / column_length), (CURSOR_X % column_length) + column_start);
 }
 
-static void update(struct render_context *context) {
+static void update(struct AS_RenderCtx *context) {
 	// The differential is checked, if it has overflowed
 	// or underflowed the screen, restrict it, and update
 	// the offset
@@ -210,7 +210,7 @@ static void update(struct render_context *context) {
 
 // TODO: Scrolling desynchronizes occasionally
 static void local(int code, int value) {
-	struct column_descriptor descriptor = column_descriptors[current_column_descriptor];
+	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
 
 	switch (code) {
 	case LOCAL_ARROW_UP: {
@@ -218,10 +218,10 @@ static void local(int code, int value) {
 
 		// Update all current pointers one up
 		for (int i = 0; i < descriptor.column_count; i++) {
-			struct line_list_element *current = active_text_file->buffers[i]->current_element;
+			struct AS_LLElement *current = as_ctx.text_file->buffers[i]->current_element;
 
 			if (current->prev != NULL) {
-				active_text_file->buffers[i]->current_element = current->prev;
+				as_ctx.text_file->buffers[i]->current_element = current->prev;
 				moved = 1;
 			}
                }
@@ -241,10 +241,10 @@ static void local(int code, int value) {
 
 		// Update all current pointers one down
 		for (int i = 0; i < descriptor.column_count; i++) {
-			struct line_list_element *current = active_text_file->buffers[i]->current_element;
+			struct AS_LLElement *current = as_ctx.text_file->buffers[i]->current_element;
 
 			if (current->next != NULL) {
-				active_text_file->buffers[i]->current_element = current->next;
+				as_ctx.text_file->buffers[i]->current_element = current->next;
 				moved = 1;
 			}
 		}
@@ -294,19 +294,19 @@ static void local(int code, int value) {
 	// TODO: Buffers which have already been selected
 	//       can be deselected.
 	case LOCAL_BUFFER_MOVE: {
-		int i = active_text_file->active_buffer_idx;
+		int i = as_ctx.text_file->active_buffer_idx;
 
 		if (i + value >= 0 && i + value < descriptor.column_count) {
-			struct bound start = active_text_file->active_buffer->selection_start;
-			uint8_t selection = active_text_file->active_buffer->selection_enabled;
+			struct AS_Bound start = as_ctx.text_file->active_buffer->selection_start;
+			uint8_t selection = as_ctx.text_file->active_buffer->selection_enabled;
 
-			active_text_file->active_buffer = active_text_file->buffers[i + value];
-			active_text_file->active_buffer->selection_enabled = selection;
-			active_text_file->active_buffer->selection_start.x = start.x;
-			active_text_file->active_buffer->selection_start.y = start.y;
+			as_ctx.text_file->active_buffer = as_ctx.text_file->buffers[i + value];
+			as_ctx.text_file->active_buffer->selection_enabled = selection;
+			as_ctx.text_file->active_buffer->selection_start.x = start.x;
+			as_ctx.text_file->active_buffer->selection_start.y = start.y;
 
-			active_text_file->selected_buffers += value;
-			active_text_file->active_buffer_idx += value;
+			as_ctx.text_file->selected_buffers += value;
+			as_ctx.text_file->active_buffer_idx += value;
 		}
 
 		break;
@@ -324,60 +324,60 @@ static void local(int code, int value) {
 	}
 
 	case LOCAL_WINDOW_LEFT: {
-		int i = min(active_text_file_idx - 1, 0);
+		int i = min(as_ctx.text_file_i - 1, 0);
 
 		for (; i >= 0; i--) {
-			if (text_files[i] != NULL) {
+			if (as_ctx.text_files[i] != NULL) {
 				break;
 			}
 		}
 
-		if (text_files[i] != NULL) {
-			active_text_file = text_files[i];
-			active_text_file_idx = i;
+		if (as_ctx.text_files[i] != NULL) {
+			as_ctx.text_file = as_ctx.text_files[i];
+			as_ctx.text_file_i = i;
 
-			sprintf(editor_scr_message, "SWITCHED TO %s", active_text_file->name);
+			sprintf(AS_EditorScrMessage, "SWITCHED TO %s", as_ctx.text_file->name);
 		} else {
-			sprintf(editor_scr_message, "BEGIN");
+			sprintf(AS_EditorScrMessage, "BEGIN");
 		}
 
 		break;
 	}
 
 	case LOCAL_WINDOW_RIGHT: {
-		int i = min(active_text_file_idx + 1, MAX_TEXT_FILES - 1);
+		int i = min(as_ctx.text_file_i + 1, MAX_TEXT_FILES - 1);
 
 		for (; i < MAX_TEXT_FILES; i++) {
-			if (text_files[i] != NULL) {
+			if (as_ctx.text_files[i] != NULL) {
 				break;
 			}
 		}
 
-		if (text_files[i] != NULL && i < MAX_TEXT_FILES) {
-			active_text_file = text_files[i];
-			active_text_file_idx = i;
+		if (as_ctx.text_files[i] != NULL && i < MAX_TEXT_FILES) {
+			as_ctx.text_file = as_ctx.text_files[i];
+			as_ctx.text_file_i = i;
 
-			sprintf(editor_scr_message, "SWITCHED TO %s %d", active_text_file->name, i);
+			sprintf(AS_EditorScrMessage, "SWITCHED TO %s %d", as_ctx.text_file->name, i);
 		} else {
-			sprintf(editor_scr_message, "END");
+			sprintf(AS_EditorScrMessage, "END");
 		}
 		
 		break;
 	}
 
 	case LOCAL_WINDOW_SELECTION: {
-		active_text_file->active_buffer->selection_enabled = !active_text_file->active_buffer->selection_enabled;
+		as_ctx.text_file->active_buffer->selection_enabled = !as_ctx.text_file->active_buffer->selection_enabled;
 
-		if (active_text_file->active_buffer->selection_enabled == 0) {
+		if (as_ctx.text_file->active_buffer->selection_enabled == 0) {
 			for (int i = 0; i < descriptor.column_count; i++) {
-				active_text_file->buffers[i]->selection_enabled = 0;
+				as_ctx.text_file->buffers[i]->selection_enabled = 0;
 			}
 		}
 
-		active_text_file->active_buffer->selection_start.x = active_text_file->active_buffer->cx;
-		active_text_file->active_buffer->selection_start.y = active_text_file->cy;
-		active_text_file->selected_buffers = 0;
-		active_text_file->active_buffer->selection_start_line = active_text_file->active_buffer->current_element;
+		as_ctx.text_file->active_buffer->selection_start.x = as_ctx.text_file->active_buffer->cx;
+		as_ctx.text_file->active_buffer->selection_start.y = as_ctx.text_file->cy;
+		as_ctx.text_file->selected_buffers = 0;
+		as_ctx.text_file->active_buffer->selection_start_line = as_ctx.text_file->active_buffer->current_element;
 
 		break;
 	}
@@ -385,15 +385,15 @@ static void local(int code, int value) {
 	case LOCAL_BUFFER_MOVE_LINE: {
 		int lines_moved = 0;
 
-		for (int i = 0; i < abs(active_text_file->selected_buffers) + 1; i++) {
-			struct text_buffer *buffer = active_text_file->active_buffer;
+		for (int i = 0; i < abs(as_ctx.text_file->selected_buffers) + 1; i++) {
+			struct AS_TextBuf *buffer = as_ctx.text_file->active_buffer;
 
-			if (active_text_file->selected_buffers < 0) {
-				buffer = active_text_file->buffers[active_text_file->active_buffer_idx - i];
-			} else if (active_text_file->selected_buffers == 0) {
-				buffer = active_text_file->active_buffer;
+			if (as_ctx.text_file->selected_buffers < 0) {
+				buffer = as_ctx.text_file->buffers[as_ctx.text_file->active_buffer_idx - i];
+			} else if (as_ctx.text_file->selected_buffers == 0) {
+				buffer = as_ctx.text_file->active_buffer;
 			} else {
-				buffer = active_text_file->buffers[active_text_file->active_buffer_idx + i];
+				buffer = as_ctx.text_file->buffers[as_ctx.text_file->active_buffer_idx + i];
 			}
 
 			if (value == 1) {
@@ -411,20 +411,20 @@ static void local(int code, int value) {
 			break;
 		}
 
-		int a = min(active_text_file->active_buffer_idx, active_text_file->active_buffer_idx + active_text_file->selected_buffers);
-		int b = max(active_text_file->active_buffer_idx, active_text_file->active_buffer_idx + active_text_file->selected_buffers);
+		int a = min(as_ctx.text_file->active_buffer_idx, as_ctx.text_file->active_buffer_idx + as_ctx.text_file->selected_buffers);
+		int b = max(as_ctx.text_file->active_buffer_idx, as_ctx.text_file->active_buffer_idx + as_ctx.text_file->selected_buffers);
 		bool moved = 0;
 
 		for (int i = 0; i < descriptor.column_count; i++) {
-			if (a < i && i < b || i == active_text_file->active_buffer_idx) {
+			if (a < i && i < b || i == as_ctx.text_file->active_buffer_idx) {
 				continue;
 			}
 
-			struct line_list_element *element = active_text_file->buffers[i]->current_element;
-			struct line_list_element *new = (value == 0 ? element->next : element->prev);
+			struct AS_LLElement *element = as_ctx.text_file->buffers[i]->current_element;
+			struct AS_LLElement *new = (value == 0 ? element->next : element->prev);
 
 			if (new != NULL) {
-				active_text_file->buffers[i]->current_element = new;
+				as_ctx.text_file->buffers[i]->current_element = new;
 				moved = 1;
 			}
 		}
@@ -440,12 +440,12 @@ static void local(int code, int value) {
 }
 
 void register_editor_screen() {
-	DEBUG_MSG("Registering editor screen\n");
+	AS_DEBUG_MSG("Registering editor screen\n");
 
 	int i = register_screen("editor", render, update, local);
-	screens[i].render_options |= SCR_OPT_ON_UPDATE;
+	as_ctx.screens[i].render_options |= SCR_OPT_ON_UPDATE;
 }
 
-struct cfg_token *configure_editor_screen(struct cfg_token *token) {
+struct AS_CfgTok *configure_editor_screen(struct AS_CfgTok *token) {
 	return token;
 }

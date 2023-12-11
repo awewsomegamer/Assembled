@@ -64,7 +64,7 @@ char *fpath2abs(char *path, int options) {
 		memset(cwd, 0, 0x1000);
 		
 		if (getcwd(cwd, 0x1000) != cwd) {
-			DEBUG_MSG("Unable to get current working directory (%s, %s)\n", path, clean);
+			AS_DEBUG_MSG("Unable to get current working directory (%s, %s)\n", path, clean);
 			
 			free(cwd);
 			free(clean);

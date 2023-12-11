@@ -22,44 +22,59 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
-#include <ncurses.h>
+#include <includes.h>
+#include <interface/interface.h>
+#include <editor/functions.h>
+#include <editor/buffer/editor.h>
 
 #define TARGET_FPS (double)(1.0/60.0)
 
-#define ASSEMBLED_COLOR_HIGHLIGHT 1 
-
-#include <pwd.h>
-#include <unistd.h>
-
-extern FILE *__DEBUG_LOG_FILE__;
+#define AS_COLOR_HIGHLIGHT 1 
 
 #ifdef DEBUG_MODE
-#define DEBUG_CODE(code) code
-#define DEBUG_MSG(...) { \
-			for (int __i__ = fprintf(__DEBUG_LOG_FILE__, "[%s:%d]: ", __FILE_NAME__, __LINE__); __i__ < 24; __i__++) \
-				fputc(' ', __DEBUG_LOG_FILE__); \
-			fprintf(__DEBUG_LOG_FILE__, __VA_ARGS__); \
+#define AS_DEBUG_CODE(code) code
+#define AS_DEBUG_MSG(...) { \
+			for (int __i__ = fprintf(__AS_DBG_LOG_FILE__, "[%s:%d, AS]: ", __FILE_NAME__, __LINE__); __i__ < 24; __i__++) \
+				fputc(' ', __AS_DBG_LOG_FILE__); \
+			fprintf(__AS_DBG_LOG_FILE__, __VA_ARGS__); \
 		       }
 #else
-#define DEBUG_CODE(code)
-#define DEBUG_MSG(...)
+#define AS_DEBUG_CODE(code)
+#define AS_DEBUG_MSG(...)
 #endif
 
- #define max(a, b) \
-        ({ __typeof__ (a) _a = (a); \
-        __typeof__ (b) _b = (b); \
-        _a > _b ? _a : _b; })
+#define max(a, b) \
+	({ __typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b); \
+	_a > _b ? _a : _b; })
 
 
- #define min(a, b) \
-        ({ __typeof__ (a) _a = (a); \
-        __typeof__ (b) _b = (b); \
-        _a < _b ? _a : _b; })
+#define min(a, b) \
+	({ __typeof__ (a) _a = (a); \
+	__typeof__ (b) _b = (b); \
+	_a < _b ? _a : _b; })
 
+struct AS_GlobalCtx {
+	// Editor Screen
+	char editor_scr_message[1024];
+	
+	// Interface
+	struct AS_RenderCtx render_ctx;
+	struct AS_Screen screens[MAX_SCREEN_COUNT];
+	struct AS_Screen *screen;
+	
+	// Functions
+	void (*functions[MAX_FUNCTION_COUNT])();
+
+	// Editor
+	struct AS_TextFile *text_files[MAX_TEXT_FILES];
+	struct AS_TextFile *text_file;
+	int text_file_i;
+
+	struct AS_ColDesc col_descs[MAX_COLUMNS];
+	int col_desc_i;
+};
+
+extern struct AS_GlobalCtx as_ctx;
 
 #endif

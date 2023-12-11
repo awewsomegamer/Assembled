@@ -19,7 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "interface/interface.h"
+#include <interface/interface.h>
 #include <editor/buffer/buffer.h>
 #include <ctype.h>
 #include <curses.h>
@@ -87,7 +87,7 @@ void collapse_stack() {
 		current = current->next;
 	}
 	
-	active_screen->local(LOCAL_BUFFER_CHAR, key_stack[--key_stack_ptr].key);
+	as_ctx.screen->local(LOCAL_BUFFER_CHAR, key_stack[--key_stack_ptr].key);
 	key_stack_ptr = 0;
 }
 
@@ -103,7 +103,7 @@ void key(int c) {
                 key_stack_ptr = 0;
         }
 
-	DEBUG_MSG("Key pressed: %d\n", c);
+	AS_DEBUG_MSG("Key pressed: %d\n", c);
 
         // Push new value to stack
         key_stack[key_stack_ptr].key = c;
@@ -116,41 +116,41 @@ void key(int c) {
 // Initialize the keyboard handler, import
 // key combbinations from the configuration
 // file into a data structure.
-struct cfg_token *configure_keyboard(struct cfg_token *token) {
-        EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected keyword")
-        EXPECT_VALUE(CFG_LOOKUP_KEYSEQ, "Expected keyword keyseq")
+struct AS_CfgTok *configure_keyboard(struct AS_CfgTok *token) {
+        AS_EXPECT_TOKEN(AS_CFG_TOKEN_KEY, "Expected keyword")
+        AS_EXPECT_VALUE(AS_CFG_LOOKUP_KEYSEQ, "Expected keyword keyseq")
 
-        NEXT_TOKEN
-        EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected keyword")
+        AS_NEXT_TOKEN
+        AS_EXPECT_TOKEN(AS_CFG_TOKEN_KEY, "Expected keyword")
 
-        void (*function)() = functions[token->value];
+        void (*function)() = as_ctx.functions[token->value];
 
-        NEXT_TOKEN
-        EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
+        AS_NEXT_TOKEN
+        AS_EXPECT_TOKEN(AS_CFG_TOKEN_COL, "Expected colon")
 
-        NEXT_TOKEN
+        AS_NEXT_TOKEN
 
-        DEBUG_MSG("Stack trace for function %X (LD: %X):\n", function, layer_down);
+        AS_DEBUG_MSG("Stack trace for function %X (LD: %X):\n", function, layer_down);
 
 	struct keyseq_list *list = (struct keyseq_list *)malloc(sizeof(struct keyseq_list));
 	struct keyseq_list *current = list;
 	
-	while (token->type == CFG_TOKEN_INT) {
-		if (token->type == CFG_TOKEN_COM) {
-			NEXT_TOKEN
+	while (token->type == AS_CFG_TOKEN_INT) {
+		if (token->type == AS_CFG_TOKEN_COM) {
+			AS_NEXT_TOKEN
 			continue;
 		}
 
 		current->code = token->value;
 		current->next = NULL;
 		
-		NEXT_TOKEN
+		AS_NEXT_TOKEN
 
-		while (token->type == CFG_TOKEN_COM) {
-			NEXT_TOKEN
+		while (token->type == AS_CFG_TOKEN_COM) {
+			AS_NEXT_TOKEN
 		}
 
-		if (token->type != CFG_TOKEN_INT) {
+		if (token->type != AS_CFG_TOKEN_INT) {
 			break;
 		}
 
@@ -163,7 +163,7 @@ struct cfg_token *configure_keyboard(struct cfg_token *token) {
 	keyseq_list_last->next = (struct keyseq *)malloc(sizeof(struct keyseq));
 	keyseq_list_last = keyseq_list_last->next;
 
-        DEBUG_MSG("Stack end\n")
+        AS_DEBUG_MSG("Stack end\n")
         
 
         return token;

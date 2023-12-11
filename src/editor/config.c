@@ -32,43 +32,43 @@
 #include <unistd.h>
 #include <editor/buffer/editor.h>
 
-void interpret_token_stream(struct cfg_token *token) {
-        while (token->type != CFG_TOKEN_EOF) {
-                EXPECT_TOKEN(CFG_TOKEN_KEY, "Expected command (i.e. keyboard, themes, or start_screen)");
+void interpret_token_stream(struct AS_CfgTok *token) {
+        while (token->type != AS_CFG_TOKEN_EOF) {
+                AS_EXPECT_TOKEN(AS_CFG_TOKEN_KEY, "Expected command (i.e. keyboard, themes, or start_screen)");
                 int command = token->value;
 
-                NEXT_TOKEN
+                AS_NEXT_TOKEN
 
                 switch (command) {
-                case CFG_LOOKUP_KEYBOARD: {
+                case AS_CFG_LOOKUP_KEYBOARD: {
                         token = configure_keyboard(token);
 
                         break;
                 }
 
-                case CFG_LOOKUP_START_SCR: {
+                case AS_CFG_LOOKUP_START_SCR: {
                         token = configure_start_screen(token);
-                        NEXT_TOKEN
+                        AS_NEXT_TOKEN
 
                         break;
                 }
 
-                case CFG_LOOKUP_THEMES: {
+                case AS_CFG_LOOKUP_THEMES: {
                         token = configure_theme(token);
-                        NEXT_TOKEN
+                        AS_NEXT_TOKEN
 
                         break;
                 }
 
-		case CFG_LOOKUP_COLUMNS: {
+		case AS_CFG_LOOKUP_COLUMNS: {
 			token = configure_editor(token);
-			NEXT_TOKEN
+			AS_NEXT_TOKEN
 
 			break;
 		}
 
-		case CFG_LOOKUP_INCLUDE: {
-			EXPECT_TOKEN(CFG_TOKEN_STR, "Expected string");
+		case AS_CFG_LOOKUP_INCLUDE: {
+			AS_EXPECT_TOKEN(AS_CFG_TOKEN_STR, "Expected string");
 			
 			// Get the name of the home directory
 			struct passwd *pw = getpwuid(getuid());
@@ -88,19 +88,19 @@ void interpret_token_stream(struct cfg_token *token) {
 			FILE *file = fopen(file_path, "r");
 
 			// Read new file and interpret it
-			struct cfg_token *new_stream = cfg_lex(file);
+			struct AS_CfgTok *new_stream = cfg_lex(file);
 			interpret_token_stream(new_stream);
 
-			DEBUG_MSG("Token list:\n");
+			AS_DEBUG_MSG("Token list:\n");
 			while (new_stream != NULL) {
-				DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", new_stream->type, new_stream->value, new_stream->str, new_stream->line, new_stream->column, new_stream->next);
-				struct cfg_token *tmp = new_stream->next;
+				AS_DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", new_stream->type, new_stream->value, new_stream->str, new_stream->line, new_stream->column, new_stream->next);
+				struct AS_CfgTok *tmp = new_stream->next;
 
 				free(new_stream);
 
 				new_stream = tmp;
 			}
-			DEBUG_MSG("List end\n");
+			AS_DEBUG_MSG("List end\n");
 
 			if (file_path != token->str) {
 				free(file_path);
@@ -108,7 +108,7 @@ void interpret_token_stream(struct cfg_token *token) {
 
 			fclose(file);
 
-			NEXT_TOKEN
+			AS_NEXT_TOKEN
 		}
                 }
         }
@@ -116,9 +116,9 @@ void interpret_token_stream(struct cfg_token *token) {
 
 // ERROR: Trailing commas may cause errors if they are
 //        are directly followed by a comment.
-struct cfg_token *cfg_lex(FILE *file) {
-        struct cfg_token *head = (struct cfg_token *)malloc(sizeof(struct cfg_token));
-	memset(head, 0, sizeof(struct cfg_token));
+struct AS_CfgTok *cfg_lex(FILE *file) {
+        struct AS_CfgTok *head = (struct AS_CfgTok *)malloc(sizeof(struct AS_CfgTok));
+	memset(head, 0, sizeof(struct AS_CfgTok));
 	
         int line = 1;
         int column = 1;
@@ -126,7 +126,7 @@ struct cfg_token *cfg_lex(FILE *file) {
 
         char c = 0;
         bool comment = 0;
-        struct cfg_token *current = head;
+        struct AS_CfgTok *current = head;
         
         while ((c = ((putback == 0) ? fgetc(file) : putback)) != EOF) {
                 putback = 0;
@@ -157,8 +157,8 @@ struct cfg_token *cfg_lex(FILE *file) {
                         continue;
                 }
 
-                struct cfg_token *next = (struct cfg_token *)malloc(sizeof(struct cfg_token));
-		memset(next, 0, sizeof(struct cfg_token));
+                struct AS_CfgTok *next = (struct AS_CfgTok *)malloc(sizeof(struct AS_CfgTok));
+		memset(next, 0, sizeof(struct AS_CfgTok));
 		
                 current->next = next;
                 current->line = line;
@@ -167,28 +167,28 @@ struct cfg_token *cfg_lex(FILE *file) {
                 switch (c) {
 		case '[':
 		case ']': {
-			current->type = CFG_TOKEN_SQR;
+			current->type = AS_CFG_TOKEN_SQR;
 			column++;
 
 			break;
 		}
 
                 case ':': {
-                        current->type = CFG_TOKEN_COL;
+                        current->type = AS_CFG_TOKEN_COL;
                         column++;
 
                         break;
                 }
 
                 case ',': {
-                        current->type = CFG_TOKEN_COM;
+                        current->type = AS_CFG_TOKEN_COM;
                         column++;
 
                         break;
                 }
 
                 case '\'': {
-                        current->type = CFG_TOKEN_INT;
+                        current->type = AS_CFG_TOKEN_INT;
                         current->value = fgetc(file);
                         fgetc(file);
                         column += 2;
@@ -219,7 +219,7 @@ struct cfg_token *cfg_lex(FILE *file) {
 
                         // Number
                         if (isdigit(*str)) {
-                                current->type = CFG_TOKEN_INT;
+                                current->type = AS_CFG_TOKEN_INT;
 
                                 if (*str == '0' && tolower(*(str + 1)) == 'x') {
                                         // Base 16
@@ -240,13 +240,13 @@ struct cfg_token *cfg_lex(FILE *file) {
                         }
 
                         // String
-                        current->type = CFG_TOKEN_STR;
+                        current->type = AS_CFG_TOKEN_STR;
                         current->str = str;
 
                         // Keyword
                         for (int i = 0; i < sizeof(str_lookup)/sizeof(str_lookup[0]); i++) {
                                 if (strcmp(str_lookup[i], str) == 0) {
-                                        current->type = CFG_TOKEN_KEY;
+                                        current->type = AS_CFG_TOKEN_KEY;
                                         current->value = i;
                                         current->str = NULL;
 
@@ -281,26 +281,26 @@ int read_config() {
 
         if (file == NULL) {
                 printf("Could not open file %s\n", path);
-                DEBUG_MSG("Could not open file %s\n", path);
+                AS_DEBUG_MSG("Could not open file %s\n", path);
 
                 exit(1);
         }
 
-        struct cfg_token *head = cfg_lex(file);
+        struct AS_CfgTok *head = cfg_lex(file);
 
         interpret_token_stream(head);
 
-        DEBUG_MSG("Token list:\n");
-        struct cfg_token *current = head;
+        AS_DEBUG_MSG("Token list:\n");
+        struct AS_CfgTok *current = head;
         while (current != NULL) {
-                DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
-                struct cfg_token *tmp = current->next;
+                AS_DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
+                struct AS_CfgTok *tmp = current->next;
 
                 free(current);
 
                 current = tmp;
         }
-        DEBUG_MSG("List end\n");
+        AS_DEBUG_MSG("List end\n");
 
         // Memory Manage
         free(path);

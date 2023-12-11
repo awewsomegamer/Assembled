@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "editor/config.h"
 #include <global.h>
 #include <util.h>
 #include <curses.h>
@@ -40,7 +41,7 @@
 #define UPDATE_TIME_MIN         0.01000
 #define UPDATE_TIME_TICK        0.00005
 
-static float time = 0.01;
+static float as_time = 0.01;
 static bool direction = 0;
 static bool background_enable = 1;
 
@@ -63,7 +64,7 @@ static const char *menu_table_right[] = {
 };
 
 void test() {
-        DEBUG_MSG("First entry\n");
+        AS_DEBUG_MSG("First entry\n");
 }
 
 static void (*menu_functions[2][10])() = {
@@ -85,11 +86,11 @@ static uint8_t logo_bmp_data[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 };
 
-static void render(struct render_context *context) {
+static void render(struct AS_RenderCtx *context) {
         if (background_enable) {
                 for (int i = 0; i < context->max_y; i++) {
                         for (int j = 0; j < context->max_x; j++) {
-                                int value = i * j * time * time - j;
+                                int value = i * j * as_time * as_time - j;
                                 int x = (value + j * i) % context->max_x;
                                 int y = (value + i * j) % context->max_y;
                                 
@@ -123,11 +124,11 @@ static void render(struct render_context *context) {
                                 uint8_t bit = (logo_bmp_data[i] >> b) & 1;
 
                                 if (bit) {
-                                        attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                                        attron(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
 
                                         mvaddch(y + max((center_y - BMP_HEIGHT), 0), (center_x - CHARS_FROM_CENTER) + x, ' ');
 
-                                        attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                                        attroff(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
                                 }
 
                                 x++;
@@ -139,7 +140,7 @@ static void render(struct render_context *context) {
                         }
                 }
         } else {
-                attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                attron(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
 
                 for (int i = -(center_y / 2); i < (center_y / 2) + 1; i++) {
                         for (int j = -CHARS_FROM_CENTER; j < CHARS_FROM_CENTER; j++) {
@@ -147,13 +148,13 @@ static void render(struct render_context *context) {
                         }
                 }
 
-                attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                attroff(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
         }
 
         // Draw Options Menu
         for (int i = 0; i < menu_left_count; i++) {
                 if (cy == i && cx == 0) {
-                        attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                        attron(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
                 }
 
                 move((center_y + i + additional_y_offset),
@@ -162,7 +163,7 @@ static void render(struct render_context *context) {
                 printw("%s", menu_table_left[i]);
 
                 if (cy == i && cx == 0) {
-                        attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                        attroff(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
                 }
         }
 
@@ -174,7 +175,7 @@ static void render(struct render_context *context) {
 
         for (int i = 0; i < menu_right_count; i++) {
                 if (cy == i && cx == 1) {
-                        attron(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                        attron(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
                 }
 
                 move((center_y + i + additional_y_offset),
@@ -183,13 +184,13 @@ static void render(struct render_context *context) {
                 printw("%s", menu_table_right[i]);
 
                 if (cy == i && cx == 1) {
-                        attroff(COLOR_PAIR(ASSEMBLED_COLOR_HIGHLIGHT));
+                        attroff(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
                 }
         }
 }
 
-static void update(struct render_context *context) {
-        time += (direction ? -UPDATE_TIME_TICK : UPDATE_TIME_TICK);
+static void update(struct AS_RenderCtx *context) {
+        as_time += (direction ? -UPDATE_TIME_TICK : UPDATE_TIME_TICK);
         
         int max_y = cx ? sizeof(menu_table_right)/sizeof(menu_table_right[0]) : sizeof(menu_table_left)/sizeof(menu_table_left[0]);
         
@@ -197,9 +198,9 @@ static void update(struct render_context *context) {
                 cy = max_y - 1;
         }
 
-        if (time >= UPDATE_TIME_MAX) {
+        if (as_time >= UPDATE_TIME_MAX) {
                 direction = 1;
-        } else if (time <= UPDATE_TIME_MIN) {
+        } else if (as_time <= UPDATE_TIME_MIN) {
                 direction = 0;
         }
 }
@@ -249,25 +250,25 @@ static void local(int code, int value) {
 }
 
 void register_start_screen() {
-        DEBUG_MSG("Registering start screen\n");
+        AS_DEBUG_MSG("Registering start screen\n");
 
         int i = register_screen("start", render, update, local);
-        screens[i].render_options |= SCR_OPT_ALWAYS;
+        as_ctx.screens[i].render_options |= SCR_OPT_ALWAYS;
 }
 
-struct cfg_token *configure_start_screen(struct cfg_token *token) {
+struct AS_CfgTok *configure_start_screen(struct AS_CfgTok *token) {
         switch (token->type) {
-        case CFG_LOOKUP_BG_DISABLE: {
+        case AS_CFG_LOOKUP_BG_DISABLE: {
                 background_enable = 0;
                 
                 break;
         }
 
-        case CFG_LOOKUP_LOGO_BMP: {
-                NEXT_TOKEN
-                EXPECT_TOKEN(CFG_TOKEN_COL, "Expected colon")
-                NEXT_TOKEN
-                EXPECT_TOKEN(CFG_TOKEN_STR, "Expected string")
+        case AS_CFG_LOOKUP_LOGO_BMP: {
+                AS_NEXT_TOKEN
+                AS_EXPECT_TOKEN(AS_CFG_TOKEN_COL, "Expected colon")
+                AS_NEXT_TOKEN
+                AS_EXPECT_TOKEN(AS_CFG_TOKEN_STR, "Expected string")
                 
                 char *path = token->str;
 
@@ -326,8 +327,9 @@ struct cfg_token *configure_start_screen(struct cfg_token *token) {
                 fseek(bmp, data_offset, SEEK_SET);
                 fread(logo_bmp_data, 1, 320, bmp);
 
-                if (path != token->str)
+                if (path != token->str) {
                         free(path);
+		}
 
                 break;
         }

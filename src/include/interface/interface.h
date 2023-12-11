@@ -19,10 +19,8 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef INTERFACE_H
-#define INTERFACE_H
-
-#include <global.h>
+#ifndef AS_INTERFACE_H
+#define AS_INTERFACE_H
 
 #define MAX_SCREEN_COUNT        256
 #define GET_SCR_IDX(name)       (general_hash(name) % MAX_SCREEN_COUNT)
@@ -41,41 +39,38 @@
 #define LOCAL_WINDOW_SELECTION  12
 #define LOCAL_BUFFER_MOVE_LINE  13
 
-struct bound {
+// Determine if given coordinate is inside given bounding box
+#define IN_BOUND(x, y, bound) \
+        (x >= bound.x && x <= bound.x + bound.w) && \
+        (y >= bound.y && y <= bound.y + bound.h)
+#define SCR_OPT_ON_UPDATE (1 << 0)
+#define SCR_OPT_ALWAYS    (1 << 1)
+
+#include <includes.h>
+
+struct AS_Bound {
         int x;                 // Starting X
         int y;                 // Starting Y
         int w;                 // Width
         int h;                 // Height
 };
-// Determine if given coordinate is inside given bounding box
-#define IN_BOUND(x, y, bound) \
-        (x >= bound.x && x <= bound.x + bound.w) && \
-        (y >= bound.y && y <= bound.y + bound.h)
 
-struct render_context {
+struct AS_RenderCtx {
         int max_x;
         int max_y;
 };
-extern struct render_context current_render_context;
 
-
-#define SCR_OPT_ON_UPDATE (1 << 0)
-#define SCR_OPT_ALWAYS    (1 << 1)
-
-struct screen {
-        void (*render)(struct render_context *);
-        void (*update)(struct render_context *);
+struct AS_Screen {
+        void (*render)(struct AS_RenderCtx *);
+        void (*update)(struct AS_RenderCtx *);
         void (*local)(int, int);
 	int render_options;
         char *name;
 };
 
-extern struct screen screens[];
-extern struct screen *active_screen;
-
 int switch_to_screen(char *name);
 int switch_to_last_screen();
-int register_screen(char *name, void (*render)(struct render_context *), void (*update)(struct render_context *), void (*local)(int, int));
+int register_screen(char *name, void (*render)(struct AS_RenderCtx *), void (*update)(struct AS_RenderCtx *), void (*local)(int, int));
 
 void draw_border(int x, int y, int width, int height);
 

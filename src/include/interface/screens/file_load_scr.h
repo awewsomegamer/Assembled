@@ -19,10 +19,13 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef FILE_LOAD_SCR
-#define FILE_LOAD_SCR
+#ifndef AS_FILE_LOAD_SCR
+#define AS_FILE_LOAD_SCR
+
+#include "editor/config.h"
+#include <includes.h>
 
 void register_file_load_scr();
-void configure_file_load_scr();
+struct AS_CfgTok *configure_file_load_scr(struct AS_CfgTok *token);
 
 #endif

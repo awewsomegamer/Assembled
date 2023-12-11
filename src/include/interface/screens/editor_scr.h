@@ -19,14 +19,13 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef EDITOR_SCR_H
-#define EDITOR_SCR_H
+#ifndef AS_EDITOR_SCR_H
+#define AS_EDITOR_SCR_H
 
 #include <editor/config.h>
-
-extern char editor_scr_message[];
+#include <includes.h>
 
 void register_editor_screen();
-struct cfg_token *configure_editor_screen(struct cfg_token *token);
+struct AS_CfgTok *configure_editor_screen(struct AS_CfgTok *token);
 
 #endif

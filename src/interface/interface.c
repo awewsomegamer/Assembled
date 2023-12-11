@@ -24,10 +24,10 @@
 #include <interface/interface.h>
 #include <util.h>
 
-struct render_context current_render_context;
-struct screen screens[MAX_SCREEN_COUNT];
-struct screen *active_screen = NULL;
-struct screen *last_screen = NULL;
+struct AS_RenderCtx current_render_context;
+struct AS_Screen screens[MAX_SCREEN_COUNT];
+struct AS_Screen *active_screen = NULL;
+struct AS_Screen *last_screen = NULL;
 
 int switch_to_screen(char *name) {
         int i = GET_SCR_IDX(name);
@@ -35,24 +35,24 @@ int switch_to_screen(char *name) {
         last_screen = active_screen;
         active_screen = &screens[i];
 
-        DEBUG_MSG("Switched to screen %d (\"%s\")\n", i, name);
+        AS_DEBUG_MSG("Switched to screen %d (\"%s\")\n", i, name);
 
         return i;
 }
 
 int switch_to_last_screen() {
-    int i = (int)(((uintptr_t)active_screen - (uintptr_t)screens) / sizeof(struct screen));
+	int i = (int)(((uintptr_t)active_screen - (uintptr_t)screens) / sizeof(struct AS_Screen));
 
-    struct screen *tmp = last_screen;
-    last_screen = active_screen;
-    active_screen = tmp;
+	struct AS_Screen *tmp = last_screen;
+	last_screen = active_screen;
+	active_screen = tmp;
 
-    DEBUG_MSG("Switched to last screen %d (\"%s\")\n", i, screens[i].name);
+	AS_DEBUG_MSG("Switched to last screen %d (\"%s\")\n", i, screens[i].name);
 
-    return i;
+	return i;
 }
 
-int register_screen(char *name, void (*render)(struct render_context *), void (*update)(struct render_context *), void (*local)(int, int)) {
+int register_screen(char *name, void (*render)(struct AS_RenderCtx *), void (*update)(struct AS_RenderCtx *), void (*local)(int, int)) {
         int i = GET_SCR_IDX(name);
 
         screens[i].render = render;
@@ -61,24 +61,24 @@ int register_screen(char *name, void (*render)(struct render_context *), void (*
         screens[i].name = name;
         screens[i].render_options = 0;
 
-        DEBUG_MSG("Registered screen \"%s\" at position %d (0x%X, 0x%X, 0x%X)\n", name, i, render, update, local);
+        AS_DEBUG_MSG("Registered screen \"%s\" at position %d (0x%X, 0x%X, 0x%X)\n", name, i, render, update, local);
 
         return i;
 }
 
 void draw_border(int x, int y, int width, int height) {
-    for (int i = y; i < (y + height); i++) {
-        mvaddch(i, x, '|');
-        mvaddch(i, x + width, '|');
-    }
+	for (int i = y; i < (y + height); i++) {
+		mvaddch(i, x, '|');
+		mvaddch(i, x + width, '|');
+	}
 
-    for (int i = x; i < (x + width); i++) {
-        mvaddch(y, i, '-');
-        mvaddch(y + height, i, '-');
-    }
+	for (int i = x; i < (x + width); i++) {
+		mvaddch(y, i, '-');
+		mvaddch(y + height, i, '-');
+	}
 
-    mvaddch(y, x, '+');
-    mvaddch(y + height, x, '+');
-    mvaddch(y, x + width, '+');
-    mvaddch(y + height, x + width, '+');
+	mvaddch(y, x, '+');
+	mvaddch(y + height, x, '+');
+	mvaddch(y, x + width, '+');
+	mvaddch(y + height, x + width, '+');
 }

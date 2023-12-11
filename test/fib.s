@@ -8,9 +8,9 @@ main:	push rbp	; Save stack base
 		
 	mov rcx, 0	; Zero state
 	mov rdx, 0	; Zero counter
-loop:	mov rax, [n1]	; Get the first number
-	mov rbx, [n2]	; Get the second number
-	add rax, rbx	; Add them
+loop:	mov rax, [n1]	; Get the second number
+	mov rbx, [n2]	; Add them
+	add rax, rbx	; Get the first number
 		
 	not rcx	; Test to see if RCX is zero
 	cmp rcx, 0	; Compare RCX to zero
