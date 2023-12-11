@@ -22,7 +22,8 @@
 #ifndef AS_FILE_LOAD_SCR
 #define AS_FILE_LOAD_SCR
 
-#include "editor/config.h"
+#include <editor/config.h>
+
 #include <includes.h>
 
 void register_file_load_scr();

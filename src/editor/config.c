@@ -19,18 +19,15 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include <ctype.h>
 #include <editor/keyboard.h>
-#include <global.h>
+#include <editor/config.h>
+#include <editor/buffer/editor.h>
+
 #include <interface/screens/start.h>
 #include <interface/theming/themes.h>
-#include <stdio.h>
+
+#include <global.h>
 #include <util.h>
-#include <editor/config.h>
-#include <pwd.h>
-#include <string.h>
-#include <unistd.h>
-#include <editor/buffer/editor.h>
 
 void interpret_token_stream(struct AS_CfgTok *token) {
         while (token->type != AS_CFG_TOKEN_EOF) {

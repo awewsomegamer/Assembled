@@ -23,6 +23,7 @@
 #define AS_START_H
 
 #include <editor/config.h>
+
 #include <includes.h>
 
 void register_start_screen();

@@ -22,8 +22,9 @@
 #ifndef AS_THEMES_H
 #define AS_THEMES_H
 
-#include <global.h>
 #include <editor/config.h>
+
+#include <global.h>
 #include <includes.h>
 
 #define AS_MAX_CUSTOM_COLORS  32

@@ -22,8 +22,9 @@
 #ifndef AS_KEYBOARD_H
 #define AS_KEYBOARD_H
 
-#include <global.h>
 #include <editor/config.h>
+
+#include <global.h>
 #include <includes.h>
 
 #define MAX_KEY_ELEMENTS 16

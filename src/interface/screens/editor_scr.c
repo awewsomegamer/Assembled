@@ -22,13 +22,11 @@
 #include <editor/buffer/buffer.h>
 #include <editor/buffer/editor.h>
 #include <editor/config.h>
-#include <global.h>
+
 #include <interface/interface.h>
-#include <curses.h>
 #include <interface/screens/editor_scr.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+
+#include <global.h>
 
 #define CURSOR_X (as_ctx.text_file->active_buffer->cx)
 #define CURSOR_Y (as_ctx.text_file->cy)

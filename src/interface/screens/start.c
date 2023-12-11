@@ -19,17 +19,13 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "editor/config.h"
-#include <global.h>
-#include <util.h>
-#include <curses.h>
+#include <editor/config.h>
+
 #include <interface/screens/start.h>
 #include <interface/interface.h>
-#include <ncurses.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+
+#include <global.h>
+#include <util.h>
 
 #define CHARS_FROM_CENTER       32
 #define BMP_WIDTH               64

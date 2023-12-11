@@ -19,15 +19,15 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "editor/buffer/buffer.h"
-#include "editor/config.h"
-#include "interface/screens/editor_scr.h"
+#include <editor/buffer/buffer.h>
+#include <editor/config.h>
 #include <editor/buffer/editor.h>
-#include <global.h>
-#include <interface/interface.h>
-#include <curses.h>
 #include <editor/functions.h>
-#include <stdio.h>
+
+#include <interface/screens/editor_scr.h>
+#include <interface/interface.h>
+
+#include <global.h>
 
 void layer_down() { }
 

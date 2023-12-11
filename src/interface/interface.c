@@ -19,9 +19,9 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "global.h"
-#include <curses.h>
 #include <interface/interface.h>
+
+#include <global.h>
 #include <util.h>
 
 struct AS_RenderCtx current_render_context;

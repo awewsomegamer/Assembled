@@ -19,34 +19,28 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include <interface/interface.h>
 #include <editor/buffer/buffer.h>
-#include <ctype.h>
-#include <curses.h>
-#include <ncurses.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
-#include <global.h>
 #include <editor/keyboard.h>
 #include <editor/functions.h>
 #include <editor/config.h>
 
-struct keyseq_list {
+#include <interface/interface.h>
+
+#include <global.h>
+
+struct AS_KeySeqList {
 	int code;
-	struct keyseq_list *next;
+	struct AS_KeySeqList *next;
 };
 
-struct keyseq {
-	struct keyseq_list *list;
+struct AS_KeySeq {
+	struct AS_KeySeqList *list;
 	void (*function)();
-	struct keyseq *next;
+	struct AS_KeySeq *next;
 };
 
-static struct keyseq keyseq_list_head = { 0 };
-static struct keyseq *keyseq_list_last = &keyseq_list_head;
+static struct AS_KeySeq keyseq_list_head = { 0 };
+static struct AS_KeySeq *keyseq_list_last = &keyseq_list_head;
 
 struct key_stack_element {
         int key;
@@ -59,10 +53,10 @@ static int key_stack_ptr = 0;
 // Collapse (interpet) current key stack, looking
 // for any valid combinations of keys.
 void collapse_stack() {
-	struct keyseq *current = &keyseq_list_head;
+	struct AS_KeySeq *current = &keyseq_list_head;
 
 	while (current != NULL) {
-		struct keyseq_list *element = current->list;
+		struct AS_KeySeqList *element = current->list;
 		int i = 0;
 		
 		for (; i < key_stack_ptr; i++) {
@@ -132,8 +126,8 @@ struct AS_CfgTok *configure_keyboard(struct AS_CfgTok *token) {
 
         AS_DEBUG_MSG("Stack trace for function %X (LD: %X):\n", function, layer_down);
 
-	struct keyseq_list *list = (struct keyseq_list *)malloc(sizeof(struct keyseq_list));
-	struct keyseq_list *current = list;
+	struct AS_KeySeqList *list = (struct AS_KeySeqList *)malloc(sizeof(struct AS_KeySeqList));
+	struct AS_KeySeqList *current = list;
 	
 	while (token->type == AS_CFG_TOKEN_INT) {
 		if (token->type == AS_CFG_TOKEN_COM) {
@@ -154,13 +148,13 @@ struct AS_CfgTok *configure_keyboard(struct AS_CfgTok *token) {
 			break;
 		}
 
-		current->next = (struct keyseq_list *)malloc(sizeof(struct keyseq_list));
+		current->next = (struct AS_KeySeqList *)malloc(sizeof(struct AS_KeySeqList));
 		current = current->next;
 	}
 
 	keyseq_list_last->list = list;
 	keyseq_list_last->function = function;
-	keyseq_list_last->next = (struct keyseq *)malloc(sizeof(struct keyseq));
+	keyseq_list_last->next = (struct AS_KeySeq *)malloc(sizeof(struct AS_KeySeq));
 	keyseq_list_last = keyseq_list_last->next;
 
         AS_DEBUG_MSG("Stack end\n")

@@ -25,9 +25,10 @@
 #define MAX_TEXT_FILES 32
 #define MAX_COLUMNS 32
 
-#include <includes.h>
 #include <editor/config.h>
 #include <editor/buffer/buffer.h>
+
+#include <includes.h>
 
 struct AS_TextFile {
         int cy;

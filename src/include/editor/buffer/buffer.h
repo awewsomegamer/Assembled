@@ -22,8 +22,9 @@
 #ifndef AS_BUFFER_H
 #define AS_BUFFER_H
 
-#include <includes.h>
 #include <interface/interface.h>
+
+#include <includes.h>
 
 struct AS_LLElement {
         char *contents;

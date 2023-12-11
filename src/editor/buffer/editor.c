@@ -21,8 +21,9 @@
 
 #include <editor/buffer/buffer.h>
 #include <editor/config.h>
-#include <global.h>
 #include <editor/buffer/editor.h>
+
+#include <global.h>
 
 int free_text_file = 0;
 

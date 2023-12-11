@@ -20,8 +20,10 @@
 */
 
 #include <editor/buffer/editor.h>
-#include <interface/interface.h>
 #include <editor/buffer/buffer.h>
+
+#include <interface/interface.h>
+
 #include <global.h>
 #include <includes.h>
 
@@ -278,6 +280,13 @@ void buffer_char_del() {
 	(active_text_buffer->cx)--;
 }
 
+// ERROR: When either function below is called in the third
+//        column, an immediate segmentation fault is faced
+// ERROR: When either function below is called in the second
+//	  column, lines in third column are also moved
+// ERROR: After moving lines across multiple columns, editing
+//	  a single column may result in movement across previously
+//	  selected columns
 // ERROR: When called on the last line with no selection,
 //        a segmentation fault happens
 int buffer_move_ln_up(struct AS_TextBuf *active_buffer) {

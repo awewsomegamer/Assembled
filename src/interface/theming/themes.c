@@ -20,14 +20,10 @@
 */
 
 #include <editor/config.h>
-#include <curses.h>
-#include <global.h>
+
 #include <interface/theming/themes.h>
-#include <pwd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+
+#include <global.h>
 
 struct assembled_color {
         uint32_t color_value;

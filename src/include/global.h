@@ -22,10 +22,12 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#include <includes.h>
-#include <interface/interface.h>
 #include <editor/functions.h>
 #include <editor/buffer/editor.h>
+
+#include <interface/interface.h>
+
+#include <includes.h>
 
 #define TARGET_FPS (double)(1.0/60.0)
 

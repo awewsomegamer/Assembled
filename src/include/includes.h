@@ -23,17 +23,20 @@
 #define AS_INCLUDES_H
 
 #include <bits/time.h>
+#include <sys/stat.h>
+
 #include <curses.h>
 #include <ncurses.h>
+#include <curses.h>
 #include <pwd.h>
 #include <locale.h>
 #include <signal.h>
 #include <time.h>
 #include <math.h>
+#include <dirent.h>
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <unistd.h>
 #include <stdlib.h>
 #include <stddef.h>

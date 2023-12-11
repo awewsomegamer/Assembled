@@ -19,18 +19,13 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "editor/config.h"
-#include "global.h"
-#include "interface/interface.h"
-#include <curses.h>
-#include <interface/screens/file_load_scr.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
+#include <editor/config.h>
 #include <editor/buffer/editor.h>
-#include <util.h>
-#include <dirent.h>
+
+#include <interface/interface.h>
+#include <interface/screens/file_load_scr.h>
+
+#include <global.h>
 
 static char *file_path = NULL;
 static size_t size = 1;

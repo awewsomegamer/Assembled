@@ -19,13 +19,8 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "global.h"
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <global.h>
 #include <util.h>
-#include <pwd.h>
-#include <unistd.h>
 
 uint64_t general_hash(char *string) {
         uint64_t hash = 5381;

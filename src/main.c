@@ -19,28 +19,19 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include <interface/screens/editor_scr.h>
-#include <interface/screens/file_load_scr.h>
-#include <interface/theming/themes.h>
-#include <bits/time.h>
-#include <curses.h>
-#include <ncurses.h>
-#include <locale.h>
-#include <signal.h>
-
-#include <global.h>
 #include <editor/buffer/editor.h>
 #include <editor/keyboard.h>
 #include <editor/config.h>
+#include <editor/functions.h>
+
+#include <interface/screens/editor_scr.h>
+#include <interface/screens/file_load_scr.h>
+#include <interface/theming/themes.h>
 #include <interface/interface.h>
 #include <interface/screens/start.h>
-#include <util.h>
 
-#include <editor/functions.h>
-#include <stdio.h>
-#include <time.h>
-#include <unistd.h>
-#include <math.h>
+#include <global.h>
+#include <util.h>
 
 bool running = 1;
 bool update = 0;

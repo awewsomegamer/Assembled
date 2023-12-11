@@ -22,8 +22,8 @@
 #ifndef AS_FUNCTIONS_H
 #define AS_FUNCTIONS_H
 
-#include <includes.h>
 #include <util.h>
+#include <includes.h>
 
 #define MAX_FUNCTION_COUNT 256
 

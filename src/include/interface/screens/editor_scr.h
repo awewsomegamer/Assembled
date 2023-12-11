@@ -23,6 +23,7 @@
 #define AS_EDITOR_SCR_H
 
 #include <editor/config.h>
+
 #include <includes.h>
 
 void register_editor_screen();
