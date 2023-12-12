@@ -205,31 +205,18 @@ static void local(int code, int value) {
         int max_y = cx ? sizeof(menu_table_right)/sizeof(menu_table_right[0]) : sizeof(menu_table_left)/sizeof(menu_table_left[0]);
 
         switch(code) {
-        case LOCAL_ARROW_UP: {
-                if (cy > 0) {
-                        cy--;
+        case LOCAL_ARROW_YMOVE: {
+                if (cy >= 0 && cy <= max_y - 1) {
+                        cy += value;
+			cy = min(max(cy, 0), max_y - 1);
                 }
 
                 break;
         }
 
-        case LOCAL_ARROW_DOWN: {
-                if (cy < max_y - 1) {
-                        cy++;
-                }
-
-                break;
-        }
-
-        case LOCAL_ARROW_LEFT: {
-                cx = 0;
+        case LOCAL_ARROW_XMOVE: {
+                cx = min(value + 1, 1);
                 
-                break;
-        }
-
-        case LOCAL_ARROW_RIGHT: {
-                cx = 1;
-
                 break;
         }
 

@@ -26,14 +26,13 @@
 
 struct AS_RenderCtx current_render_context;
 struct AS_Screen screens[MAX_SCREEN_COUNT];
-struct AS_Screen *active_screen = NULL;
 struct AS_Screen *last_screen = NULL;
 
 int switch_to_screen(char *name) {
         int i = GET_SCR_IDX(name);
 
-        last_screen = active_screen;
-        active_screen = &screens[i];
+        last_screen = as_ctx.screen;
+        as_ctx.screen = &screens[i];
 
         AS_DEBUG_MSG("Switched to screen %d (\"%s\")\n", i, name);
 
@@ -41,11 +40,11 @@ int switch_to_screen(char *name) {
 }
 
 int switch_to_last_screen() {
-	int i = (int)(((uintptr_t)active_screen - (uintptr_t)screens) / sizeof(struct AS_Screen));
+	int i = (int)(((uintptr_t)as_ctx.screen - (uintptr_t)screens) / sizeof(struct AS_Screen));
 
 	struct AS_Screen *tmp = last_screen;
-	last_screen = active_screen;
-	active_screen = tmp;
+	last_screen = as_ctx.screen;
+	as_ctx.screen = tmp;
 
 	AS_DEBUG_MSG("Switched to last screen %d (\"%s\")\n", i, screens[i].name);
 

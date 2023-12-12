@@ -41,7 +41,7 @@ static void render(struct AS_RenderCtx *ctx) {
 
 	if (directory_listing != NULL) {
 		for (int i = 0; i < ctx->max_y - 1; i++) {
-			if (i < directory_listing_size - 1) {
+			if (i + directory_listing_offset < directory_listing_size - 1) {
 				mvprintw(i + 3, ctx->max_x / 4 + 1, "%s", directory_listing[i + directory_listing_offset]);
 			}
 		}
@@ -133,19 +133,12 @@ static void local(int code, int value) {
 		break;
 	}
 
-	case LOCAL_ARROW_DOWN: {
-		if (directory_listing_offset + 9 < directory_listing_size) {
-			directory_listing_offset++;
+	case LOCAL_ARROW_YMOVE: {
+		if (directory_listing_offset <= directory_listing_size && directory_listing_offset >= 0) {
+			directory_listing_offset += value;
+			directory_listing_offset = max(0, directory_listing_offset);
 		}
 		
-		break;
-	}
-
-	case LOCAL_ARROW_UP: {
-		if (directory_listing_offset > 0) {
-			directory_listing_offset--;
-		}
-
 		break;
 	}
 	}

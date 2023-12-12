@@ -121,7 +121,8 @@ int main(int argc, char **argv) {
         )
 
 	as_ctx.col_desc_i = -1;
-	
+
+	init_functions();
         read_config();
 
 	if (as_ctx.col_desc_i == -1) {

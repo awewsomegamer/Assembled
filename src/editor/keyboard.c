@@ -27,6 +27,7 @@
 #include <interface/interface.h>
 
 #include <global.h>
+#include <stdio.h>
 
 struct AS_KeySeqList {
 	int code;

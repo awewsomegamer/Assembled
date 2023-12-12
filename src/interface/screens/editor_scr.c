@@ -211,68 +211,39 @@ static void local(int code, int value) {
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
 
 	switch (code) {
-	case LOCAL_ARROW_UP: {
+	case LOCAL_ARROW_YMOVE: {
 		bool moved = 0;
 
 		// Update all current pointers one up
 		for (int i = 0; i < descriptor.column_count; i++) {
 			struct AS_LLElement *current = as_ctx.text_file->buffers[i]->current_element;
 
-			if (current->prev != NULL) {
-				as_ctx.text_file->buffers[i]->current_element = current->prev;
+			if ((value == -1 ? current->prev : current->next) != NULL) {
+				as_ctx.text_file->buffers[i]->current_element = (value == -1 ? current->prev : current->next);
 				moved = 1;
 			}
                }
 
 		// If the above managed to move the pointers
 		// up, we can move the cursor
-		if (CURSOR_Y > 0 && moved) {
-			CURSOR_Y--;
-			differential--;
+		if (CURSOR_Y >= 0 && moved) {
+			CURSOR_Y += value;
+			differential += value;
 		}
 
 		break;
 	}
 
-	case LOCAL_ARROW_DOWN: {
-		bool moved = 0;
-
-		// Update all current pointers one down
-		for (int i = 0; i < descriptor.column_count; i++) {
-			struct AS_LLElement *current = as_ctx.text_file->buffers[i]->current_element;
-
-			if (current->next != NULL) {
-				as_ctx.text_file->buffers[i]->current_element = current->next;
-				moved = 1;
-			}
-		}
-
-		// If the above managed to move the pointers
-		// down, we can move the cursor
-		if (moved) {
-			CURSOR_Y++;
-			differential++;
+	case LOCAL_ARROW_XMOVE: {
+		if (CURSOR_X >= 0 && CURSOR_X <= line_length) {
+			CURSOR_X += value;
+			CURSOR_X = max(CURSOR_X, 0);
 		}
 
 		break;
 	}
 
-	case LOCAL_ARROW_LEFT: {
-		if (CURSOR_X > 0) {
-			CURSOR_X--;
-		}
-
-		break;
-	}
-
-	case LOCAL_ARROW_RIGHT: {
-		if (CURSOR_X < line_length) {
-			CURSOR_X++;
-		}
-
-		break;
-	}
-	
+	// LOCAL_ENTER
 	case LOCAL_ENTER: {
 		buffer_char_insert('\n');
 	}
@@ -282,6 +253,7 @@ static void local(int code, int value) {
 
 		break;
 	}
+	// END OF LOCAL_ENTER
 
 	case LOCAL_LINE_DELETION: {
 		differential--;
@@ -321,8 +293,8 @@ static void local(int code, int value) {
 		break;
 	}
 
-	case LOCAL_WINDOW_LEFT: {
-		int i = min(as_ctx.text_file_i - 1, 0);
+	case LOCAL_WINDOW_MOVE: {
+		int i = min(as_ctx.text_file_i + value, (value == -1 ? 0 : MAX_TEXT_FILES - 1));
 
 		for (; i >= 0; i--) {
 			if (as_ctx.text_files[i] != NULL) {
@@ -336,30 +308,9 @@ static void local(int code, int value) {
 
 			sprintf(AS_EditorScrMessage, "SWITCHED TO %s", as_ctx.text_file->name);
 		} else {
-			sprintf(AS_EditorScrMessage, "BEGIN");
+			sprintf(AS_EditorScrMessage, (value == -1 ? "BEGIN" : "END"));
 		}
 
-		break;
-	}
-
-	case LOCAL_WINDOW_RIGHT: {
-		int i = min(as_ctx.text_file_i + 1, MAX_TEXT_FILES - 1);
-
-		for (; i < MAX_TEXT_FILES; i++) {
-			if (as_ctx.text_files[i] != NULL) {
-				break;
-			}
-		}
-
-		if (as_ctx.text_files[i] != NULL && i < MAX_TEXT_FILES) {
-			as_ctx.text_file = as_ctx.text_files[i];
-			as_ctx.text_file_i = i;
-
-			sprintf(AS_EditorScrMessage, "SWITCHED TO %s %d", as_ctx.text_file->name, i);
-		} else {
-			sprintf(AS_EditorScrMessage, "END");
-		}
-		
 		break;
 	}
 

@@ -28,5 +28,6 @@
 #define MAX_FUNCTION_COUNT 256
 
 void layer_down();
+void init_functions();
 
 #endif

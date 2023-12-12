@@ -287,8 +287,6 @@ void buffer_char_del() {
 // ERROR: After moving lines across multiple columns, editing
 //	  a single column may result in movement across previously
 //	  selected columns
-// ERROR: When called on the last line with no selection,
-//        a segmentation fault happens
 int buffer_move_ln_up(struct AS_TextBuf *active_buffer) {
 	if (active_buffer == NULL) {
 		return 0;
@@ -349,7 +347,9 @@ int buffer_move_ln_up(struct AS_TextBuf *active_buffer) {
 		prev->prev->next = current;
 	}
 
-	next->prev = prev;
+	if (next != NULL) {
+		next->prev = prev;
+	}
 
 	prev->next = next;
 	prev->prev = current;

@@ -25,17 +25,14 @@
 #define MAX_SCREEN_COUNT        256
 #define GET_SCR_IDX(name)       (general_hash(name) % MAX_SCREEN_COUNT)
 
-#define LOCAL_ARROW_UP          0
-#define LOCAL_ARROW_DOWN        1
-#define LOCAL_ARROW_LEFT        2
-#define LOCAL_ARROW_RIGHT       3
+#define LOCAL_ARROW_YMOVE       0
+#define LOCAL_ARROW_XMOVE       2
 #define LOCAL_ENTER             4
 #define LOCAL_LINE_INSERT	5
 #define LOCAL_LINE_DELETION	6
 #define LOCAL_BUFFER_MOVE       7
 #define LOCAL_BUFFER_CHAR	9
-#define LOCAL_WINDOW_LEFT	10
-#define LOCAL_WINDOW_RIGHT	11
+#define LOCAL_WINDOW_MOVE	10
 #define LOCAL_WINDOW_SELECTION  12
 #define LOCAL_BUFFER_MOVE_LINE  13
 

@@ -27,8 +27,6 @@
 
 int free_text_file = 0;
 
-struct AS_TextFile *active_text_file = NULL;
-
 struct AS_TextFile *load_file(char *name) {
         FILE *file = fopen(name, "r+");
 
@@ -62,28 +60,28 @@ struct AS_TextFile *load_file(char *name) {
         }
         
         // Allocate text file structure
-        active_text_file = (struct AS_TextFile *)malloc(sizeof(struct AS_TextFile));
-	memset(active_text_file, 0, sizeof(struct AS_TextFile));
+        as_ctx.text_file = (struct AS_TextFile *)malloc(sizeof(struct AS_TextFile));
+	memset(as_ctx.text_file, 0, sizeof(struct AS_TextFile));
 	
-	active_text_file->file = file;
-	active_text_file->name = strdup(name);
-	active_text_file->load_offset = 0;
+	as_ctx.text_file->file = file;
+	as_ctx.text_file->name = strdup(name);
+	as_ctx.text_file->load_offset = 0;
 
-        as_ctx.text_files[x] = active_text_file;
+        as_ctx.text_files[x] = as_ctx.text_file;
 	as_ctx.text_file_i = x;
 
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
         int column_count = descriptor.column_count;
 
         // Allocate text buffers (columns)
-        active_text_file->buffers = (struct AS_TextBuf **)calloc(column_count, sizeof(struct AS_TextBuf *));
+        as_ctx.text_file->buffers = (struct AS_TextBuf **)calloc(column_count, sizeof(struct AS_TextBuf *));
         struct AS_LLElement **currents = (struct AS_LLElement **)calloc(column_count, sizeof(struct AS_LLElement *));
 
         for (int i = 0; i < column_count; i++) {
                 struct AS_TextBuf *buffer = new_buffer(descriptor.column_positions[i], (i + 1 >= column_count) ? -1 :
 													   descriptor.column_positions[i + 1]);
                 
-                active_text_file->buffers[i] = buffer;
+                as_ctx.text_file->buffers[i] = buffer;
                 currents[i] = buffer->head;
                 buffer->current_element = currents[i];
         }
@@ -180,14 +178,14 @@ struct AS_TextFile *load_file(char *name) {
                 contents = NULL;
         }
 
-        active_text_file->active_buffer = active_text_file->buffers[0];
+        as_ctx.text_file->active_buffer = as_ctx.text_file->buffers[0];
 
         fseek(file, 0, SEEK_SET);
 
 	// Memory Manage
 	free(currents);
 
-        return active_text_file;
+        return as_ctx.text_file;
 }
 
 void save_file(struct AS_TextFile *file) {
