@@ -27,6 +27,7 @@
 #include <interface/screens/editor_scr.h>
 
 #include <global.h>
+#include <stdio.h>
 
 #define CURSOR_X (as_ctx.text_file->active_buffer->cx)
 #define CURSOR_Y (as_ctx.text_file->cy)
@@ -35,8 +36,6 @@ static int line_length = 0;
 
 static int differential = 0;
 static int offset = 0;
-
-char AS_EditorScrMessage[1024];
 
 static void render(struct AS_RenderCtx *context) {
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
@@ -184,7 +183,7 @@ static void render(struct AS_RenderCtx *context) {
 	}
 
 	// Print information
-	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d) %s", CURSOR_Y + 1, CURSOR_X + 1, AS_EditorScrMessage);
+	mvprintw(context->max_y - 1, 0, "EDITING (%d, %d) %s", CURSOR_Y + 1, CURSOR_X + 1, as_ctx.editor_scr_message);
 
 	// Position the cursor appropriately
 	int column_start = active_buffer->col_start;
@@ -229,8 +228,9 @@ static void local(int code, int value) {
 		if (CURSOR_Y >= 0 && moved) {
 			CURSOR_Y += value;
 			differential += value;
-		}
 
+			sprintf(as_ctx.editor_scr_message, "%s\n", (value == -1 ? "UP" : "DOWN"));
+		}
 		break;
 	}
 
@@ -238,6 +238,8 @@ static void local(int code, int value) {
 		if (CURSOR_X >= 0 && CURSOR_X <= line_length) {
 			CURSOR_X += value;
 			CURSOR_X = max(CURSOR_X, 0);
+
+			sprintf(as_ctx.editor_scr_message, "%s\n", (value == -1 ? "LEFT" : "RIGHT"));
 		}
 
 		break;
@@ -271,12 +273,14 @@ static void local(int code, int value) {
 			uint8_t selection = as_ctx.text_file->active_buffer->selection_enabled;
 
 			as_ctx.text_file->active_buffer = as_ctx.text_file->buffers[i + value];
-			as_ctx.text_file->active_buffer->selection_enabled = selection;
-			as_ctx.text_file->active_buffer->selection_start.x = start.x;
-			as_ctx.text_file->active_buffer->selection_start.y = start.y;
+			//as_ctx.text_file->active_buffer->selection_enabled = selection;
+			//as_ctx.text_file->active_buffer->selection_start.x = start.x;
+			//as_ctx.text_file->active_buffer->selection_start.y = start.y;
 
-			as_ctx.text_file->selected_buffers += value;
+			//as_ctx.text_file->selected_buffers += value;
 			as_ctx.text_file->active_buffer_idx += value;
+
+			sprintf(as_ctx.editor_scr_message, "BUFFER %s\n", (value == -1 ? "LEFT" : "RIGHT"));
 		}
 
 		break;
@@ -306,9 +310,9 @@ static void local(int code, int value) {
 			as_ctx.text_file = as_ctx.text_files[i];
 			as_ctx.text_file_i = i;
 
-			sprintf(AS_EditorScrMessage, "SWITCHED TO %s", as_ctx.text_file->name);
+			sprintf(as_ctx.editor_scr_message, "SWITCHED TO %s", as_ctx.text_file->name);
 		} else {
-			sprintf(AS_EditorScrMessage, (value == -1 ? "BEGIN" : "END"));
+			sprintf(as_ctx.editor_scr_message, (value == -1 ? "BEGIN" : "END"));
 		}
 
 		break;
@@ -327,6 +331,8 @@ static void local(int code, int value) {
 		as_ctx.text_file->active_buffer->selection_start.y = as_ctx.text_file->cy;
 		as_ctx.text_file->selected_buffers = 0;
 		as_ctx.text_file->active_buffer->selection_start_line = as_ctx.text_file->active_buffer->current_element;
+
+		sprintf(as_ctx.editor_scr_message, "SELECTION\n");
 
 		break;
 	}
@@ -382,6 +388,28 @@ static void local(int code, int value) {
 			CURSOR_Y += (value == 0 ? 1 : -1);
 			differential += (value == 0 ? 1 : -1);
 		}
+
+		sprintf(as_ctx.editor_scr_message, "LINE MOVE %s\n", (value == 0 ? "DOWN" : "UP"));
+
+		break;
+	}
+
+	case LOCAL_FILE_LOAD: {
+		switch_to_screen("file_load");
+
+		break;
+	}
+
+	case LOCAL_FILE_SAVE: {
+		if (value == 1) {
+			save_all();
+			sprintf(as_ctx.editor_scr_message, "SAVED ALL FILES\n");
+
+			break;
+		}
+
+		save_file(as_ctx.text_file);
+		sprintf(as_ctx.editor_scr_message, "SAVED FILE\n");
 
 		break;
 	}

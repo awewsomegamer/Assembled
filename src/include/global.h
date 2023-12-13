@@ -22,7 +22,6 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#include <editor/functions.h>
 #include <editor/buffer/editor.h>
 
 #include <interface/interface.h>
@@ -52,9 +51,6 @@ struct AS_GlobalCtx {
 	struct AS_RenderCtx render_ctx;
 	struct AS_Screen screens[MAX_SCREEN_COUNT];
 	struct AS_Screen *screen;
-	
-	// Functions
-	void (*functions[MAX_FUNCTION_COUNT])();
 
 	// Editor
 	struct AS_TextFile *text_files[MAX_TEXT_FILES];

@@ -25,6 +25,7 @@
 #include <editor/config.h>
 
 #include <includes.h>
+#include <util.h>
 
 void register_file_load_scr();
 struct AS_CfgTok *configure_file_load_scr(struct AS_CfgTok *token);

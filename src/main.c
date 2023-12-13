@@ -22,7 +22,6 @@
 #include <editor/buffer/editor.h>
 #include <editor/keyboard.h>
 #include <editor/config.h>
-#include <editor/functions.h>
 
 #include <interface/screens/editor_scr.h>
 #include <interface/screens/file_load_scr.h>
@@ -122,7 +121,6 @@ int main(int argc, char **argv) {
 
 	as_ctx.col_desc_i = -1;
 
-	init_functions();
         read_config();
 
 	if (as_ctx.col_desc_i == -1) {

@@ -21,13 +21,15 @@
 
 #include <editor/buffer/buffer.h>
 #include <editor/keyboard.h>
-#include <editor/functions.h>
 #include <editor/config.h>
 
 #include <interface/interface.h>
 
 #include <global.h>
 #include <stdio.h>
+
+#define MAX_FUNCTION_COUNT 256
+#define PARAM2(a, b) { a, b },
 
 struct AS_KeySeqList {
 	int code;
@@ -36,7 +38,7 @@ struct AS_KeySeqList {
 
 struct AS_KeySeq {
 	struct AS_KeySeqList *list;
-	void (*function)();
+	int function;
 	struct AS_KeySeq *next;
 };
 
@@ -50,6 +52,24 @@ struct key_stack_element {
 
 static struct key_stack_element key_stack[MAX_KEY_ELEMENTS];
 static int key_stack_ptr = 0;
+
+static const int func_args[MAX_FUNCTION_COUNT][2] = {
+	[AS_CFG_LOOKUP_UP]            = PARAM2(LOCAL_ARROW_YMOVE, -1)
+        [AS_CFG_LOOKUP_DOWN]          = PARAM2(LOCAL_ARROW_YMOVE, 1)
+        [AS_CFG_LOOKUP_LEFT]          = PARAM2(LOCAL_ARROW_XMOVE, -1)
+	[AS_CFG_LOOKUP_RIGHT]         = PARAM2(LOCAL_ARROW_XMOVE, 1)
+        [AS_CFG_LOOKUP_ENTER]         = PARAM2(LOCAL_ENTER, 0)
+	[AS_CFG_LOOKUP_BUFFER_LEFT]   = PARAM2(LOCAL_BUFFER_MOVE, -1)
+	[AS_CFG_LOOKUP_BUFFER_RIGHT]  = PARAM2(LOCAL_BUFFER_MOVE, 1)
+	[AS_CFG_LOOKUP_WINDOW_LEFT]   = PARAM2(LOCAL_WINDOW_MOVE, -1)
+	[AS_CFG_LOOKUP_WINDOW_RIGHT]  = PARAM2(LOCAL_WINDOW_MOVE, 1)
+	[AS_CFG_LOOKUP_FILE_SAVE]     = PARAM2(LOCAL_FILE_SAVE, 0)
+	[AS_CFG_LOOKUP_FILE_SAVE_ALL] = PARAM2(LOCAL_FILE_SAVE, 1)
+	[AS_CFG_LOOKUP_FILE_LOAD]     = PARAM2(LOCAL_FILE_LOAD, 0)
+	[AS_CFG_LOOKUP_SELECTION]     = PARAM2(LOCAL_WINDOW_SELECTION, 1)
+	[AS_CFG_LOOKUP_MOVE_LN_UP]    = PARAM2(LOCAL_BUFFER_MOVE_LINE, 1)
+	[AS_CFG_LOOKUP_MOVE_LN_DOWN]  = PARAM2(LOCAL_BUFFER_MOVE_LINE, 0)
+};
 
 // Collapse (interpet) current key stack, looking
 // for any valid combinations of keys.
@@ -70,7 +90,7 @@ void collapse_stack() {
 
 		if (i == key_stack_ptr && element == NULL) {
 			// Found function
-			(*current->function)();
+			as_ctx.screen->local(func_args[current->function][0], func_args[current->function][1]);
 
 			key_stack_ptr = 0;
 
@@ -118,14 +138,12 @@ struct AS_CfgTok *configure_keyboard(struct AS_CfgTok *token) {
         AS_NEXT_TOKEN
         AS_EXPECT_TOKEN(AS_CFG_TOKEN_KEY, "Expected keyword")
 
-        void (*function)() = as_ctx.functions[token->value];
+	int function = token->value;
 
         AS_NEXT_TOKEN
         AS_EXPECT_TOKEN(AS_CFG_TOKEN_COL, "Expected colon")
 
         AS_NEXT_TOKEN
-
-        AS_DEBUG_MSG("Stack trace for function %X (LD: %X):\n", function, layer_down);
 
 	struct AS_KeySeqList *list = (struct AS_KeySeqList *)malloc(sizeof(struct AS_KeySeqList));
 	struct AS_KeySeqList *current = list;
@@ -159,7 +177,6 @@ struct AS_CfgTok *configure_keyboard(struct AS_CfgTok *token) {
 	keyseq_list_last = keyseq_list_last->next;
 
         AS_DEBUG_MSG("Stack end\n")
-        
 
         return token;
 }

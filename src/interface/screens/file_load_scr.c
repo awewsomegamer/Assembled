@@ -136,7 +136,7 @@ static void local(int code, int value) {
 	case LOCAL_ARROW_YMOVE: {
 		if (directory_listing_offset <= directory_listing_size && directory_listing_offset >= 0) {
 			directory_listing_offset += value;
-			directory_listing_offset = max(0, directory_listing_offset);
+			directory_listing_offset = min(max(0, directory_listing_offset), directory_listing_size);
 		}
 		
 		break;

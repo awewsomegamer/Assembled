@@ -26,15 +26,17 @@
 #define GET_SCR_IDX(name)       (general_hash(name) % MAX_SCREEN_COUNT)
 
 #define LOCAL_ARROW_YMOVE       0
-#define LOCAL_ARROW_XMOVE       2
-#define LOCAL_ENTER             4
-#define LOCAL_LINE_INSERT	5
-#define LOCAL_LINE_DELETION	6
-#define LOCAL_BUFFER_MOVE       7
-#define LOCAL_BUFFER_CHAR	9
-#define LOCAL_WINDOW_MOVE	10
-#define LOCAL_WINDOW_SELECTION  12
-#define LOCAL_BUFFER_MOVE_LINE  13
+#define LOCAL_ARROW_XMOVE       1
+#define LOCAL_ENTER             2
+#define LOCAL_LINE_INSERT	3
+#define LOCAL_LINE_DELETION	4
+#define LOCAL_BUFFER_MOVE       5
+#define LOCAL_BUFFER_CHAR	6
+#define LOCAL_WINDOW_MOVE	7
+#define LOCAL_WINDOW_SELECTION  8
+#define LOCAL_BUFFER_MOVE_LINE  9
+#define LOCAL_FILE_LOAD         10
+#define LOCAL_FILE_SAVE         11
 
 // Determine if given coordinate is inside given bounding box
 #define IN_BOUND(x, y, bound) \
