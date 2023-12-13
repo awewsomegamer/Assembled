@@ -298,22 +298,19 @@ static void local(int code, int value) {
 	}
 
 	case LOCAL_WINDOW_MOVE: {
-		int i = min(as_ctx.text_file_i + value, (value == -1 ? 0 : MAX_TEXT_FILES - 1));
-
-		for (; i >= 0; i--) {
-			if (as_ctx.text_files[i] != NULL) {
-				break;
-			}
-		}
-
-		if (as_ctx.text_files[i] != NULL) {
-			as_ctx.text_file = as_ctx.text_files[i];
-			as_ctx.text_file_i = i;
-
+		if (value == 1 && as_ctx.text_file->next != NULL) {
+			as_ctx.text_file = as_ctx.text_file->next;
 			sprintf(as_ctx.editor_scr_message, "SWITCHED TO %s", as_ctx.text_file->name);
-		} else {
-			sprintf(as_ctx.editor_scr_message, (value == -1 ? "BEGIN" : "END"));
+			break;
 		}
+
+		if (value == -1 && as_ctx.text_file->prev != NULL) {
+			as_ctx.text_file = as_ctx.text_file->prev;
+			sprintf(as_ctx.editor_scr_message, "SWITCHED TO %s", as_ctx.text_file->name);
+			break;
+		}
+
+		sprintf(as_ctx.editor_scr_message, "%s", (value == -1 ? "BEGIN" : "END"));
 
 		break;
 	}

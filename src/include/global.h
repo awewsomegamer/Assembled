@@ -55,7 +55,6 @@ struct AS_GlobalCtx {
 	// Editor
 	struct AS_TextFile *text_files[MAX_TEXT_FILES];
 	struct AS_TextFile *text_file;
-	int text_file_i;
 
 	struct AS_ColDesc col_descs[MAX_COLUMNS];
 	int col_desc_i;

@@ -33,12 +33,14 @@
 struct AS_TextFile {
         int cy;
 	int selected_buffers;
-        struct AS_TextBuf *active_buffer;
-        struct AS_TextBuf **buffers;
         int load_offset;
 	int active_buffer_idx;
         char *name;
         FILE *file;
+        struct AS_TextBuf **buffers;
+        struct AS_TextBuf *active_buffer;
+	struct AS_TextFile *next;
+	struct AS_TextFile *prev;
 };
 
 struct AS_ColDesc {

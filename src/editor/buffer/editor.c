@@ -43,32 +43,28 @@ struct AS_TextFile *load_file(char *name) {
                 }
         }
 
-        // Find a free space
-        int x = -1;
-        for (int i = 0; i < MAX_TEXT_FILES; i++) {
-                if (as_ctx.text_files[i] == NULL) {
-                        x = i;
-                        break;
-                }
-        }
+	// Get the current file.
+	struct AS_TextFile *prev = as_ctx.text_file;
 
-        // Check if there is an allocated position
-        if (x == -1) {
-                AS_DEBUG_MSG("Failed to allocate a text buffer");
-		
-                return NULL;
-        }
-        
         // Allocate text file structure
         as_ctx.text_file = (struct AS_TextFile *)malloc(sizeof(struct AS_TextFile));
 	memset(as_ctx.text_file, 0, sizeof(struct AS_TextFile));
-	
+
 	as_ctx.text_file->file = file;
 	as_ctx.text_file->name = strdup(name);
 	as_ctx.text_file->load_offset = 0;
 
-        as_ctx.text_files[x] = as_ctx.text_file;
-	as_ctx.text_file_i = x;
+	// Link the new text file into the list
+	if (prev != NULL) {
+		as_ctx.text_file->next = prev->next;
+		as_ctx.text_file->prev = prev;
+		prev->next = as_ctx.text_file;
+
+		if (as_ctx.text_file->next != NULL) {
+			as_ctx.text_file->next->prev = as_ctx.text_file;
+		}
+	}
+
 
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
         int column_count = descriptor.column_count;
