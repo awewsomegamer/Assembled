@@ -280,13 +280,9 @@ void buffer_char_del() {
 	(active_text_buffer->cx)--;
 }
 
-// ERROR: When either function below is called in the third
-//        column, an immediate segmentation fault is faced
-// ERROR: When either function below is called in the second
-//	  column, lines in third column are also moved
-// ERROR: After moving lines across multiple columns, editing
-//	  a single column may result in movement across previously
-//	  selected columns
+// ERROR: The nature of the multiline movement code is
+//        questionable as it does not work across multiple
+//        buffers
 int buffer_move_ln_up(struct AS_TextBuf *active_buffer) {
 	if (active_buffer == NULL) {
 		return 0;

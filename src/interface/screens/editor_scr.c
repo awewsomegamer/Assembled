@@ -210,6 +210,8 @@ static void local(int code, int value) {
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
 
 	switch (code) {
+	// ERROR: The YMOVE and XMOVE can sometimes result
+	//        in the cursor being locked out of bounds
 	case LOCAL_ARROW_YMOVE: {
 		bool moved = 0;
 
@@ -272,12 +274,23 @@ static void local(int code, int value) {
 			struct AS_Bound start = as_ctx.text_file->active_buffer->selection_start;
 			uint8_t selection = as_ctx.text_file->active_buffer->selection_enabled;
 
-			as_ctx.text_file->active_buffer = as_ctx.text_file->buffers[i + value];
-			//as_ctx.text_file->active_buffer->selection_enabled = selection;
-			//as_ctx.text_file->active_buffer->selection_start.x = start.x;
-			//as_ctx.text_file->active_buffer->selection_start.y = start.y;
+			int selected_buffers_sign = ((as_ctx.text_file->selected_buffers) >> 31) & 1;
+			int value_sign = ((value) >> 31) & 1;
 
-			//as_ctx.text_file->selected_buffers += value;
+			if (selected_buffers_sign != value_sign && as_ctx.text_file->selected_buffers != 0) {
+				// User has changed direction, deselect current buffer
+				as_ctx.text_file->active_buffer->selection_enabled = 0;
+			}
+
+			as_ctx.text_file->active_buffer = as_ctx.text_file->buffers[i + value];
+			as_ctx.text_file->active_buffer->selection_enabled = selection;
+			as_ctx.text_file->active_buffer->selection_start.x = start.x;
+			as_ctx.text_file->active_buffer->selection_start.y = start.y;
+
+			if (selection) {
+				as_ctx.text_file->selected_buffers += value;
+			}
+
 			as_ctx.text_file->active_buffer_idx += value;
 
 			sprintf(as_ctx.editor_scr_message, "BUFFER %s\n", (value == -1 ? "LEFT" : "RIGHT"));
@@ -335,49 +348,46 @@ static void local(int code, int value) {
 	}
 
 	case LOCAL_BUFFER_MOVE_LINE: {
-		int lines_moved = 0;
-
-		for (int i = 0; i < abs(as_ctx.text_file->selected_buffers) + 1; i++) {
-			struct AS_TextBuf *buffer = as_ctx.text_file->active_buffer;
-
-			if (as_ctx.text_file->selected_buffers < 0) {
-				buffer = as_ctx.text_file->buffers[as_ctx.text_file->active_buffer_idx - i];
-			} else if (as_ctx.text_file->selected_buffers == 0) {
-				buffer = as_ctx.text_file->active_buffer;
-			} else {
-				buffer = as_ctx.text_file->buffers[as_ctx.text_file->active_buffer_idx + i];
-			}
-
-			if (value == 1) {
-				lines_moved = buffer_move_ln_up(buffer);
-				(buffer->selection_start.y) -= lines_moved;
-
-				continue;
-			}
-
-			lines_moved = buffer_move_ln_down(buffer);
-			(buffer->selection_start.y) += lines_moved;
-		}
-
-		if (lines_moved == 0) {
-			break;
-		}
-
-		int a = min(as_ctx.text_file->active_buffer_idx, as_ctx.text_file->active_buffer_idx + as_ctx.text_file->selected_buffers);
-		int b = max(as_ctx.text_file->active_buffer_idx, as_ctx.text_file->active_buffer_idx + as_ctx.text_file->selected_buffers);
+		struct AS_TextBuf *buffer = NULL;
 		bool moved = 0;
 
-		for (int i = 0; i < descriptor.column_count; i++) {
-			if (a < i && i < b || i == as_ctx.text_file->active_buffer_idx) {
-				continue;
+		for (int i = -as_ctx.text_file->selected_buffers; i != 0;) {
+			// Move a line down in selected buffers
+			buffer = as_ctx.text_file->buffers[as_ctx.text_file->active_buffer_idx + i];
+
+			if (value) {
+				moved = buffer_move_ln_up(buffer);
+				(buffer->selection_start.y) -= moved;
+
+			} else {
+				moved = buffer_move_ln_down(buffer);
+				(buffer->selection_start.y) += moved;
 			}
 
-			struct AS_LLElement *element = as_ctx.text_file->buffers[i]->current_element;
-			struct AS_LLElement *new = (value == 0 ? element->next : element->prev);
+			if (as_ctx.text_file->selected_buffers < 0) {
+				i--;
+			} else {
+				i++;
+			}
+		}
 
-			if (new != NULL) {
-				as_ctx.text_file->buffers[i]->current_element = new;
-				moved = 1;
+		// Move line down in the first selected buffer
+		buffer = as_ctx.text_file->active_buffer;
+		if (value) {
+			moved = buffer_move_ln_up(buffer);
+			(buffer->selection_start.y) -= moved;
+		} else {
+			moved = buffer_move_ln_down(buffer);
+			(buffer->selection_start.y) += moved;
+		}
+
+		// ERROR: This causes the current element to somehow become
+		//        NULL, causing a segmentation fault in the rendering
+		//        code
+		for (int i = 0; i < descriptor.column_count; i++) {
+			if (moved && as_ctx.text_file->buffers[i]->selection_enabled == 0 && as_ctx.text_file->buffers[i]->current_element != NULL) {
+				struct AS_LLElement *current = as_ctx.text_file->buffers[i]->current_element;
+				as_ctx.text_file->buffers[i]->current_element = current->next;
 			}
 		}
 

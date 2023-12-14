@@ -41,6 +41,10 @@ static int default_column_definition[] = { 0 };
 
 struct AS_GlobalCtx as_ctx = { 0 };
 
+// ERROR: When the program suffers a segmentation
+//        fault, all file data is lost (doesn't
+//        matter if it is saved or not)
+
 void init_ncurses() {
         AS_DEBUG_MSG("Initializing ncurses\n");
         setlocale(LC_ALL, "UTF-8");
