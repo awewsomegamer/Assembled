@@ -265,8 +265,6 @@ static void local(int code, int value) {
 		break;
 	}
 
-	// TODO: Buffers which have already been selected
-	//       can be deselected.
 	case LOCAL_BUFFER_MOVE: {
 		int i = as_ctx.text_file->active_buffer_idx;
 
@@ -283,11 +281,19 @@ static void local(int code, int value) {
 			}
 
 			as_ctx.text_file->active_buffer = as_ctx.text_file->buffers[i + value];
-			as_ctx.text_file->active_buffer->selection_enabled = selection;
-			as_ctx.text_file->active_buffer->selection_start.x = start.x;
-			as_ctx.text_file->active_buffer->selection_start.y = start.y;
+			struct AS_TextBuf *buffer = as_ctx.text_file->active_buffer;
+
+			buffer->selection_enabled = selection;
+			buffer->selection_start.x = start.x;
+			buffer->selection_start.y = start.y;
 
 			if (selection) {
+				// Set the selection start
+				buffer->selection_start_line = buffer->current_element;
+				for (int i = 0; i < abs(CURSOR_Y - start.y); i++) {
+					buffer->selection_start_line = (CURSOR_Y > start.y ? buffer->selection_start_line->prev : buffer->selection_start_line->prev);
+				}
+
 				as_ctx.text_file->selected_buffers += value;
 			}
 
@@ -334,6 +340,7 @@ static void local(int code, int value) {
 		if (as_ctx.text_file->active_buffer->selection_enabled == 0) {
 			for (int i = 0; i < descriptor.column_count; i++) {
 				as_ctx.text_file->buffers[i]->selection_enabled = 0;
+				as_ctx.text_file->buffers[i]->selection_start_line = NULL;
 			}
 		}
 
@@ -351,6 +358,7 @@ static void local(int code, int value) {
 		struct AS_TextBuf *buffer = NULL;
 		bool moved = 0;
 
+		// TODO: There is probably a cleanr way of doing this
 		for (int i = -as_ctx.text_file->selected_buffers; i != 0;) {
 			// Move a line down in selected buffers
 			buffer = as_ctx.text_file->buffers[as_ctx.text_file->active_buffer_idx + i];
@@ -380,17 +388,18 @@ static void local(int code, int value) {
 			moved = buffer_move_ln_down(buffer);
 			(buffer->selection_start.y) += moved;
 		}
+		// TODO END
 
-		// ERROR: This causes the current element to somehow become
-		//        NULL, causing a segmentation fault in the rendering
-		//        code
+		// Make sure other buffers are on the same line
 		for (int i = 0; i < descriptor.column_count; i++) {
-			if (moved && as_ctx.text_file->buffers[i]->selection_enabled == 0 && as_ctx.text_file->buffers[i]->current_element != NULL) {
+			if (moved && as_ctx.text_file->buffers[i]->selection_enabled == 0 &&
+			    as_ctx.text_file->buffers[i]->current_element != NULL && i != as_ctx.text_file->active_buffer_idx) {
 				struct AS_LLElement *current = as_ctx.text_file->buffers[i]->current_element;
-				as_ctx.text_file->buffers[i]->current_element = current->next;
+				as_ctx.text_file->buffers[i]->current_element = (value == 0 ? current->next : current->prev);
 			}
 		}
 
+		// Update the cursor
 		if (moved == 1) {
 			CURSOR_Y += (value == 0 ? 1 : -1);
 			differential += (value == 0 ? 1 : -1);

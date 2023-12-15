@@ -298,6 +298,7 @@ int buffer_move_ln_up(struct AS_TextBuf *active_buffer) {
 		prev = head->prev;
 
 		if (as_ctx.text_file->cy < active_buffer->selection_start.y) {
+			// Above pointers are the wrong way around, correct them
 			head = current;
 			prev = current->prev;
 			current = active_buffer->selection_start_line;
@@ -365,10 +366,11 @@ int buffer_move_ln_down(struct AS_TextBuf *active_buffer) {
 	if (active_buffer->selection_enabled && as_ctx.text_file->cy != active_buffer->selection_start.y) {
 		// There is a selection, move selection
 		struct AS_LLElement *head = active_buffer->selection_start_line;
+
 		prev = active_buffer->selection_start_line->prev;
 
 		if (as_ctx.text_file->cy < active_buffer->selection_start.y) {
-			// Above pointers are wrong, correct them
+			// Above pointers are the wrong way around, correct them
 			head = current;
 			prev = current->prev;
 			current = active_buffer->selection_start_line;
