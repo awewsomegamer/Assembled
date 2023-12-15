@@ -105,6 +105,7 @@ static void render(struct AS_RenderCtx *context) {
 			struct AS_Bound end_v = { .x = CURSOR_X, .y = CURSOR_Y };
 			struct AS_Bound *end = &end_v;
 
+			// Ensure start < end
 			if (start->y > end->y || start->x > end->x) {
 				struct AS_Bound *tmp = start;
 				start = end;
@@ -118,6 +119,7 @@ static void render(struct AS_RenderCtx *context) {
 			bool extreme_side = 0;
 			bool selection = current_buffer->selection_enabled;
 
+			// Determine which extreme current line is on
 			if (true_y == start->y) {
 				char_mode = start->x;
 				selection_extreme = 1;
@@ -269,9 +271,12 @@ static void local(int code, int value) {
 		int i = as_ctx.text_file->active_buffer_idx;
 
 		if (i + value >= 0 && i + value < descriptor.column_count) {
+			// Can move to next buffer
+			// Collect information
 			struct AS_Bound start = as_ctx.text_file->active_buffer->selection_start;
 			uint8_t selection = as_ctx.text_file->active_buffer->selection_enabled;
 
+			// Check the if the direction of the move aligns with previous moves
 			int selected_buffers_sign = ((as_ctx.text_file->selected_buffers) >> 31) & 1;
 			int value_sign = ((value) >> 31) & 1;
 
@@ -280,23 +285,27 @@ static void local(int code, int value) {
 				as_ctx.text_file->active_buffer->selection_enabled = 0;
 			}
 
+			// Move to next buffer
 			as_ctx.text_file->active_buffer = as_ctx.text_file->buffers[i + value];
 			struct AS_TextBuf *buffer = as_ctx.text_file->active_buffer;
 
+			// Copy information
 			buffer->selection_enabled = selection;
 			buffer->selection_start.x = start.x;
 			buffer->selection_start.y = start.y;
 
 			if (selection) {
-				// Set the selection start
+				// Compute the pointer to the selection start
 				buffer->selection_start_line = buffer->current_element;
 				for (int i = 0; i < abs(CURSOR_Y - start.y); i++) {
 					buffer->selection_start_line = (CURSOR_Y > start.y ? buffer->selection_start_line->prev : buffer->selection_start_line->prev);
 				}
 
+				// Change selected buffer count
 				as_ctx.text_file->selected_buffers += value;
 			}
 
+			// Change active buffer indedx
 			as_ctx.text_file->active_buffer_idx += value;
 
 			sprintf(as_ctx.editor_scr_message, "BUFFER %s\n", (value == -1 ? "LEFT" : "RIGHT"));
@@ -318,32 +327,38 @@ static void local(int code, int value) {
 
 	case LOCAL_WINDOW_MOVE: {
 		if (value == 1 && as_ctx.text_file->next != NULL) {
+			// Move one window to the right
 			as_ctx.text_file = as_ctx.text_file->next;
 			sprintf(as_ctx.editor_scr_message, "SWITCHED TO %s", as_ctx.text_file->name);
 			break;
 		}
 
 		if (value == -1 && as_ctx.text_file->prev != NULL) {
+			// Move one window to the left
 			as_ctx.text_file = as_ctx.text_file->prev;
 			sprintf(as_ctx.editor_scr_message, "SWITCHED TO %s", as_ctx.text_file->name);
 			break;
 		}
 
+		// No movement, let user know
 		sprintf(as_ctx.editor_scr_message, "%s", (value == -1 ? "BEGIN" : "END"));
 
 		break;
 	}
 
 	case LOCAL_WINDOW_SELECTION: {
+		// Enable / disable selection
 		as_ctx.text_file->active_buffer->selection_enabled = !as_ctx.text_file->active_buffer->selection_enabled;
 
 		if (as_ctx.text_file->active_buffer->selection_enabled == 0) {
+			// Selection was disabled, clear buffers
 			for (int i = 0; i < descriptor.column_count; i++) {
 				as_ctx.text_file->buffers[i]->selection_enabled = 0;
 				as_ctx.text_file->buffers[i]->selection_start_line = NULL;
 			}
 		}
 
+		// Set the selection start coordinate, reset selected_buffers, store starting line
 		as_ctx.text_file->active_buffer->selection_start.x = as_ctx.text_file->active_buffer->cx;
 		as_ctx.text_file->active_buffer->selection_start.y = as_ctx.text_file->cy;
 		as_ctx.text_file->selected_buffers = 0;
@@ -390,7 +405,8 @@ static void local(int code, int value) {
 		}
 		// TODO END
 
-		// Make sure other buffers are on the same line
+		// Make sure other buffers are on the same line, that is
+		// if they are not selected
 		for (int i = 0; i < descriptor.column_count; i++) {
 			if (moved && as_ctx.text_file->buffers[i]->selection_enabled == 0 &&
 			    as_ctx.text_file->buffers[i]->current_element != NULL && i != as_ctx.text_file->active_buffer_idx) {

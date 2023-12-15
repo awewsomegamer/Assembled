@@ -53,6 +53,7 @@ struct key_stack_element {
 static struct key_stack_element key_stack[MAX_KEY_ELEMENTS];
 static int key_stack_ptr = 0;
 
+// Arguments for local functions depending on given function
 static const int func_args[MAX_FUNCTION_COUNT][2] = {
 	[AS_CFG_LOOKUP_UP]            = PARAM2(LOCAL_ARROW_YMOVE, -1)
         [AS_CFG_LOOKUP_DOWN]          = PARAM2(LOCAL_ARROW_YMOVE, 1)

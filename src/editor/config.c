@@ -29,7 +29,8 @@
 #include <global.h>
 #include <util.h>
 
-void interpret_token_stream(struct AS_CfgTok *token) {
+// Interpret the stream of configuration tokens
+static void interpret_token_stream(struct AS_CfgTok *token) {
         while (token->type != AS_CFG_TOKEN_EOF) {
                 AS_EXPECT_TOKEN(AS_CFG_TOKEN_KEY, "Expected command (i.e. keyboard, themes, or start_screen)");
                 int command = token->value;
@@ -194,10 +195,11 @@ struct AS_CfgTok *cfg_lex(FILE *file) {
                 }
 
                 default: {
-                        // Read string
+                        // Initialize a string
                         int size = 1;
                         char *str = (char *)malloc(size);
 
+			// Parse the string with characters that are: '.', '/', '_', and alphanumeric
                         do {
                                 column++;
 
@@ -209,9 +211,11 @@ struct AS_CfgTok *cfg_lex(FILE *file) {
                                 size++;
                                 str = (char *)realloc(str, size * sizeof(char));
                         } while (((c = fgetc(file)) != EOF) && (isalnum(c) || c == '.' || c == '/' || c == '_'));
-                        
+
+			// Putback last read char
                         putback = c;
 
+			// Zero terminate string
                         *(str + size - 1) = 0;
 
                         // Number

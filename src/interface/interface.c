@@ -28,6 +28,7 @@ struct AS_RenderCtx current_render_context;
 struct AS_Screen screens[MAX_SCREEN_COUNT];
 struct AS_Screen *last_screen = NULL;
 
+// Switch to the given screen
 int switch_to_screen(char *name) {
         int i = GET_SCR_IDX(name);
 
@@ -39,6 +40,7 @@ int switch_to_screen(char *name) {
         return i;
 }
 
+// Switch to the last screen
 int switch_to_last_screen() {
 	int i = (int)(((uintptr_t)as_ctx.screen - (uintptr_t)screens) / sizeof(struct AS_Screen));
 
@@ -51,6 +53,7 @@ int switch_to_last_screen() {
 	return i;
 }
 
+// Create a new screen in the list of available screens
 int register_screen(char *name, void (*render)(struct AS_RenderCtx *), void (*update)(struct AS_RenderCtx *), void (*local)(int, int)) {
         int i = GET_SCR_IDX(name);
 
@@ -65,6 +68,7 @@ int register_screen(char *name, void (*render)(struct AS_RenderCtx *), void (*up
         return i;
 }
 
+// Draw an ASCII border (rectangle) on the current screen
 void draw_border(int x, int y, int width, int height) {
 	for (int i = y; i < (y + height); i++) {
 		mvaddch(i, x, '|');

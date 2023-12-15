@@ -53,7 +53,7 @@ struct AS_GlobalCtx {
 	struct AS_Screen *screen;
 
 	// Editor
-	struct AS_TextFile *text_files[MAX_TEXT_FILES];
+	struct AS_TextFile *text_file_head;
 	struct AS_TextFile *text_file;
 
 	struct AS_ColDesc col_descs[MAX_COLUMNS];

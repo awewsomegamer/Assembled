@@ -25,8 +25,6 @@
 
 #include <global.h>
 
-int free_text_file = 0;
-
 struct AS_TextFile *load_file(char *name) {
         FILE *file = fopen(name, "r+");
 
@@ -65,6 +63,10 @@ struct AS_TextFile *load_file(char *name) {
 		}
 	}
 
+	if (as_ctx.text_file_head == NULL) {
+		// This is the first file opened, keep track of it
+		as_ctx.text_file_head = as_ctx.text_file;
+	}
 
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
         int column_count = descriptor.column_count;
@@ -75,7 +77,7 @@ struct AS_TextFile *load_file(char *name) {
 
         for (int i = 0; i < column_count; i++) {
                 struct AS_TextBuf *buffer = new_buffer(descriptor.column_positions[i], (i + 1 >= column_count) ? -1 :
-													   descriptor.column_positions[i + 1]);
+						       descriptor.column_positions[i + 1]);
                 
                 as_ctx.text_file->buffers[i] = buffer;
                 currents[i] = buffer->head;
@@ -184,6 +186,7 @@ struct AS_TextFile *load_file(char *name) {
         return as_ctx.text_file;
 }
 
+// Save a given file
 void save_file(struct AS_TextFile *file) {
 	if (file == NULL) {
 		return;
@@ -227,14 +230,18 @@ void save_file(struct AS_TextFile *file) {
 	free(currents);
 }
 
+// Save all files
 void save_all() {
 	AS_DEBUG_MSG("Saving all text files\n");
 
-	for (int i = 0; i < MAX_TEXT_FILES; i++) {
-		save_file(as_ctx.text_files[i]);
+	struct AS_TextFile *current = as_ctx.text_file_head;
+	while (current != NULL) {
+		save_file(current);
+		current = current->next;
 	}
 }
 
+// Destroy a given file
 void destroy_file(struct AS_TextFile *file) {
 	if (file == NULL) {
 		return;
@@ -250,12 +257,17 @@ void destroy_file(struct AS_TextFile *file) {
 	free(file);
 }
 
+// Destroy all files
 void destroy_all_files() {
 	AS_DEBUG_MSG("Destroying all text files\n");
 
-	for (int i = 0; i < MAX_TEXT_FILES; i++) {
-		destroy_file(as_ctx.text_files[i]);
+	struct AS_TextFile *current = as_ctx.text_file_head;
+	while (current != NULL) {
+		destroy_file(current);
+		current = current->next;
 	}
+
+	as_ctx.text_file_head = NULL;
 }
 
 struct AS_CfgTok *configure_editor(struct AS_CfgTok *token) {

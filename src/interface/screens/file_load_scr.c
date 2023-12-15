@@ -35,10 +35,14 @@ static size_t directory_listing_size = 1;
 static int directory_listing_offset = 0;
 
 static void render(struct AS_RenderCtx *ctx) {
+	// Draw string user inputted
 	mvprintw(1, (ctx->max_x / 4 + 1), "%s", (file_path == NULL ? "" : file_path));
+	// Draw two boxes creating a short field for the user input and a
+	// tall field for the directory listing
 	draw_border(ctx->max_x / 4, 0, ctx->max_x / 2, ctx->max_y - 1);
 	draw_border(ctx->max_x / 4, 2, ctx->max_x / 2, ctx->max_y - 3);
 
+	// Draw directory listing if it exists
 	if (directory_listing != NULL) {
 		for (int i = 0; i < ctx->max_y - 1; i++) {
 			if (i + directory_listing_offset < directory_listing_size - 1) {
@@ -52,6 +56,7 @@ static void render(struct AS_RenderCtx *ctx) {
 
 static void update_directory_listing(char *abs) {
 	if (directory_listing != NULL) {
+		// Directory listing aready, exists, free it, and create a new one
 		for (int i = 0; i < directory_listing_size - 1; i++) {
 			if (directory_listing[i] != NULL) {
 				free(directory_listing[i]);
@@ -62,10 +67,12 @@ static void update_directory_listing(char *abs) {
 		directory_listing = (char **)calloc(1, sizeof(char *));
 		directory_listing_size = 1;
 	} else {
+		// No directory listing, create a new one
 		directory_listing = (char **)calloc(1, sizeof(char *));
 		directory_listing_size = 1;
 	}
 
+	// Open directory for reading
 	DIR *dir = opendir(abs);
 
 	if (dir == NULL) {
@@ -74,35 +81,39 @@ static void update_directory_listing(char *abs) {
 
 	struct dirent *dirent = NULL;
 
+	// Read directory into directory listing
 	while ((dirent = readdir(dir)) != NULL) {
 		directory_listing[directory_listing_size - 1] = strdup(dirent->d_name);
 		directory_listing = (char **)realloc(directory_listing, ++directory_listing_size * sizeof(char *));
 	}
-	
+
+	// Clean up
 	closedir(dir);
 }
 
 static void local(int code, int value) {
 	switch (code) {
 	case LOCAL_ENTER: {
-		if (directory_listing_size == 1) {
-			switch_to_last_screen();
-		}
+		// TODO: Create a better way to exit this screen (maybe using
+		//       escape key)
 
+		// Stat the user entry using an absolute path
 		struct stat *st = (struct stat *)malloc(sizeof(struct stat));
 		char *abs = fpath2abs(file_path, 0);
-
 		stat(abs, st);
 
 		if (S_ISDIR(st->st_mode)) {
+			// Directory - list it
 			update_directory_listing(abs);
 		} else if (S_ISREG(st->st_mode)) {
+			// File - load it
 			load_file(abs);
 			switch_to_screen("editor");
 		}
 		
 		AS_DEBUG_MSG("%s\n", abs);
 
+		// Free absolute path
 		free(abs);
 		
 		break;
@@ -110,15 +121,18 @@ static void local(int code, int value) {
 
 	case LOCAL_BUFFER_CHAR: {
 		if (file_path == NULL) {
+			// No path for user to write to, make it
 			file_path = (char *)malloc(size + 1);
 			*file_path = 0;
 		}
 
 		if (value == '\b' || value == 263) {
 			if (size == 1) {
+				// Cannot delete another character
 				break;
 			}
 
+			// Resize the input buffer (cut off last character)
 			size--;
 			file_path = (char *)realloc(file_path, size);
 			file_path[size - 1] = 0;
@@ -126,6 +140,7 @@ static void local(int code, int value) {
 			break;
 		}
 
+		// Insert character
 		file_path[size - 1] = (char)value;
 		file_path = (char *)realloc(file_path, ++size);
 		file_path[size - 1] = 0;
@@ -135,6 +150,7 @@ static void local(int code, int value) {
 
 	case LOCAL_ARROW_YMOVE: {
 		if (directory_listing_offset <= directory_listing_size && directory_listing_offset >= 0) {
+			// Move directory listing up or down
 			directory_listing_offset += value;
 			directory_listing_offset = min(max(0, directory_listing_offset), directory_listing_size);
 		}

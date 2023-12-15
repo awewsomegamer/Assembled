@@ -47,27 +47,23 @@ static int cx = 0;
 static int cy = 0;
 
 static const char *menu_table_left[] = {
-        "Hello",
-        "World this",
-        "Is"
+        "Load file",
 };
 
 static const char *menu_table_right[] = {
-        "A",
-        "Test of",
-        "My",
-        "Menu system"
+
 };
 
-void test() {
-        AS_DEBUG_MSG("First entry\n");
+static void menu_load_file() {
+	switch_to_screen("file_load");
 }
 
 static void (*menu_functions[2][10])() = {
-        {test},
+        {menu_load_file},
         {}
 };
 
+// Default logo to use
 static uint8_t logo_bmp_data[] = {
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x80, 0x7F, 0xFF, 0xFF, 0xFF,
@@ -84,6 +80,7 @@ static uint8_t logo_bmp_data[] = {
 
 static void render(struct AS_RenderCtx *context) {
         if (background_enable) {
+		// Draw background of 1's and 0's
                 for (int i = 0; i < context->max_y; i++) {
                         for (int j = 0; j < context->max_x; j++) {
                                 int value = i * j * as_time * as_time - j;

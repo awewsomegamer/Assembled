@@ -283,6 +283,8 @@ void buffer_char_del() {
 // ERROR: The nature of the multiline movement code is
 //        questionable as it does not work across multiple
 //        buffers
+// Move the current line, or selected lines, down in the given buffer
+// Returns 1 on success, returns 0 on failure ("%d lines moved", return_code)
 int buffer_move_ln_up(struct AS_TextBuf *active_buffer) {
 	if (active_buffer == NULL) {
 		return 0;
@@ -294,7 +296,9 @@ int buffer_move_ln_up(struct AS_TextBuf *active_buffer) {
 
 	if (active_buffer->selection_enabled && as_ctx.text_file->cy != active_buffer->selection_start.y) {
 		// There is a selection, move selection
+		// Get the head of the selection
 		struct AS_LLElement *head = active_buffer->selection_start_line;
+		// Prev is no longer current's prev
 		prev = head->prev;
 
 		if (as_ctx.text_file->cy < active_buffer->selection_start.y) {
@@ -306,23 +310,29 @@ int buffer_move_ln_up(struct AS_TextBuf *active_buffer) {
 		}
 
 		if (prev == NULL) {
+			// No where to move the line
 			return 0;
 		}
 
+		// Head takes the position of prev pt. 1
 		head->prev = prev->prev;
 
 		if (prev->prev == NULL) {
+			// Prev was buffer's head, set head to buffer's head
 			active_buffer->head = head;
 		} else {
+			// Tell prev->prev that head is now prev
 			prev->prev->next = head;
 		}
 
+		// Head takes the position of prev pt. 2
 		prev->prev = current;
 		current->next = prev;
-
 		prev->next = next;
 
 		if (next != NULL) {
+			// Selection wasn't at the bottom of the file
+			// point next->prev to prev
 			next->prev = prev;
 		}
 
@@ -335,25 +345,33 @@ int buffer_move_ln_up(struct AS_TextBuf *active_buffer) {
 		return 0;
 	}
 
+	// Current takes the place of prev
 	current->next = prev;
 	current->prev = prev->prev;
 
+	// Check if prev was the head
 	if (current->prev == NULL) {
+		// It was, current is now the head
 		active_buffer->head = current;
 	} else {
+		// Point prev->prev's next at current
 		prev->prev->next = current;
 	}
 
 	if (next != NULL) {
+		// Current was not at the bottom
+		// of the file, update next's prev
 		next->prev = prev;
 	}
 
+	// Change prev's links to take current's spot
 	prev->next = next;
 	prev->prev = current;
 
 	return 1;
 }
 
+// Move the current line, or selected lines, down in the given buffer
 int buffer_move_ln_down(struct AS_TextBuf *active_buffer) {
 	if (active_buffer == NULL) {
 		return 0;
@@ -366,7 +384,7 @@ int buffer_move_ln_down(struct AS_TextBuf *active_buffer) {
 	if (active_buffer->selection_enabled && as_ctx.text_file->cy != active_buffer->selection_start.y) {
 		// There is a selection, move selection
 		struct AS_LLElement *head = active_buffer->selection_start_line;
-
+		// Prev is no longer current's prev
 		prev = active_buffer->selection_start_line->prev;
 
 		if (as_ctx.text_file->cy < active_buffer->selection_start.y) {
@@ -378,22 +396,29 @@ int buffer_move_ln_down(struct AS_TextBuf *active_buffer) {
 		}
 
 		if (next == NULL) {
+			// No where to move the line
 			return 0;
 		}
 
 		if (next->next != NULL) {
+			// The selection is not at the end of the file
+			// tell next->next element where to find its prev
 			next->next->prev = current;
 		}
 
 		if (prev != NULL) {
+			// Selection is not at the top of the file
+			// tell prev where to find its next element
 			prev->next = next;
 		} else {
+			// Selection was at the top of the file,
+			// update head
 			active_buffer->head = next;
 		}
 
+		// Head takes the place of next
 		current->next = next->next;
 		next->next = head;
-
 		next->prev = prev;
 		head->prev = next;
 
@@ -407,18 +432,23 @@ int buffer_move_ln_down(struct AS_TextBuf *active_buffer) {
 	}
 
 	if (next->next != NULL) {
+		// Line is not at the bottom of the file
 		next->next->prev = current;
 	}
 
 	if (prev != NULL) {
+		// Line is not at the top of the file
+		// update prev's next element
 		prev->next = next;
 	} else {
+		// Line was at the top of the file
+		// update head
 		active_buffer->head = next;
 	}
 
+	// Current takes place of next
 	current->next = next->next;
 	next->next = current;
-
 	next->prev = current->prev;
 	current->prev = next;
 

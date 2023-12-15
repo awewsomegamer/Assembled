@@ -41,10 +41,6 @@ static int default_column_definition[] = { 0 };
 
 struct AS_GlobalCtx as_ctx = { 0 };
 
-// ERROR: When the program suffers a segmentation
-//        fault, all file data is lost (doesn't
-//        matter if it is saved or not)
-
 void init_ncurses() {
         AS_DEBUG_MSG("Initializing ncurses\n");
         setlocale(LC_ALL, "UTF-8");
@@ -82,24 +78,32 @@ void init_ncurses() {
         AS_DEBUG_MSG("Initialized ncurses\n");
 }
 
+// Update the state of the editor
 void editor() {
+	// Read in current key
         int c = getch();
 
         if (c > -1) {
+		// If a key is present, cleaar the message,
+		// trigger an update and tell the keyboard to
+		// handle the key
                 sprintf(as_ctx.editor_scr_message, "");
                 update = 1;
 
                 key(c);
         }
 
+	// Udate the screen if it exists and has an update function
         if (as_ctx.screen != NULL && as_ctx.screen->update != NULL) {
                 as_ctx.screen->update(&as_ctx.render_ctx);
         }
 }
 
+// Render the current state of the editor
 void interface() {
         erase();
 
+	// Draw the screen if it exists and has a render function
         if (as_ctx.screen != NULL && as_ctx.screen->render != NULL) {
                 as_ctx.screen->render(&as_ctx.render_ctx);
         }
@@ -107,6 +111,7 @@ void interface() {
         refresh();
 }
 
+// Ctrl + C
 void terminate(int signal) {
         save_all();
 
@@ -128,6 +133,7 @@ int main(int argc, char **argv) {
         read_config();
 
 	if (as_ctx.col_desc_i == -1) {
+		// No column was selected to be booted with, try to find a defined one
 		for (int i = 0; i < MAX_COLUMNS; i++) {
 			if (as_ctx.col_descs[i].column_positions != NULL) {
 				as_ctx.col_desc_i = i;
@@ -137,6 +143,7 @@ int main(int argc, char **argv) {
 	}
 
         if (as_ctx.col_desc_i == -1) {
+		// No predefined column was found, define a single column
                 printf("Failed to find a user defined column, defining a single column\n");
                 AS_DEBUG_MSG("Failed to find a user defined column, defining a single column\n");
 
@@ -146,10 +153,12 @@ int main(int argc, char **argv) {
                 as_ctx.col_descs[as_ctx.col_desc_i].delimiter = 0;
         }
 
+	// Register screens
         register_start_screen();
         register_editor_screen();
         register_file_load_scr();
 
+	// Check for file to load
         if (argc > 1) {
                 load_file(argv[1]);
                 switch_to_screen("editor");
