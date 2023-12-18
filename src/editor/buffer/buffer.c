@@ -44,6 +44,7 @@ struct AS_TextBuf *new_buffer(int col_start, int col_end) {
 
 	// Give it a starting line list element
 	buffer->head = (struct AS_LLElement *)malloc(sizeof(struct AS_LLElement));
+	buffer->virtual_head = buffer->head;
 	memset(buffer->head, 0, sizeof(struct AS_LLElement));
 
 	return buffer;
@@ -174,6 +175,7 @@ void buffer_char_insert(char c) {
 		// Manage
 		active_text_buffer->current_element = next_element;
 
+		AS_DEBUG_MSG("Calling LOCAL_LINE_INSERT\n");
 		as_ctx.screen->local(LOCAL_LINE_INSERT, 0);
 
 		break;

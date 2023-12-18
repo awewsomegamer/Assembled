@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "includes.h"
 #include <editor/buffer/buffer.h>
 #include <editor/buffer/editor.h>
 #include <editor/config.h>
@@ -34,8 +35,8 @@
 
 static int line_length = 0;
 
-static int differential = 0;
 static int offset = 0;
+static int differential = 0;
 
 static void render(struct AS_RenderCtx *context) {
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
@@ -45,11 +46,7 @@ static void render(struct AS_RenderCtx *context) {
 	struct AS_LLElement **currents = (struct AS_LLElement **)calloc(descriptor.column_count, sizeof(struct AS_LLElement *));
 
 	for (int i = 0; i < descriptor.column_count; i++) {
-		currents[i] = as_ctx.text_file->buffers[i]->head;
-
-		for (int j = 0; j < offset; j++) {
-			currents[i] = currents[i]->next;
-		}
+		currents[i] = as_ctx.text_file->buffers[i]->virtual_head;
 	}
 
 	// Variables for controlling the y-axis
@@ -73,6 +70,10 @@ static void render(struct AS_RenderCtx *context) {
 		for (int i = 0; i < descriptor.column_count; i++) {
 			struct AS_LLElement *current = currents[i];
 			struct AS_TextBuf *current_buffer = as_ctx.text_file->buffers[i];
+
+			if (current == NULL) {
+				continue;
+			}
 
 			// Calculate the number of characters the current column
 			// can fit
@@ -194,16 +195,36 @@ static void render(struct AS_RenderCtx *context) {
 	move(CURSOR_Y - offset + cy_wrap_distortion + (CURSOR_X / column_length), (CURSOR_X % column_length) + column_start);
 }
 
+// BUG: Ocassionally there is a bit of desync
+//      between where the cursor is and where
+//      input is actually written. I have not
+//      been able to recreate this issue yet
+//      but keep an eye out for it, it may
+//      have something to do with this
+//      function
 static void update(struct AS_RenderCtx *context) {
 	// The differential is checked, if it has overflowed
 	// or underflowed the screen, restrict it, and update
 	// the offset
-	if (differential >= context->max_y - 2) {
-		differential = context->max_y - 3;
+	int direction = 0;
+
+	if (differential > context->max_y - 2) {
+		differential = context->max_y - 2;
 		offset++;
+		direction = 1;
 	} else if (differential < 0) {
 		differential = 0;
 		offset = max(--offset, 0);
+		direction = -1;
+	}
+
+	for (int i = 0; (i < as_ctx.col_descs[as_ctx.col_desc_i].column_count) && (direction != 0); i++) {
+		struct AS_LLElement *element = as_ctx.text_file->buffers[i]->virtual_head;
+		struct AS_LLElement *next = (direction == -1 ? element->prev : element->next);
+
+		if (next != NULL) {
+			as_ctx.text_file->buffers[i]->virtual_head = next;
+		}
 	}
 }
 
@@ -249,9 +270,10 @@ static void local(int code, int value) {
 		break;
 	}
 
-	// LOCAL_ENTER
 	case LOCAL_ENTER: {
 		buffer_char_insert('\n');
+
+		break;
 	}
 
 	case LOCAL_LINE_INSERT: {
@@ -259,7 +281,6 @@ static void local(int code, int value) {
 
 		break;
 	}
-	// END OF LOCAL_ENTER
 
 	case LOCAL_LINE_DELETION: {
 		differential--;

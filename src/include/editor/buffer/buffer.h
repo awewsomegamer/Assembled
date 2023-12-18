@@ -33,17 +33,17 @@ struct AS_LLElement {
 };
 
 struct AS_TextBuf {
-        int cx;
-        int col_start;
-        int col_end;
+        int cx;                                             // Cursor's X position in buffer
+        int col_start;                                      // The start index of the buffer's column
+        int col_end;                                        // The end index of the buffer's column
 
-	uint8_t selection_enabled;
-	struct AS_Bound selection_start;
-	struct AS_Bound selection_end;
+	uint8_t selection_enabled;                          // Selection is enabled for this buffer
+	struct AS_Bound selection_start;                    // X and Y coordinates of the selection's start
 
-        struct AS_LLElement *head;
-        struct AS_LLElement *current_element;
-	struct AS_LLElement *selection_start_line;
+        struct AS_LLElement *head;                          // The first line in the buffer
+	struct AS_LLElement *virtual_head;                  // The first line on screen
+        struct AS_LLElement *current_element;               // Pointer to the line at (cx, cy)
+	struct AS_LLElement *selection_start_line;          // Pointer to the line at (0, selection_start.y)
 };
 
 struct syntax_highlight {

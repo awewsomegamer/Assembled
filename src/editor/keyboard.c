@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "includes.h"
 #include <editor/buffer/buffer.h>
 #include <editor/keyboard.h>
 #include <editor/config.h>
@@ -91,6 +92,7 @@ void collapse_stack() {
 
 		if (i == key_stack_ptr && element == NULL) {
 			// Found function
+			AS_DEBUG_MSG("Calling function %d\n", current->function);
 			as_ctx.screen->local(func_args[current->function][0], func_args[current->function][1]);
 
 			key_stack_ptr = 0;
@@ -102,7 +104,8 @@ void collapse_stack() {
 
 		current = current->next;
 	}
-	
+
+	AS_DEBUG_MSG("Putting key %d\n", key_stack[key_stack_ptr - 1].key);
 	as_ctx.screen->local(LOCAL_BUFFER_CHAR, key_stack[--key_stack_ptr].key);
 	key_stack_ptr = 0;
 }
