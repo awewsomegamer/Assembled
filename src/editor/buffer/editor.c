@@ -19,67 +19,30 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "includes.h"
 #include <editor/buffer/buffer.h>
 #include <editor/config.h>
 #include <editor/buffer/editor.h>
 
 #include <global.h>
+#include <stdio.h>
 
-struct AS_TextFile *load_file(char *name) {
-        FILE *file = fopen(name, "r+");
-
-        if (file == NULL) {
-                AS_DEBUG_MSG("File %s does not exist, creating it\n", name);
-
-                file = fopen(name, "w+");
-
-                // TODO: Replace with a compatible assert
-                if (file == NULL) {
-                        AS_DEBUG_MSG("Failed to open file %s, exiting\n", name);
-                
-                        exit(1);
-                }
-        }
-
-	// Get the current file.
-	struct AS_TextFile *prev = as_ctx.text_file;
-
-        // Allocate text file structure
-        as_ctx.text_file = (struct AS_TextFile *)malloc(sizeof(struct AS_TextFile));
-	memset(as_ctx.text_file, 0, sizeof(struct AS_TextFile));
-
-	as_ctx.text_file->file = file;
-	as_ctx.text_file->name = strdup(name);
-	as_ctx.text_file->load_offset = 0;
-
-	// Link the new text file into the list
-	if (prev != NULL) {
-		as_ctx.text_file->next = prev->next;
-		as_ctx.text_file->prev = prev;
-		prev->next = as_ctx.text_file;
-
-		if (as_ctx.text_file->next != NULL) {
-			as_ctx.text_file->next->prev = as_ctx.text_file;
-		}
-	}
-
-	if (as_ctx.text_file_head == NULL) {
-		// This is the first file opened, keep track of it
-		as_ctx.text_file_head = as_ctx.text_file;
-	}
-
+void load_file_content(struct AS_TextFile *text_file) {
+	FILE *file = text_file->file;
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
         int column_count = descriptor.column_count;
 
+	text_file->buffer_count = column_count;
+
         // Allocate text buffers (columns)
-        as_ctx.text_file->buffers = (struct AS_TextBuf **)calloc(column_count, sizeof(struct AS_TextBuf *));
+        text_file->buffers = (struct AS_TextBuf **)calloc(column_count, sizeof(struct AS_TextBuf *));
         struct AS_LLElement **currents = (struct AS_LLElement **)calloc(column_count, sizeof(struct AS_LLElement *));
 
         for (int i = 0; i < column_count; i++) {
                 struct AS_TextBuf *buffer = new_buffer(descriptor.column_positions[i], (i + 1 >= column_count) ? -1 :
 						       descriptor.column_positions[i + 1]);
-                
-                as_ctx.text_file->buffers[i] = buffer;
+
+                text_file->buffers[i] = buffer;
                 currents[i] = buffer->head;
                 buffer->current_element = currents[i];
         }
@@ -87,7 +50,7 @@ struct AS_TextFile *load_file(char *name) {
         // Read file
         char *contents;
         size_t size = 0;
-        int line_count = 1;
+        int line_count = 0;
 
         while (getline(&contents, &size, file) != -1) {
 		if (size < 0) {
@@ -97,7 +60,7 @@ struct AS_TextFile *load_file(char *name) {
                 if (contents[strlen(contents) - 1] == '\n') {
                         contents[strlen(contents) - 1] = 0;
                 }
-                
+
                 int element = 0;
                 int prev_i = 0;
 
@@ -129,7 +92,7 @@ struct AS_TextFile *load_file(char *name) {
                         // Advance
                         currents[element_index]->next->prev = currents[element_index];
                         currents[element_index] = currents[element_index]->next;
-                        
+
                         // Move onto next region of text
                         prev_i = i + 1;
 
@@ -150,6 +113,12 @@ struct AS_TextFile *load_file(char *name) {
                         currents[i]->next->prev = currents[i];
                         currents[i] = currents[i]->next;
                 }
+
+		if (line_count == text_file->cy) {
+			for (int i = 0; i < column_count; i++) {
+				text_file->buffers[i]->current_element = currents[i]->prev;
+			}
+		}
 
                 line_count++;
 
@@ -176,14 +145,84 @@ struct AS_TextFile *load_file(char *name) {
                 contents = NULL;
         }
 
-        as_ctx.text_file->active_buffer = as_ctx.text_file->buffers[0];
+        text_file->active_buffer = text_file->buffers[0];
 
         fseek(file, 0, SEEK_SET);
 
 	// Memory Manage
 	free(currents);
+}
+
+struct AS_TextFile *load_file(char *name) {
+        FILE *file = fopen(name, "r+");
+
+        if (file == NULL) {
+                AS_DEBUG_MSG("File %s does not exist, creating it\n", name);
+
+                file = fopen(name, "w+");
+
+                // TODO: Replace with a compatible assert
+                if (file == NULL) {
+                        AS_DEBUG_MSG("Failed to open file %s, exiting\n", name);
+
+                        exit(1);
+                }
+        }
+
+	// Get the current file.
+	struct AS_TextFile *prev = as_ctx.text_file;
+
+        // Allocate text file structure
+        as_ctx.text_file = (struct AS_TextFile *)malloc(sizeof(struct AS_TextFile));
+	memset(as_ctx.text_file, 0, sizeof(struct AS_TextFile));
+
+	as_ctx.text_file->file = file;
+	as_ctx.text_file->name = strdup(name);
+	as_ctx.text_file->load_offset = 0;
+
+	// Link the new text file into the list
+	if (prev != NULL) {
+		as_ctx.text_file->next = prev->next;
+		as_ctx.text_file->prev = prev;
+		prev->next = as_ctx.text_file;
+
+		if (as_ctx.text_file->next != NULL) {
+			as_ctx.text_file->next->prev = as_ctx.text_file;
+		}
+	}
+
+	if (as_ctx.text_file_head == NULL) {
+		// This is the first file opened, keep track of it
+		as_ctx.text_file_head = as_ctx.text_file;
+	}
+
+	load_file_content(as_ctx.text_file);
 
         return as_ctx.text_file;
+}
+
+void reload_file(struct AS_TextFile *file) {
+	if (file == NULL) {
+		return;
+	}
+
+	AS_DEBUG_MSG("Reloading file %s\n", file->name);
+
+	for (int i = 0; i < file->buffer_count; i++) {
+		destroy_buffer(file->buffers[i]);
+	}
+
+	load_file_content(file);
+}
+
+void reload_all() {
+	AS_DEBUG_MSG("Reloading all text files\n");
+
+	struct AS_TextFile *current = as_ctx.text_file_head;
+	while (current != NULL) {
+		reload_file(current);
+		current = current->next;
+	}
 }
 
 // Save a given file
@@ -194,11 +233,9 @@ void save_file(struct AS_TextFile *file) {
 
 	AS_DEBUG_MSG("Saving file %s\n", file->name);
 
-	int column_count = as_ctx.col_descs[as_ctx.col_desc_i].column_count;
-
-	struct AS_LLElement **currents = (struct AS_LLElement **)calloc(column_count, sizeof(struct AS_LLElement *));
+	struct AS_LLElement **currents = (struct AS_LLElement **)calloc(file->buffer_count, sizeof(struct AS_LLElement *));
 	
-	for (int i = 0; i < column_count; i++) {
+	for (int i = 0; i < file->buffer_count; i++) {
 		currents[i] = file->buffers[i]->head;
 	}
 
@@ -207,13 +244,14 @@ void save_file(struct AS_TextFile *file) {
 	fseek(file->file, file->load_offset, SEEK_SET);
 
 	while (currents[0] != NULL) {
-		for (int i = 0; i < column_count; i++) {
+		for (int i = 0; i < file->buffer_count; i++) {
 			if (currents[i]->contents != NULL) {
-				fputs(currents[i]->contents, file->file);
+				file_size += fputs(currents[i]->contents, file->file);
 			}
 
-			if (i < column_count - 1) {
+			if (i < file->buffer_count - 1) {
 				fputc(as_ctx.col_descs[as_ctx.col_desc_i].delimiter, file->file);
+				file_size++;
 			}
 
 			currents[i] = currents[i]->next;
@@ -221,6 +259,7 @@ void save_file(struct AS_TextFile *file) {
                 
                 if (currents[0] != NULL) {
 		        fputc('\n', file->file);
+			file_size++;
                 }
 	}
 
@@ -228,6 +267,10 @@ void save_file(struct AS_TextFile *file) {
 
 	// Memory Manage
 	free(currents);
+
+	// TODO: Find a better way to do this. This is bad
+	fclose(file->file);
+	file->file = fopen(file->name, "r+");
 }
 
 // Save all files
@@ -247,6 +290,14 @@ void destroy_file(struct AS_TextFile *file) {
 		return;
 	}
 
+	if (file->prev != NULL) {
+		file->prev->next = file->next;
+	}
+
+	if (file->next != NULL) {
+		file->next->prev = file->prev;
+	}
+
 	fclose(file->file);
 	
 	for (int i = 0; i < as_ctx.col_descs[as_ctx.col_desc_i].column_count; i++) {
@@ -258,7 +309,7 @@ void destroy_file(struct AS_TextFile *file) {
 }
 
 // Destroy all files
-void destroy_all_files() {
+void destroy_all() {
 	AS_DEBUG_MSG("Destroying all text files\n");
 
 	struct AS_TextFile *current = as_ctx.text_file_head;
@@ -268,6 +319,7 @@ void destroy_all_files() {
 	}
 
 	as_ctx.text_file_head = NULL;
+	as_ctx.text_file = NULL;
 }
 
 struct AS_CfgTok *configure_editor(struct AS_CfgTok *token) {

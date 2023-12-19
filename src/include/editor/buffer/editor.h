@@ -32,8 +32,9 @@
 struct AS_TextFile {
         int cy;
 	int selected_buffers;
-        int load_offset;
 	int active_buffer_idx;
+	int buffer_count;
+        int load_offset;
         char *name;
         FILE *file;
         struct AS_TextBuf **buffers;
@@ -49,9 +50,12 @@ struct AS_ColDesc {
 };
 
 struct AS_TextFile *load_file(char *name);
+void reload_file(struct AS_TextFile *file);
+void reload_all();
 void save_file(struct AS_TextFile *file);
 void save_all();
-void edit_file();
+void destroy_file(struct AS_TextFile *file);
+void destroy_all();
 
 struct AS_CfgTok *configure_editor(struct AS_CfgTok *token);
 

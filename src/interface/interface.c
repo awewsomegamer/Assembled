@@ -24,8 +24,6 @@
 #include <global.h>
 #include <util.h>
 
-struct AS_RenderCtx current_render_context;
-struct AS_Screen screens[MAX_SCREEN_COUNT];
 struct AS_Screen *last_screen = NULL;
 
 // Switch to the given screen
@@ -33,7 +31,7 @@ int switch_to_screen(char *name) {
         int i = GET_SCR_IDX(name);
 
         last_screen = as_ctx.screen;
-        as_ctx.screen = &screens[i];
+        as_ctx.screen = &as_ctx.screens[i];
 
         AS_DEBUG_MSG("Switched to screen %d (\"%s\")\n", i, name);
 
@@ -42,13 +40,13 @@ int switch_to_screen(char *name) {
 
 // Switch to the last screen
 int switch_to_last_screen() {
-	int i = (int)(((uintptr_t)as_ctx.screen - (uintptr_t)screens) / sizeof(struct AS_Screen));
+	int i = (int)(((uintptr_t)as_ctx.screen - (uintptr_t)as_ctx.screens) / sizeof(struct AS_Screen));
 
 	struct AS_Screen *tmp = last_screen;
 	last_screen = as_ctx.screen;
 	as_ctx.screen = tmp;
 
-	AS_DEBUG_MSG("Switched to last screen %d (\"%s\")\n", i, screens[i].name);
+	AS_DEBUG_MSG("Switched to last screen %d (\"%s\")\n", i, as_ctx.screens[i].name);
 
 	return i;
 }
@@ -57,11 +55,11 @@ int switch_to_last_screen() {
 int register_screen(char *name, void (*render)(struct AS_RenderCtx *), void (*update)(struct AS_RenderCtx *), void (*local)(int, int)) {
         int i = GET_SCR_IDX(name);
 
-        screens[i].render = render;
-        screens[i].update = update;
-        screens[i].local = local;
-        screens[i].name = name;
-        screens[i].render_options = 0;
+        as_ctx.screens[i].render = render;
+        as_ctx.screens[i].update = update;
+        as_ctx.screens[i].local = local;
+        as_ctx.screens[i].name = name;
+        as_ctx.screens[i].render_options = 0;
 
         AS_DEBUG_MSG("Registered screen \"%s\" at position %d (0x%X, 0x%X, 0x%X)\n", name, i, render, update, local);
 

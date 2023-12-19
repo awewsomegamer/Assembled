@@ -37,6 +37,7 @@
 #define LOCAL_BUFFER_MOVE_LINE  9
 #define LOCAL_FILE_LOAD         10
 #define LOCAL_FILE_SAVE         11
+#define LOCAL_COLDESC_SWITCH    12
 
 // Determine if given coordinate is inside given bounding box
 #define IN_BOUND(x, y, bound) \

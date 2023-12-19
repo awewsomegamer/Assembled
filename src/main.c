@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "includes.h"
 #include <editor/buffer/editor.h>
 #include <editor/keyboard.h>
 #include <editor/config.h>
@@ -193,7 +194,7 @@ int main(int argc, char **argv) {
 
                 while (accumulator >= TARGET_FPS) {
                         editor();
-
+			AS_DEBUG_MSG("Updating\n");
                         if (update == 0) {
                                 accumulator = 0;
                                 break;
@@ -206,7 +207,8 @@ int main(int argc, char **argv) {
                 usleep(8000);
 
                 if (render || (as_ctx.screen->render_options & SCR_OPT_ALWAYS)) {
-                        interface();
+			AS_DEBUG_MSG("Rendering\n");
+			interface();
                 }
 
                 update = 0;

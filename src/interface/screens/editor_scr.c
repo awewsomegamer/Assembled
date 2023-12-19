@@ -466,6 +466,22 @@ static void local(int code, int value) {
 
 		break;
 	}
+
+	case LOCAL_COLDESC_SWITCH: {
+		if (as_ctx.col_desc_i > 0 && as_ctx.col_desc_i < MAX_COLUMNS) {
+			save_all();
+
+			as_ctx.col_desc_i += value;
+
+			if (as_ctx.col_descs[as_ctx.col_desc_i].column_count <= 0) {
+				break;
+			}
+
+			reload_all();
+		}
+
+		break;
+	}
 	}
 }
 
