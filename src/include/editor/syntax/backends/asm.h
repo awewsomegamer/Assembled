@@ -19,17 +19,11 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef AS_KEYBOARD_H
-#define AS_KEYBOARD_H
+#ifndef AS_ASM_BACKEND_H
+#define AS_ASM_BACKEND_H
 
-#include <editor/config.h>
+#include <editor/buffer/buffer.h>
 
-#include <global.h>
-#include <includes.h>
-
-#define AS_MAX_KEY_ELEMENTS 16
-
-void key(int c);
-struct AS_CfgTok *configure_keyboard(struct AS_CfgTok *token);
+void as_asm_backend_init(int i);
 
 #endif

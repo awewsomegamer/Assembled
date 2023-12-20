@@ -132,6 +132,8 @@ static void render(struct AS_RenderCtx *context) {
 			}
 
 			// Draw each line of the string
+			// TODO: For syntax highlighting, each line needs to
+			//       be drawn character by character
 			for (int x = 0; x < strlen(current->contents); x += max_length) {
 				int yc = y + (x / max_length) + element_wrap_distortion;
 				int xc = descriptor.column_positions[i];
@@ -226,9 +228,24 @@ static void update(struct AS_RenderCtx *context) {
 			as_ctx.text_file->buffers[i]->virtual_head = next;
 		}
 	}
+
+	// Update syntax highlighting
+	// Create and initialize a list of current pointers
+	struct AS_LLElement **currents = (struct AS_LLElement **)calloc(as_ctx.text_file->buffer_count, sizeof(struct AS_LLElement *));
+
+	for (int i = 0; i < as_ctx.text_file->buffer_count; i++) {
+		currents[i] = as_ctx.text_file->buffers[i]->virtual_head;
+	}
+
+	while (currents[0] != NULL) {
+		for (int i = 0; i < as_ctx.text_file->buffer_count; i++) {
+			currents[i]->syntax = get_syntax(as_ctx.text_file, currents[i]);
+
+			currents[i] = currents[i]->next;
+		}
+	}
 }
 
-// TODO: Scrolling desynchronizes occasionally
 static void local(int code, int value) {
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
 
@@ -468,7 +485,7 @@ static void local(int code, int value) {
 	}
 
 	case LOCAL_COLDESC_SWITCH: {
-		if (as_ctx.col_desc_i > 0 && as_ctx.col_desc_i < MAX_COLUMNS) {
+		if (as_ctx.col_desc_i > 0 && as_ctx.col_desc_i < AS_MAX_COLUMNS) {
 			save_all();
 
 			as_ctx.col_desc_i += value;

@@ -22,6 +22,7 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+#include <editor/syntax/syntax.h>
 #include <editor/buffer/editor.h>
 
 #include <interface/interface.h>
@@ -49,15 +50,19 @@ struct AS_GlobalCtx {
 	
 	// Interface
 	struct AS_RenderCtx render_ctx;
-	struct AS_Screen screens[MAX_SCREEN_COUNT];
+	struct AS_Screen screens[AS_MAX_SCREEN_COUNT];
 	struct AS_Screen *screen;
 
 	// Editor
 	struct AS_TextFile *text_file_head;
 	struct AS_TextFile *text_file;
 
-	struct AS_ColDesc col_descs[MAX_COLUMNS];
+	// Columns
+	struct AS_ColDesc col_descs[AS_MAX_COLUMNS];
 	int col_desc_i;
+
+	// Syntax
+	struct AS_SyntaxBackendMeta syn_backends[AS_MAX_BACKENDS];
 };
 
 extern struct AS_GlobalCtx as_ctx;

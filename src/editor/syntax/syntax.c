@@ -19,17 +19,19 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef AS_KEYBOARD_H
-#define AS_KEYBOARD_H
-
-#include <editor/config.h>
-
+#include "editor/buffer/buffer.h"
+#include <editor/syntax/syntax.h>
 #include <global.h>
-#include <includes.h>
 
-#define AS_MAX_KEY_ELEMENTS 16
+#include <editor/syntax/backends/asm.h>
 
-void key(int c);
-struct AS_CfgTok *configure_keyboard(struct AS_CfgTok *token);
+void init_syntax() {
+	int i = 0;
 
-#endif
+	as_asm_backend_init(i++);
+}
+
+struct AS_SyntaxPoints *get_syntax(struct AS_TextFile *file, struct AS_LLElement *element) {
+
+	return NULL;
+}

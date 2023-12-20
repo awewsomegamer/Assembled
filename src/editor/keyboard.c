@@ -19,7 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "includes.h"
+#include <includes.h>
 #include <editor/buffer/buffer.h>
 #include <editor/keyboard.h>
 #include <editor/config.h>
@@ -51,7 +51,7 @@ struct key_stack_element {
         time_t time;
 };
 
-static struct key_stack_element key_stack[MAX_KEY_ELEMENTS];
+static struct key_stack_element key_stack[AS_MAX_KEY_ELEMENTS];
 static int key_stack_ptr = 0;
 
 // Arguments for local functions depending on given function
@@ -120,7 +120,7 @@ void collapse_stack() {
 void key(int c) {
         // Wrap around (should never happen unless user has more
         //              keys than MAX_KEY_ELEMENTS)
-        if (key_stack_ptr >= MAX_KEY_ELEMENTS) {
+        if (key_stack_ptr >= AS_MAX_KEY_ELEMENTS) {
                 key_stack_ptr = 0;
         }
 

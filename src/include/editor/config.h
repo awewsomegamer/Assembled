@@ -19,8 +19,8 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef AS_CONFIG_H
+#define AS_CONFIG_H
 
 #include <includes.h>
 

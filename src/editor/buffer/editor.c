@@ -387,7 +387,7 @@ struct AS_CfgTok *configure_editor(struct AS_CfgTok *token) {
 			AS_DEBUG_MSG("Warning: default column %d is undefined, switching to a defined column\n", token->value);
 		}
 
-		for (int i = 0; i < MAX_COLUMNS; i++) {
+		for (int i = 0; i < AS_MAX_COLUMNS; i++) {
 			if (as_ctx.col_descs[i].column_positions != NULL) {
 				as_ctx.col_desc_i = i;
 			}

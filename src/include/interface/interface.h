@@ -22,8 +22,8 @@
 #ifndef AS_INTERFACE_H
 #define AS_INTERFACE_H
 
-#define MAX_SCREEN_COUNT        256
-#define GET_SCR_IDX(name)       (general_hash(name) % MAX_SCREEN_COUNT)
+#define AS_MAX_SCREEN_COUNT        256
+#define GET_SCR_IDX(name)       (general_hash(name) % AS_MAX_SCREEN_COUNT)
 
 #define LOCAL_ARROW_YMOVE       0
 #define LOCAL_ARROW_XMOVE       1

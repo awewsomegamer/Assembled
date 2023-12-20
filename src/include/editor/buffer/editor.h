@@ -22,7 +22,7 @@
 #ifndef AS_EDITOR_H
 #define AS_EDITOR_H
 
-#define MAX_COLUMNS 32
+#define AS_MAX_COLUMNS 32
 
 #include <editor/config.h>
 #include <editor/buffer/buffer.h>

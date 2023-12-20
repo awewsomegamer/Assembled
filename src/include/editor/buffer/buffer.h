@@ -26,10 +26,18 @@
 
 #include <includes.h>
 
+struct AS_SyntaxPoints {
+	int x;
+	int length;
+	int color;
+	struct AS_SyntaxPoints *next;
+};
+
 struct AS_LLElement {
         char *contents;
         struct AS_LLElement *next;
         struct AS_LLElement *prev;
+	struct AS_SyntaxPoints *syntax;
 };
 
 struct AS_TextBuf {
@@ -44,11 +52,6 @@ struct AS_TextBuf {
 	struct AS_LLElement *virtual_head;                  // The first line on screen
         struct AS_LLElement *current_element;               // Pointer to the line at (cx, cy)
 	struct AS_LLElement *selection_start_line;          // Pointer to the line at (0, selection_start.y)
-};
-
-struct syntax_highlight {
-        char *extension;
-        char **symbols;
 };
 
 struct AS_TextBuf *new_buffer(int col_start, int col_end);

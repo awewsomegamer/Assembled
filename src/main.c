@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "editor/syntax/syntax.h"
 #include "includes.h"
 #include <editor/buffer/editor.h>
 #include <editor/keyboard.h>
@@ -132,10 +133,11 @@ int main(int argc, char **argv) {
 	as_ctx.col_desc_i = -1;
 
         read_config();
+	init_syntax();
 
 	if (as_ctx.col_desc_i == -1) {
 		// No column was selected to be booted with, try to find a defined one
-		for (int i = 0; i < MAX_COLUMNS; i++) {
+		for (int i = 0; i < AS_MAX_COLUMNS; i++) {
 			if (as_ctx.col_descs[i].column_positions != NULL) {
 				as_ctx.col_desc_i = i;
 				break;
