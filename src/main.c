@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
 
                 while (accumulator >= TARGET_FPS) {
                         editor();
-			AS_DEBUG_MSG("Updating\n");
+
                         if (update == 0) {
                                 accumulator = 0;
                                 break;
@@ -209,7 +209,6 @@ int main(int argc, char **argv) {
                 usleep(8000);
 
                 if (render || (as_ctx.screen->render_options & SCR_OPT_ALWAYS)) {
-			AS_DEBUG_MSG("Rendering\n");
 			interface();
                 }
 

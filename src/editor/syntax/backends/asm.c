@@ -20,6 +20,7 @@
 */
 
 #include "editor/syntax/syntax.h"
+#include "includes.h"
 #include <editor/buffer/buffer.h>
 #include <editor/syntax/backends/asm.h>
 #include <global.h>
@@ -40,7 +41,6 @@ struct keyword keywords[] = {
 };
 
 struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
-	char putback = 0;
 	char c = 0;
 	int x = 0;
 
@@ -50,10 +50,6 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 	struct AS_SyntaxPoints *current = head;
 
 	while ((c = *line)) {
-		if (putback != 0) {
-			c = putback;
-		}
-
 		int color = 0;
 		int length = 1;
 
@@ -67,15 +63,20 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 
 		default: {
 			int i = 0;
-			char n = 0;
+			char n = *(line + i);
+			char *start = line;
 
 			while (isalnum(n) || n == '_') {
-				n = *(line + i);
 				i++;
+				n = *line++;
 			}
 
-			char *extracted = (char *)malloc(i);
-			strncpy(extracted, line, i);
+			i--;
+			line -= 2;
+
+			char *extracted = (char *)malloc(i + 1);
+			strncpy(extracted, start, i);
+			extracted[i] = 0;
 			length = i;
 
 			for (int j = 0; j < (sizeof(keywords)/sizeof(keywords[0])); j++) {
@@ -84,6 +85,8 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 					break;
 				}
 			}
+
+			break;
 		}
 		}
 
@@ -93,14 +96,10 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 		current->length = length;
 		current->next = (struct AS_SyntaxPoints *)malloc(sizeof(struct AS_SyntaxPoints));
 
-		if (putback != 0) {
-			continue;
-		}
-
 		line++;
 	}
 
-	return NULL;
+	return head;
 }
 
 void as_asm_backend_init(int i) {

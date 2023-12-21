@@ -20,10 +20,12 @@
 */
 
 #include "editor/buffer/buffer.h"
+#include "includes.h"
 #include <editor/syntax/syntax.h>
 #include <global.h>
 
 #include <editor/syntax/backends/asm.h>
+#include <string.h>
 
 void init_syntax() {
 	int i = 0;
@@ -32,6 +34,5 @@ void init_syntax() {
 }
 
 struct AS_SyntaxPoints *get_syntax(struct AS_TextFile *file, struct AS_LLElement *element) {
-
-	return NULL;
+	return as_ctx.syn_backends[0].get_syntax(element->contents);
 }

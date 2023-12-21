@@ -28,6 +28,7 @@
 #include <interface/screens/editor_scr.h>
 
 #include <global.h>
+#include <ncurses.h>
 #include <stdio.h>
 
 #define CURSOR_X (as_ctx.text_file->active_buffer->cx)
@@ -37,6 +38,29 @@ static int line_length = 0;
 
 static int offset = 0;
 static int differential = 0;
+
+static void syntactic_mvprintw(struct AS_Bound bounds, struct AS_LLElement *current, struct AS_SyntaxPoints *syntax, int *section_start) {
+	int x = bounds.x;
+	int y = bounds.y;
+	int max_x = bounds.w;
+	int offset = bounds.h;
+
+	for (int i = 0; i < min(strlen(current->contents), max_x); i++) {
+		if ((x + i) == syntax->x) {
+			*section_start = i;
+			attron(COLOR_PAIR(syntax->color));
+		}
+
+		AS_DEBUG_MSG("%d\n", syntax->color);
+		mvaddch(y, x + i, current->contents[i + offset]);
+
+		if ((x + i) == (*section_start + syntax->length)) {
+			attroff(COLOR_PAIR(syntax->color));
+			syntax = syntax->next;
+		}
+
+	}
+}
 
 static void render(struct AS_RenderCtx *context) {
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
@@ -134,6 +158,9 @@ static void render(struct AS_RenderCtx *context) {
 			// Draw each line of the string
 			// TODO: For syntax highlighting, each line needs to
 			//       be drawn character by character
+			struct AS_SyntaxPoints *syntax = current->syntax;
+			int section_start = 0;
+
 			for (int x = 0; x < strlen(current->contents); x += max_length) {
 				int yc = y + (x / max_length) + element_wrap_distortion;
 				int xc = descriptor.column_positions[i];
@@ -147,7 +174,8 @@ static void render(struct AS_RenderCtx *context) {
 
 				// Draw regular text
 				if (selection == 0 || selection_extreme == 0 || as_ctx.text_file->selected_buffers != 0) {
-					mvprintw(yc, xc, "%.*s", max_length, (current->contents + x));
+					syntactic_mvprintw((struct AS_Bound){.y = yc, .x = xc, .w = max_length, .h = x},
+							   current, syntax, &section_start);
 					continue;
 				}
 
@@ -160,7 +188,8 @@ static void render(struct AS_RenderCtx *context) {
 
 				// Draw first segment
 				int length = min(max_length, max(0, abs(char_mode) - x));
-				mvprintw(yc, xc, "%.*s", length, (current->contents + x));
+				syntactic_mvprintw((struct AS_Bound){.y = yc, .x = xc, .w = max_length, .h = x},
+						   current, syntax, &section_start);
 
 				// Disable or enable highlighting for second segment
 				if (extreme_side == 0) {
@@ -240,7 +269,6 @@ static void update(struct AS_RenderCtx *context) {
 	while (currents[0] != NULL) {
 		for (int i = 0; i < as_ctx.text_file->buffer_count; i++) {
 			currents[i]->syntax = get_syntax(as_ctx.text_file, currents[i]);
-
 			currents[i] = currents[i]->next;
 		}
 	}
