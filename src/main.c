@@ -61,7 +61,7 @@ void init_ncurses() {
                 use_default_colors();
                 register_custom_colors();
 
-                init_pair(AS_COLOR_HIGHLIGHT, COLOR_BLACK, 16);
+
                 AS_DEBUG_MSG("Initialized Assembled colors\n");
         }
 
