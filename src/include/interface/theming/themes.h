@@ -28,11 +28,14 @@
 #include <includes.h>
 
 #define AS_MAX_CUSTOM_COLORS  32
+
 #define AS_CUSTOM_COLOR_START 16
+#define AS_COLOR_HIGHLIGHT    AS_CUSTOM_COLOR_START
 
 #define AS_RED_MASK           16
 #define AS_GREEN_MASK         8
 #define AS_BLUE_MASK          0
+
 
 void register_custom_colors();
 struct AS_CfgTok *configure_theme(struct AS_CfgTok *token);

@@ -23,6 +23,7 @@
 
 #include <interface/screens/start.h>
 #include <interface/interface.h>
+#include <interface/theming/themes.h>
 
 #include <global.h>
 #include <util.h>

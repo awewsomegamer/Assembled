@@ -19,13 +19,14 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "includes.h"
+#include <includes.h>
 #include <editor/buffer/buffer.h>
 #include <editor/buffer/editor.h>
 #include <editor/config.h>
 
 #include <interface/interface.h>
 #include <interface/screens/editor_scr.h>
+#include <interface/theming/themes.h>
 
 #include <global.h>
 #include <ncurses.h>
@@ -39,26 +40,26 @@ static int line_length = 0;
 static int offset = 0;
 static int differential = 0;
 
+// Draw line with syntax highlighting
 static void syntactic_mvprintw(struct AS_Bound bounds, struct AS_LLElement *current, struct AS_SyntaxPoints *syntax, int *section_start) {
 	int x = bounds.x;
 	int y = bounds.y;
 	int max_x = bounds.w;
 	int offset = bounds.h;
 
-	for (int i = 0; i < min(strlen(current->contents), max_x); i++) {
+	// Iterate through string's length
+	for (int i = 0; i < min(strlen(current->contents) - offset, max_x); i++) {
 		if ((x + i) == syntax->x) {
 			*section_start = i;
 			attron(COLOR_PAIR(syntax->color));
 		}
 
-		AS_DEBUG_MSG("%d\n", syntax->color);
 		mvaddch(y, x + i, current->contents[i + offset]);
 
 		if ((x + i) == (*section_start + syntax->length)) {
 			attroff(COLOR_PAIR(syntax->color));
 			syntax = syntax->next;
 		}
-
 	}
 }
 

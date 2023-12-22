@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "includes.h"
 #include <editor/config.h>
 
 #include <interface/theming/themes.h>
@@ -49,8 +50,9 @@ static void read_theme(FILE *file) {
 
                 AS_NEXT_TOKEN
 
-                if (idx >= 32)
+		if (idx >= 32) {
                         continue;
+		}
 
                 custom_colors[idx].color_value = color;
                 custom_colors[idx].information |= 1;
@@ -70,14 +72,18 @@ static void read_theme(FILE *file) {
 
 void register_custom_colors() {
         for (int i = 0; i < AS_MAX_CUSTOM_COLORS; i++) {
-                if ((custom_colors[i].information & 1) == 0)
+                if ((custom_colors[i].information & 1) == 0) {
                         continue;
+		}
 
-                short red =   (short)(((float)((custom_colors[i].color_value >> AS_RED_MASK  ) & 0xFF) / 256) * 1000);
+                short red   = (short)(((float)((custom_colors[i].color_value >> AS_RED_MASK  ) & 0xFF) / 256) * 1000);
                 short green = (short)(((float)((custom_colors[i].color_value >> AS_GREEN_MASK) & 0xFF) / 256) * 1000);
-                short blue =  (short)(((float)((custom_colors[i].color_value >> AS_BLUE_MASK ) & 0xFF) / 256) * 1000);
+                short blue  = (short)(((float)((custom_colors[i].color_value >> AS_BLUE_MASK ) & 0xFF) / 256) * 1000);
+
+		AS_DEBUG_MSG("%d\n", i + AS_CUSTOM_COLOR_START);
 
                 init_color(i + AS_CUSTOM_COLOR_START, red, green, blue);
+		init_pair(i + AS_CUSTOM_COLOR_START, COLOR_BLACK, i + AS_CUSTOM_COLOR_START);
         }
 }
 

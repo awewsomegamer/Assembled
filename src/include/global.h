@@ -31,8 +31,6 @@
 
 #define TARGET_FPS (double)(1.0/60.0)
 
-#define AS_COLOR_HIGHLIGHT 1 
-
 #define max(a, b) \
 	({ __typeof__ (a) _a = (a); \
 	__typeof__ (b) _b = (b); \

@@ -21,6 +21,7 @@
 
 #include "editor/syntax/syntax.h"
 #include "includes.h"
+#include "interface/theming/themes.h"
 #include <editor/buffer/buffer.h>
 #include <editor/syntax/backends/asm.h>
 #include <global.h>
@@ -31,15 +32,26 @@ struct keyword {
 };
 
 enum {
-	INSTRUCTION = 16,
-	LABEL = 17,
-	COLON = 18,
+	INSTRUCTION = AS_CUSTOM_COLOR_START,
+	LABEL = INSTRUCTION + 1,
+	COLON = LABEL + 1,
+	SQUARE = COLON + 1,
 };
 
 struct keyword keywords[] = {
-	{ "mov", INSTRUCTION },
+//	{ "mov", INSTRUCTION },
 };
 
+// ERROR: Now that the update function uses this function
+//        and possibly even the rendering code relying on
+//        the list produced by the following code, the user
+//        cannot type spaces, typing mov with the above table's
+//        element uncommented all result in the same error:
+//        Fatal glibc error: malloc.c:2594 (sysmalloc):
+//        assertion failed: (old_top == initial_top (av)
+//        && old_size == 0) || ((unsigned long) (old_size)
+//        >= MINSIZE && prev_inuse (old_top) &&
+//        ((unsigned long) old_end & (pagesize - 1)) == 0)
 struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 	char c = 0;
 	int x = 0;
@@ -49,6 +61,7 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 
 	struct AS_SyntaxPoints *current = head;
 
+	// ERROR: This loop gets stuck sometimes
 	while ((c = *line)) {
 		int color = 0;
 		int length = 1;
@@ -57,6 +70,13 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 		case ':': {
 			current->color = LABEL;
 			color = COLON;
+
+			break;
+		}
+
+		case '[':
+		case ']': {
+			color = SQUARE;
 
 			break;
 		}
@@ -72,6 +92,8 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 			}
 
 			i--;
+			// ERROR: This is probably the cause of the
+			//        above errors
 			line -= 2;
 
 			char *extracted = (char *)malloc(i + 1);
@@ -85,6 +107,8 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 					break;
 				}
 			}
+
+			free(extracted);
 
 			break;
 		}
