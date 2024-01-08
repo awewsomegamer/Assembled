@@ -41,7 +41,7 @@ static int offset = 0;
 static int differential = 0;
 
 // Draw line with syntax highlighting
-static void syntactic_mvprintw(struct AS_Bound bounds, struct AS_LLElement *current, struct AS_SyntaxPoints *syntax, int *section_start) {
+static struct AS_SyntaxPoints *syntactic_mvprintw(struct AS_Bound bounds, struct AS_LLElement *current, struct AS_SyntaxPoints *syntax, int *section_start) {
 	int x = bounds.x;
 	int y = bounds.y;
 	int max_x = bounds.w;
@@ -49,18 +49,22 @@ static void syntactic_mvprintw(struct AS_Bound bounds, struct AS_LLElement *curr
 
 	// Iterate through string's length
 	for (int i = 0; i < min(strlen(current->contents) - offset, max_x); i++) {
-		if ((x + i) == syntax->x) {
+		AS_DEBUG_MSG("%d : %d -> %d\n", (offset + i), syntax->x, (*section_start + syntax->length))
+
+		if ((offset + i) == (*section_start + syntax->length)) {
+			attroff(COLOR_PAIR(syntax->color));
+			syntax = syntax->next;
+		}
+
+		if ((offset + i) == syntax->x) {
 			*section_start = i;
 			attron(COLOR_PAIR(syntax->color));
 		}
 
 		mvaddch(y, x + i, current->contents[i + offset]);
-
-		if ((x + i) == (*section_start + syntax->length)) {
-			attroff(COLOR_PAIR(syntax->color));
-			syntax = syntax->next;
-		}
 	}
+
+	return syntax;
 }
 
 static void render(struct AS_RenderCtx *context) {
@@ -157,8 +161,6 @@ static void render(struct AS_RenderCtx *context) {
 			}
 
 			// Draw each line of the string
-			// TODO: For syntax highlighting, each line needs to
-			//       be drawn character by character
 			struct AS_SyntaxPoints *syntax = current->syntax;
 			int section_start = 0;
 
@@ -175,7 +177,7 @@ static void render(struct AS_RenderCtx *context) {
 
 				// Draw regular text
 				if (selection == 0 || selection_extreme == 0 || as_ctx.text_file->selected_buffers != 0) {
-					syntactic_mvprintw((struct AS_Bound){.y = yc, .x = xc, .w = max_length, .h = x},
+					syntax = syntactic_mvprintw((struct AS_Bound){.y = yc, .x = xc, .w = max_length, .h = x},
 							   current, syntax, &section_start);
 					continue;
 				}
@@ -189,7 +191,7 @@ static void render(struct AS_RenderCtx *context) {
 
 				// Draw first segment
 				int length = min(max_length, max(0, abs(char_mode) - x));
-				syntactic_mvprintw((struct AS_Bound){.y = yc, .x = xc, .w = max_length, .h = x},
+				syntax = syntactic_mvprintw((struct AS_Bound){.y = yc, .x = xc, .w = max_length, .h = x},
 						   current, syntax, &section_start);
 
 				// Disable or enable highlighting for second segment
@@ -269,6 +271,18 @@ static void update(struct AS_RenderCtx *context) {
 
 	while (currents[0] != NULL) {
 		for (int i = 0; i < as_ctx.text_file->buffer_count; i++) {
+			// ERROR: Segmentation fault
+//			if (currents[i]->syntax != NULL) {
+//				struct AS_SyntaxPoints *syntax_current = currents[i]->syntax;
+
+//				while (syntax_current != NULL) {
+//					struct AS_SyntaxPoints *tmp = syntax_current;
+//					syntax_current = syntax_current->next;
+//					// ERROR: Double Free
+//					//free(tmp);
+//				}
+//			}
+
 			currents[i]->syntax = get_syntax(as_ctx.text_file, currents[i]);
 			currents[i] = currents[i]->next;
 		}

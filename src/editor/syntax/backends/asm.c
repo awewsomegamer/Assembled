@@ -57,68 +57,61 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 	int x = 0;
 
 	struct AS_SyntaxPoints *head = (struct AS_SyntaxPoints *)malloc(sizeof(struct AS_SyntaxPoints));
-	head->next = head;
-
+	memset(head, 0, sizeof(struct AS_SyntaxPoints));
 	struct AS_SyntaxPoints *current = head;
 
 	// ERROR: This loop gets stuck sometimes
 	while ((c = *line)) {
-		int color = 0;
-		int length = 1;
+		current->length = 1;
 
 		switch (c) {
 		case ':': {
-			current->color = LABEL;
-			color = COLON;
+			current->color = COLON;
 
 			break;
 		}
 
 		case '[':
 		case ']': {
-			color = SQUARE;
+			current->color = SQUARE;
 
 			break;
 		}
 
 		default: {
+			break;
 			int i = 0;
 			char n = *(line + i);
 			char *start = line;
 
 			while (isalnum(n) || n == '_') {
 				i++;
-				n = *line++;
+				n = *(line + i);
 			}
 
-			i--;
-			// ERROR: This is probably the cause of the
-			//        above errors
-			line -= 2;
-
-			char *extracted = (char *)malloc(i + 1);
+			char *extracted = (char *)malloc(i);
 			strncpy(extracted, start, i);
 			extracted[i] = 0;
-			length = i;
+			current->length = i - 1;
 
 			for (int j = 0; j < (sizeof(keywords)/sizeof(keywords[0])); j++) {
 				if (strcmp(extracted, keywords[j].word) == 0) {
-					color = keywords[j].color;
+					current->color = LABEL;
 					break;
 				}
 			}
 
+			line += i - 1;
 			free(extracted);
 
 			break;
 		}
 		}
 
-		current = current->next;
-		current->color = color;
 		current->x = x++;
-		current->length = length;
 		current->next = (struct AS_SyntaxPoints *)malloc(sizeof(struct AS_SyntaxPoints));
+		memset(current->next, 0, sizeof(struct AS_SyntaxPoints));
+		current = current->next;
 
 		line++;
 	}
