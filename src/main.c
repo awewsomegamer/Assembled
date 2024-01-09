@@ -57,10 +57,10 @@ void init_ncurses() {
 
         if (has_colors()) {
                 AS_DEBUG_MSG("Terminal has colors\n");
+
                 start_color();
                 use_default_colors();
                 register_custom_colors();
-
 
                 AS_DEBUG_MSG("Initialized Assembled colors\n");
         }

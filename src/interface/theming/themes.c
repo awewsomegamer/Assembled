@@ -99,7 +99,7 @@ void register_custom_colors() {
                 init_color(i + AS_CUSTOM_COLOR_START, red, green, blue);
 
 		if (((custom_colors[i].information >> 1) & 1) == 1) {
-			init_pair(i + AS_CUSTOM_COLOR_START, i + AS_CUSTOM_COLOR_START, COLOR_BLACK);
+			init_pair(i + AS_CUSTOM_COLOR_START, i + AS_CUSTOM_COLOR_START, -1);
 		} else {
 			init_pair(i + AS_CUSTOM_COLOR_START, COLOR_BLACK, i + AS_CUSTOM_COLOR_START);
 		}
