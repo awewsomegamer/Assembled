@@ -78,6 +78,8 @@ enum AS_STR_LOOKUP_IDXS {
 	AS_CFG_LOOKUP_DEFAULT,
 	AS_CFG_LOOKUP_DEFINE,
 	AS_CFG_LOOKUP_INCLUDE,
+	AS_CFG_LOOKUP_FOREGROUND,
+	AS_CFG_LOOKUP_BACKGROUND,
 };
 
 static const char *str_lookup[] = {
@@ -110,6 +112,8 @@ static const char *str_lookup[] = {
 	[AS_CFG_LOOKUP_MOVE_LN_DOWN]  	= "move_line_down",
 	[AS_CFG_LOOKUP_COLDESC_LEFT]    = "column_left",
 	[AS_CFG_LOOKUP_COLDESC_RIGHT]   = "column_right",
+	[AS_CFG_LOOKUP_FOREGROUND]      = "foreground",
+	[AS_CFG_LOOKUP_BACKGROUND]      = "background",
 };
 
 struct AS_CfgTok {

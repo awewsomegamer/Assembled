@@ -49,9 +49,7 @@ static struct AS_SyntaxPoints *syntactic_mvprintw(struct AS_Bound bounds, struct
 
 	// Iterate through string's length
 	for (int i = 0; i < min(strlen(current->contents) - offset, max_x); i++) {
-		AS_DEBUG_MSG("%d : %d -> %d\n", (offset + i), syntax->x, (*section_start + syntax->length))
-
-		if ((offset + i) == (*section_start + syntax->length)) {
+		if ((offset + i) == ((*section_start) + syntax->length)) {
 			attroff(COLOR_PAIR(syntax->color));
 			syntax = syntax->next;
 		}

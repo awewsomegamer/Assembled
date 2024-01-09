@@ -48,7 +48,7 @@
 #ifdef DEBUG_MODE
 #define AS_DEBUG_CODE(code) code
 #define AS_DEBUG_MSG(...) { \
-			for (int __i__ = fprintf(__AS_DBG_LOG_FILE__, "[%s:%d, AS]: ", __FILE_NAME__, __LINE__); __i__ < 24; __i__++) \
+			for (int __i__ = fprintf(__AS_DBG_LOG_FILE__, "[%s:%d, AS]: ", __FILE_NAME__, __LINE__); __i__ < 40; __i__++) \
 				fputc(' ', __AS_DBG_LOG_FILE__); \
 			fprintf(__AS_DBG_LOG_FILE__, __VA_ARGS__); \
 		       }

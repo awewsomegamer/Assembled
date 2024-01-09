@@ -25,12 +25,15 @@
 #include <interface/theming/themes.h>
 
 #include <global.h>
+#include <ncurses.h>
 
 struct assembled_color {
         uint32_t color_value;
-        uint8_t information; // 0 0 0 0 0 0 0 P
-                             //               ` 1: Color is non-null
+        uint8_t information; // 0 0 0 0 0 0 F P
+                             //             | ` 1: Color is non-null
+                             //             `-- 1: Color is a foreground color
 };
+
 static struct assembled_color custom_colors[32];
 
 static void read_theme(FILE *file) {
@@ -45,10 +48,23 @@ static void read_theme(FILE *file) {
                 AS_EXPECT_TOKEN(AS_CFG_TOKEN_COL, "Expected colon");
 
                 AS_NEXT_TOKEN
-                AS_EXPECT_TOKEN(AS_CFG_TOKEN_INT, "Expected integer")
+                AS_EXPECT_TOKEN(AS_CFG_TOKEN_INT, "Expected integer");
                 uint32_t color = token->value;
 
                 AS_NEXT_TOKEN
+
+		if (token->type == AS_CFG_TOKEN_COL) {
+			AS_NEXT_TOKEN
+			AS_EXPECT_TOKEN(AS_CFG_TOKEN_KEY, "Expected keyword")
+
+			if (token->value == AS_CFG_LOOKUP_FOREGROUND) {
+				custom_colors[idx].information |= (1 << 1);
+			}
+
+			AS_DEBUG_MSG("Funny moment\n")
+
+			AS_NEXT_TOKEN
+		}
 
 		if (idx >= 32) {
                         continue;
@@ -80,10 +96,13 @@ void register_custom_colors() {
                 short green = (short)(((float)((custom_colors[i].color_value >> AS_GREEN_MASK) & 0xFF) / 256) * 1000);
                 short blue  = (short)(((float)((custom_colors[i].color_value >> AS_BLUE_MASK ) & 0xFF) / 256) * 1000);
 
-		AS_DEBUG_MSG("%d\n", i + AS_CUSTOM_COLOR_START);
-
                 init_color(i + AS_CUSTOM_COLOR_START, red, green, blue);
-		init_pair(i + AS_CUSTOM_COLOR_START, COLOR_BLACK, i + AS_CUSTOM_COLOR_START);
+
+		if (((custom_colors[i].information >> 1) & 1) == 1) {
+			init_pair(i + AS_CUSTOM_COLOR_START, i + AS_CUSTOM_COLOR_START, COLOR_BLACK);
+		} else {
+			init_pair(i + AS_CUSTOM_COLOR_START, COLOR_BLACK, i + AS_CUSTOM_COLOR_START);
+		}
         }
 }
 

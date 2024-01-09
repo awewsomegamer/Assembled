@@ -39,19 +39,9 @@ enum {
 };
 
 struct keyword keywords[] = {
-//	{ "mov", INSTRUCTION },
+	{ "mov", INSTRUCTION },
 };
 
-// ERROR: Now that the update function uses this function
-//        and possibly even the rendering code relying on
-//        the list produced by the following code, the user
-//        cannot type spaces, typing mov with the above table's
-//        element uncommented all result in the same error:
-//        Fatal glibc error: malloc.c:2594 (sysmalloc):
-//        assertion failed: (old_top == initial_top (av)
-//        && old_size == 0) || ((unsigned long) (old_size)
-//        >= MINSIZE && prev_inuse (old_top) &&
-//        ((unsigned long) old_end & (pagesize - 1)) == 0)
 struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 	char c = 0;
 	int x = 0;
@@ -59,14 +49,18 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 	struct AS_SyntaxPoints *head = (struct AS_SyntaxPoints *)malloc(sizeof(struct AS_SyntaxPoints));
 	memset(head, 0, sizeof(struct AS_SyntaxPoints));
 	struct AS_SyntaxPoints *current = head;
+	struct AS_SyntaxPoints *prev = NULL;
 
-	// ERROR: This loop gets stuck sometimes
 	while ((c = *line)) {
 		current->length = 1;
 
 		switch (c) {
 		case ':': {
 			current->color = COLON;
+
+			if (prev != NULL && prev->color == 0) {
+				prev->color = LABEL;
+			}
 
 			break;
 		}
@@ -78,8 +72,15 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 			break;
 		}
 
+		case ',':
+		case ' ': {
+			x++;
+
+			goto skip;
+		}
+
+
 		default: {
-			break;
 			int i = 0;
 			char n = *(line + i);
 			char *start = line;
@@ -92,27 +93,32 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 			char *extracted = (char *)malloc(i);
 			strncpy(extracted, start, i);
 			extracted[i] = 0;
-			current->length = i - 1;
+
+			current->length = i;
 
 			for (int j = 0; j < (sizeof(keywords)/sizeof(keywords[0])); j++) {
 				if (strcmp(extracted, keywords[j].word) == 0) {
-					current->color = LABEL;
+					current->color = keywords[j].color;
 					break;
 				}
 			}
 
 			line += i - 1;
+
 			free(extracted);
 
 			break;
 		}
 		}
 
-		current->x = x++;
+		current->x = x;
+		x += current->length;
 		current->next = (struct AS_SyntaxPoints *)malloc(sizeof(struct AS_SyntaxPoints));
 		memset(current->next, 0, sizeof(struct AS_SyntaxPoints));
+		prev = current;
 		current = current->next;
 
+skip:
 		line++;
 	}
 
