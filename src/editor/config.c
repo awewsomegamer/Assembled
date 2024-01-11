@@ -29,6 +29,11 @@
 #include <global.h>
 #include <util.h>
 
+#ifdef AS_GLIB_ENABLE
+	#include <glib-2.0/glib.h>
+	static GHashTable *lex_tokens;
+#endif
+
 // Interpret the stream of configuration tokens
 static void interpret_token_stream(struct AS_CfgTok *token) {
         while (token->type != AS_CFG_TOKEN_EOF) {
@@ -245,19 +250,33 @@ struct AS_CfgTok *cfg_lex(FILE *file) {
                         current->str = str;
 
                         // Keyword
-                        for (int i = 0; i < sizeof(str_lookup)/sizeof(str_lookup[0]); i++) {
-                                if (strcmp(str_lookup[i], str) == 0) {
-                                        current->type = AS_CFG_TOKEN_KEY;
-                                        current->value = i;
-                                        current->str = NULL;
+                        #ifdef AS_GLIB_ENABLE
+				int str_index = (uintptr_t)g_hash_table_lookup(lex_tokens, str) - 1;
 
-                                        // String is no longer needed
-                                        // Memory Manage
-                                        free(str);
+				if (str_index >= 0) {
+					current->type = AS_CFG_TOKEN_KEY;
+					current->value = str_index;
+					current->str = NULL;
 
-                                        break;
-                                }
-                        }
+					// String is no longer needed
+					// Memory Manage
+					free(str);
+				}
+			#else
+				for (int i = 0; i < sizeof(str_lookup)/sizeof(str_lookup[0]); i++) {
+					if (*str == *str_lookup[i] && strcmp(str_lookup[i], str) == 0) {
+						current->type = AS_CFG_TOKEN_KEY;
+						current->value = i;
+						current->str = NULL;
+
+						// String is no longer needed
+						// Memory Manage
+						free(str);
+
+						break;
+					}
+				}
+			#endif
 
                         break;
                 }
@@ -270,6 +289,14 @@ struct AS_CfgTok *cfg_lex(FILE *file) {
 }
 
 int read_config() {
+	#ifdef AS_GLIB_ENABLE
+		lex_tokens = g_hash_table_new(g_str_hash, g_str_equal);
+
+		for (int i = 0; i < sizeof(str_lookup)/sizeof(str_lookup[0]); i++) {
+			g_hash_table_insert(lex_tokens, (gpointer)str_lookup[i], (gpointer)(i + 1));
+		}
+	#endif
+
         // Get the name of the home directory
         struct passwd *pw = getpwuid(getuid());
 

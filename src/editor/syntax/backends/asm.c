@@ -28,6 +28,11 @@
 #include <global.h>
 #include <string.h>
 
+#ifdef AS_GLIB_ENABLE
+	#include <glib-2.0/glib.h>
+	static GHashTable *keywords_hash;
+#endif
+
 struct keyword {
 	const char *word;
 	int color;
@@ -43,7 +48,7 @@ enum {
 	REGISTER = MACRO + 1,
 };
 
-struct keyword keywords[] = {
+static struct keyword keywords[] = {
 	{ "RAX", REGISTER },
 	{ "RCX", REGISTER },
 	{ "RBX", REGISTER },
@@ -1369,15 +1374,21 @@ struct keyword keywords[] = {
 };
 
 struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
+	if (line == NULL) {
+		return NULL;
+	}
+
 	char c = 0;
 	int x = 0;
+
+	int org_len = strlen(line);
 
 	struct AS_SyntaxPoints *head = (struct AS_SyntaxPoints *)malloc(sizeof(struct AS_SyntaxPoints));
 	memset(head, 0, sizeof(struct AS_SyntaxPoints));
 	struct AS_SyntaxPoints *current = head;
 	struct AS_SyntaxPoints *prev = NULL;
 
-	while ((c = *line)) {
+	while ((c = *line) && x <= org_len) {
 		current->length = 1;
 
 		switch (c) {
@@ -1405,13 +1416,6 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 			break;
 		}
 
-		case ',':
-		case ' ': {
-			x++;
-
-			goto skip;
-		}
-
 		case '\"': {
 
 
@@ -1427,6 +1431,12 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 		}
 
 		default: {
+			// Make sure the starting character is valid
+			if (!isalnum(*line) && *line != '_') {
+				break;
+			}
+
+			// Read string
 			int i = 0;
 			char n = *(line + i);
 			char *start = line;
@@ -1440,33 +1450,48 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 			strncpy(extracted, start, i);
 			extracted[i] = 0;
 
+			// Convert to uppercase
 			for (int j = 0; j < i; j++) {
 				extracted[j] = toupper(extracted[j]);
 			}
 
 			current->length = i;
 
-			for (int j = 0; j < (sizeof(keywords)/sizeof(keywords[0])); j++) {
-				if (strcmp(extracted, keywords[j].word) == 0) {
-					current->color = keywords[j].color;
-					break;
-				}
-			}
+			// Lookup the color
+			#ifdef AS_GLIB_ENABLE
+				struct keyword *keyword = g_hash_table_lookup(keywords_hash, (gpointer)extracted);
 
+				if (keyword != NULL) {
+					current->color = keyword->color;
+				}
+			#else
+				for (int j = 0; j < (sizeof(keywords)/sizeof(keywords[0])); j++) {
+					if (*extracted == *keywords[j].word && strcmp(extracted, keywords[j].word) == 0) {
+						current->color = keywords[j].color;
+						break;
+					}
+				}
+			#endif
+
+			// Check if string is apart of macro
 			if (prev != NULL && prev->color == MACRO) {
 				current->color = MACRO;
 			}
 
+			// Advance
 			line += i - 1;
 
+			// Memory Manage
 			free(extracted);
 
 			break;
 		}
 		}
 
+		// Set properties of current link
 		current->x = x;
 		x += current->length;
+		// Advance
 		current->next = (struct AS_SyntaxPoints *)malloc(sizeof(struct AS_SyntaxPoints));
 		memset(current->next, 0, sizeof(struct AS_SyntaxPoints));
 		prev = current;
@@ -1482,6 +1507,14 @@ finish:
 }
 
 void as_asm_backend_init(int i) {
+	#ifdef AS_GLIB_ENABLE
+		keywords_hash = g_hash_table_new(g_str_hash, g_str_equal);
+
+		for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
+			g_hash_table_insert(keywords_hash, (gpointer)keywords[i].word, (gpointer)&keywords[i]);
+		}
+	#endif
+
 	as_ctx.syn_backends[i].extensions[0] = AS_SYNTAX_TYPE_ASM;
 	as_ctx.syn_backends[i].get_syntax = as_asm_get_syntax;
 }

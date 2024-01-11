@@ -240,7 +240,10 @@ void buffer_char_del() {
 			}
 
 			// Memory Manage
-			free_line_list_element(element->next);
+			// ERROR: Causes a segmentation fault in editor_scr.c->update
+			//        and editor_scr.c->render. Those two functions manage to
+			//        somehow access the freed bit of memory.
+			//free_line_list_element(element->next);
 			
 			// Update links
 			element->next = line_over;

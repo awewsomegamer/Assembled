@@ -19,6 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "util.h"
 #include <includes.h>
 #include <editor/buffer/buffer.h>
 #include <editor/buffer/editor.h>
@@ -49,12 +50,12 @@ static struct AS_SyntaxPoints *syntactic_mvprintw(struct AS_Bound bounds, struct
 
 	// Iterate through string's length
 	for (int i = 0; i < min(strlen(current->contents) - offset, max_x); i++) {
-		if ((offset + i) == ((*section_start) + syntax->length)) {
+		if (syntax != NULL && (offset + i) == ((*section_start) + syntax->length)) {
 			attroff(COLOR_PAIR(syntax->color));
 			syntax = syntax->next;
 		}
 
-		if ((offset + i) == syntax->x) {
+		if (syntax != NULL && (offset + i) == syntax->x) {
 			*section_start = i;
 			attron(COLOR_PAIR(syntax->color));
 		}
@@ -175,8 +176,11 @@ static void render(struct AS_RenderCtx *context) {
 
 				// Draw regular text
 				if (selection == 0 || selection_extreme == 0 || as_ctx.text_file->selected_buffers != 0) {
+					mvprintw(yc, xc, "%.*s", max_length, (current->contents + x));
+
 					syntax = syntactic_mvprintw((struct AS_Bound){.y = yc, .x = xc, .w = max_length, .h = x},
 							   current, syntax, &section_start);
+
 					continue;
 				}
 
@@ -189,6 +193,7 @@ static void render(struct AS_RenderCtx *context) {
 
 				// Draw first segment
 				int length = min(max_length, max(0, abs(char_mode) - x));
+
 				syntax = syntactic_mvprintw((struct AS_Bound){.y = yc, .x = xc, .w = max_length, .h = x},
 						   current, syntax, &section_start);
 
@@ -200,7 +205,8 @@ static void render(struct AS_RenderCtx *context) {
 				}
 
 				// Draw second segment
-				mvprintw(yc, xc + length, "%.*s", max_length - length, (current->contents + x + length));
+				syntax = syntactic_mvprintw((struct AS_Bound){.y = yc, .x = xc + length, .w = max_length, .h = x + length},
+							    current, syntax, &section_start);
 			}
 
 			attroff(COLOR_PAIR(AS_COLOR_HIGHLIGHT));
@@ -225,6 +231,9 @@ static void render(struct AS_RenderCtx *context) {
 	int column_length = (active_buffer->col_end == -1 ? context->max_x : active_buffer->col_end) - column_start;
 
 	move(CURSOR_Y - offset + cy_wrap_distortion + (CURSOR_X / column_length), (CURSOR_X % column_length) + column_start);
+
+	// Memory Manage
+	free(currents);
 }
 
 // BUG: Ocassionally there is a bit of desync
@@ -250,6 +259,7 @@ static void update(struct AS_RenderCtx *context) {
 		direction = -1;
 	}
 
+	// Update virtual head when page scrolls down
 	for (int i = 0; (i < as_ctx.col_descs[as_ctx.col_desc_i].column_count) && (direction != 0); i++) {
 		struct AS_LLElement *element = as_ctx.text_file->buffers[i]->virtual_head;
 		struct AS_LLElement *next = (direction == -1 ? element->prev : element->next);
@@ -259,7 +269,6 @@ static void update(struct AS_RenderCtx *context) {
 		}
 	}
 
-	// Update syntax highlighting
 	// Create and initialize a list of current pointers
 	struct AS_LLElement **currents = (struct AS_LLElement **)calloc(as_ctx.text_file->buffer_count, sizeof(struct AS_LLElement *));
 
@@ -267,24 +276,31 @@ static void update(struct AS_RenderCtx *context) {
 		currents[i] = as_ctx.text_file->buffers[i]->virtual_head;
 	}
 
+	// Update syntax highlighting
 	while (currents[0] != NULL) {
 		for (int i = 0; i < as_ctx.text_file->buffer_count; i++) {
-			// ERROR: Segmentation fault
-//			if (currents[i]->syntax != NULL) {
-//				struct AS_SyntaxPoints *syntax_current = currents[i]->syntax;
+			if (currents[i] == NULL) {
+				continue;
+			}
 
-//				while (syntax_current != NULL) {
-//					struct AS_SyntaxPoints *tmp = syntax_current;
-//					syntax_current = syntax_current->next;
-//					// ERROR: Double Free
-//					//free(tmp);
-//				}
-//			}
+			if (currents[i]->syntax != NULL) {
+				struct AS_SyntaxPoints *current = currents[i]->syntax;
+
+				while (current != NULL) {
+					struct AS_SyntaxPoints *tmp = current;
+					current = current->next;
+					// ERROR: Causes global mainfree(): invalid size
+					free(tmp);
+				}
+			}
 
 			currents[i]->syntax = get_syntax(as_ctx.text_file, currents[i]);
 			currents[i] = currents[i]->next;
 		}
 	}
+
+	// Memory Manage
+	free(currents);
 }
 
 static void local(int code, int value) {
@@ -299,9 +315,10 @@ static void local(int code, int value) {
 		// Update all current pointers one up
 		for (int i = 0; i < descriptor.column_count; i++) {
 			struct AS_LLElement *current = as_ctx.text_file->buffers[i]->current_element;
+			struct AS_LLElement *next = (value == -1 ? current->prev : current->next);
 
-			if ((value == -1 ? current->prev : current->next) != NULL) {
-				as_ctx.text_file->buffers[i]->current_element = (value == -1 ? current->prev : current->next);
+			if (next != NULL) {
+				as_ctx.text_file->buffers[i]->current_element = next;
 				moved = 1;
 			}
                }
