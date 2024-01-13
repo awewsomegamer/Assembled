@@ -13,7 +13,7 @@ loop:	mov rbx, [n2]
 	cmp rcx, 0	
 	jle loop	
 		
-	mov rdi, string	
+?	mov rdi, string	
 	mov rsi, rax	
 	mov rdx, FIBONACCI_COUNT	
 	call printf	

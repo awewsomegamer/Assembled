@@ -26,6 +26,7 @@
 
 #include <global.h>
 #include <includes.h>
+#include <string.h>
 
 void free_line_list_element(struct AS_LLElement *element) {
 	free(element->contents);
@@ -84,7 +85,7 @@ void buffer_char_insert(char c) {
 	switch (c) {
 	case '\n': {
 		// Iterate through all buffers excluding the active one
-		for (int i = 0; i < as_ctx.col_descs[as_ctx.col_desc_i].column_count; i++) {
+		for (int i = 0; i < as_ctx.text_file->buffer_count; i++) {
 			if (as_ctx.text_file->buffers[i] == active_text_buffer) {
 				continue;
 			}
@@ -92,6 +93,7 @@ void buffer_char_insert(char c) {
 			// Create a new line and its element
 			struct AS_LLElement *tmp = as_ctx.text_file->buffers[i]->current_element;
 			struct AS_LLElement *new_element = (struct AS_LLElement *)malloc(sizeof(struct AS_LLElement));
+			memset(new_element, 0, sizeof(struct AS_LLElement));
 
 			// Allocate contents
 			new_element->contents = (char *)malloc(1);
@@ -111,6 +113,8 @@ void buffer_char_insert(char c) {
 				}
 
 				tmp->next = new_element;
+
+				as_ctx.text_file->buffers[i]->current_element = new_element;
 			} else {
 				// If it will, place the new line before
 				// the current line
@@ -123,17 +127,22 @@ void buffer_char_insert(char c) {
 
 				tmp->prev = new_element;
 
+				// If current_element was the head of the file
+				// update it to be new_element
 				if (tmp == as_ctx.text_file->buffers[i]->head) {
 					as_ctx.text_file->buffers[i]->head = new_element;
 				}
+
+				// If current_element was the virtual head of the file
+				// update it to be new_element
+				if (tmp == as_ctx.text_file->buffers[i]->virtual_head) {
+					as_ctx.text_file_head->buffers[i]->virtual_head = new_element;
+				}
 			}
-
-			// Manage the current element
-			as_ctx.text_file->buffers[i]->current_element = active_text_buffer->cx > 0 ? new_element : tmp;  
 		}
-
 		// Create new element
 		struct AS_LLElement *next_element = (struct AS_LLElement *)malloc(sizeof(struct AS_LLElement));
+		memset(next_element, 0, sizeof(struct AS_LLElement));
 
 		// Insert it into list
 		next_element->next = element->next;
@@ -149,8 +158,9 @@ void buffer_char_insert(char c) {
 		size_t new_line_size = strlen(element->contents) - active_text_buffer->cx;
 
 		// Allocate new contents
-		char *contents = (char *)malloc(max(new_line_size, 1));
-		memset(contents, 0, max(new_line_size, 1));
+		int contents_length = max(new_line_size, 1);
+		char *contents = (char *)malloc(contents_length);
+		memset(contents, 0, contents_length);
 
 		// If the user pressed enter within the line then
 		if (new_line_size > 0) {
@@ -167,15 +177,13 @@ void buffer_char_insert(char c) {
 
 		// Set contents
 		next_element->contents = contents;
+		// Manage
+		active_text_buffer->current_element = next_element;
 
 		// Increment cy and reset cx
 		(as_ctx.text_file->cy)++;
 		(active_text_buffer->cx) = 0;
 
-		// Manage
-		active_text_buffer->current_element = next_element;
-
-		AS_DEBUG_MSG("Calling LOCAL_LINE_INSERT\n");
 		as_ctx.screen->local(LOCAL_LINE_INSERT, 0);
 
 		break;
@@ -240,10 +248,7 @@ void buffer_char_del() {
 			}
 
 			// Memory Manage
-			// ERROR: Causes a segmentation fault in editor_scr.c->update
-			//        and editor_scr.c->render. Those two functions manage to
-			//        somehow access the freed bit of memory.
-			//free_line_list_element(element->next);
+			free_line_list_element(element->next);
 			
 			// Update links
 			element->next = line_over;
