@@ -1,6 +1,6 @@
 PRODUCT := ./assembled.out
 CFILES := $(shell find ./src/ -type f -name '*.c')
-CFLAGS := -Isrc/include -lcurses -o $(PRODUCT) -g
+CFLAGS := -Isrc/include -lcurses -o $(PRODUCT)
 GLIB_FLAGS = `pkg-config --cflags glib-2.0` `pkg-config --libs glib-2.0` -DAS_GLIB_ENABLE
 
 all: glib

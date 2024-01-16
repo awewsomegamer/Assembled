@@ -26,18 +26,18 @@
 
 #include <includes.h>
 
-struct AS_SyntaxPoints {
+struct AS_SyntaxPoint {
 	int x;
 	int length;
 	int color;
-	struct AS_SyntaxPoints *next;
+	struct AS_SyntaxPoint *next;
 };
 
 struct AS_LLElement {
         char *contents;
         struct AS_LLElement *next;
         struct AS_LLElement *prev;
-	struct AS_SyntaxPoints *syntax;
+	struct AS_SyntaxPoint *syntax;
 };
 
 struct AS_TextBuf {

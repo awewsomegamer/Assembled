@@ -263,8 +263,8 @@ struct AS_CfgTok *cfg_lex(FILE *file) {
 					free(str);
 				}
 			#else
-				for (int i = 0; i < sizeof(str_lookup)/sizeof(str_lookup[0]); i++) {
-					if (*str == *str_lookup[i] && strcmp(str_lookup[i], str) == 0) {
+				for (int i = 0; i < sizeof(As_LexStrLookup)/sizeof(As_LexStrLookup[0]); i++) {
+					if (*str == *As_LexStrLookup[i] && strcmp(As_LexStrLookup[i], str) == 0) {
 						current->type = AS_CFG_TOKEN_KEY;
 						current->value = i;
 						current->str = NULL;
@@ -292,8 +292,8 @@ int read_config() {
 	#ifdef AS_GLIB_ENABLE
 		lex_tokens = g_hash_table_new(g_str_hash, g_str_equal);
 
-		for (int i = 0; i < sizeof(str_lookup)/sizeof(str_lookup[0]); i++) {
-			g_hash_table_insert(lex_tokens, (gpointer)str_lookup[i], (gpointer)(i + 1));
+		for (int i = 0; i < sizeof(As_LexStrLookup)/sizeof(As_LexStrLookup[0]); i++) {
+			g_hash_table_insert(lex_tokens, (gpointer)As_LexStrLookup[i], (gpointer)(i + 1));
 		}
 	#endif
 

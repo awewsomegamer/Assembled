@@ -22,25 +22,25 @@
 #ifndef AS_SYNTAX_H
 #define AS_SYNTAX_H
 
-#include "editor/buffer/editor.h"
 #define AS_MAX_BACKENDS 256
 
+#include <editor/buffer/editor.h>
 #include <editor/buffer/buffer.h>
 
 enum {
 	AS_SYNTAX_TYPE_ASM,
 };
 
-static const char *extension_names[] = {
+static const char *As_SyntaxExtNames[] = {
 	[AS_SYNTAX_TYPE_ASM] = "asm",
 };
 
 struct AS_SyntaxBackendMeta {
-	struct AS_SyntaxPoints *(*get_syntax)(char *);
+	struct AS_SyntaxPoint *(*get_syntax)(char *);
 	int extensions[32];
 };
 
 void init_syntax();
-struct AS_SyntaxPoints *get_syntax(struct AS_TextFile *file, struct AS_LLElement *element);
+struct AS_SyntaxPoint *get_syntax(struct AS_TextFile *file, struct AS_LLElement *element);
 
 #endif

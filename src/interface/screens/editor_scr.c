@@ -19,8 +19,6 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "util.h"
-#include <includes.h>
 #include <editor/buffer/buffer.h>
 #include <editor/buffer/editor.h>
 #include <editor/config.h>
@@ -30,8 +28,9 @@
 #include <interface/theming/themes.h>
 
 #include <global.h>
+#include <util.h>
+#include <includes.h>
 #include <ncurses.h>
-#include <stdio.h>
 
 #define CURSOR_X (as_ctx.text_file->active_buffer->cx)
 #define CURSOR_Y (as_ctx.text_file->cy)
@@ -42,7 +41,7 @@ static int offset = 0;
 static int differential = 0;
 
 // Draw line with syntax highlighting
-static struct AS_SyntaxPoints *syntactic_mvprintw(struct AS_Bound bounds, struct AS_LLElement *current, struct AS_SyntaxPoints *syntax, int *section_start) {
+static struct AS_SyntaxPoint *syntactic_mvprintw(struct AS_Bound bounds, struct AS_LLElement *current, struct AS_SyntaxPoint *syntax, int *section_start) {
 	int x = bounds.x;
 	int y = bounds.y;
 	int max_x = bounds.w;
@@ -51,11 +50,13 @@ static struct AS_SyntaxPoints *syntactic_mvprintw(struct AS_Bound bounds, struct
 	// Iterate through string's length
 	for (int i = 0; i < min(strlen(current->contents) - offset, max_x); i++) {
 		if (syntax != NULL && (offset + i) == ((*section_start) + syntax->length)) {
+			// Reached end of syntax point, turn highlighting off
 			attroff(COLOR_PAIR(syntax->color));
 			syntax = syntax->next;
 		}
 
 		if (syntax != NULL && (offset + i) == syntax->x) {
+			// Reached beginning of syntax point, turn highlighting on
 			*section_start = i;
 			attron(COLOR_PAIR(syntax->color));
 		}
@@ -66,6 +67,9 @@ static struct AS_SyntaxPoints *syntactic_mvprintw(struct AS_Bound bounds, struct
 	return syntax;
 }
 
+// BUG: When lines near the end of a file are wrapped,
+//      it becomes impossible to see the last few lines of
+//      the text file
 static void render(struct AS_RenderCtx *context) {
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
 	struct AS_TextBuf *active_buffer = as_ctx.text_file->active_buffer;
@@ -160,7 +164,7 @@ static void render(struct AS_RenderCtx *context) {
 			}
 
 			// Draw each line of the string
-			struct AS_SyntaxPoints *syntax = current->syntax;
+			struct AS_SyntaxPoint *syntax = current->syntax;
 			int section_start = 0;
 
 			for (int x = 0; x < strlen(current->contents); x += max_length) {
@@ -176,8 +180,6 @@ static void render(struct AS_RenderCtx *context) {
 
 				// Draw regular text
 				if (selection == 0 || selection_extreme == 0 || as_ctx.text_file->selected_buffers != 0) {
-					mvprintw(yc, xc, "%.*s", max_length, (current->contents + x));
-
 					syntax = syntactic_mvprintw((struct AS_Bound){.y = yc, .x = xc, .w = max_length, .h = x},
 							   current, syntax, &section_start);
 
@@ -236,13 +238,6 @@ static void render(struct AS_RenderCtx *context) {
 	free(currents);
 }
 
-// BUG: Ocassionally there is a bit of desync
-//      between where the cursor is and where
-//      input is actually written. I have not
-//      been able to recreate this issue yet
-//      but keep an eye out for it, it may
-//      have something to do with this
-//      function
 static void update(struct AS_RenderCtx *context) {
 	// The differential is checked, if it has overflowed
 	// or underflowed the screen, restrict it, and update
@@ -284,10 +279,10 @@ static void update(struct AS_RenderCtx *context) {
 			}
 
 			if (currents[i]->syntax != NULL) {
-				struct AS_SyntaxPoints *current = currents[i]->syntax;
+				struct AS_SyntaxPoint *current = currents[i]->syntax;
 
 				while (current != NULL) {
-					struct AS_SyntaxPoints *tmp = current;
+					struct AS_SyntaxPoint *tmp = current;
 					current = current->next;
 					// ERROR: Causes global mainfree(): invalid size
 					free(tmp);
@@ -543,7 +538,7 @@ static void local(int code, int value) {
 	}
 
 	case LOCAL_COLDESC_SWITCH: {
-		if (as_ctx.col_desc_i > 0 && as_ctx.col_desc_i < AS_MAX_COLUMNS) {
+		if (as_ctx.col_desc_i + value >= 0 && as_ctx.col_desc_i + value < AS_MAX_COLUMNS) {
 			save_all();
 
 			as_ctx.col_desc_i += value;
@@ -570,3 +565,7 @@ void register_editor_screen() {
 struct AS_CfgTok *configure_editor_screen(struct AS_CfgTok *token) {
 	return token;
 }
+
+// Cleanup definitions
+#undef CURSOR_X
+#undef CURSOR_Y

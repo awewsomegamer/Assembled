@@ -19,8 +19,7 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "editor/syntax/syntax.h"
-#include "includes.h"
+#include <editor/syntax/syntax.h>
 #include <editor/buffer/editor.h>
 #include <editor/keyboard.h>
 #include <editor/config.h>
@@ -33,6 +32,7 @@
 
 #include <global.h>
 #include <util.h>
+#include <includes.h>
 
 bool running = 1;
 bool update = 0;
@@ -115,8 +115,6 @@ void interface() {
 
 // Ctrl + C
 void terminate(int signal) {
-        save_all();
-
         running = 0;
 }
 

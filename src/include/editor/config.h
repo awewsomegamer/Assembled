@@ -29,7 +29,7 @@
 #define AS_CFG_TOKEN_STR 2 // "Sdfsdfaioietuaeadfbvx"
 #define AS_CFG_TOKEN_INT 3 // 123452
 #define AS_CFG_TOKEN_COM 4 // ','
-#define AS_CFG_TOKEN_KEY 5 // keyword like "keyseq" or "use" or "themes" (any string in str_lookup)
+#define AS_CFG_TOKEN_KEY 5 // keyword like "keyseq" or "use" or "themes" (any string in As_LexStrLookup)
 #define AS_CFG_TOKEN_SQR 6 // '[' ']'
 
 #define AS_NEXT_TOKEN token = token->next;
@@ -48,7 +48,7 @@
                         }
 
 // TODO: Optimize placement
-enum AS_STR_LOOKUP_IDXS {
+enum AS_AS_LEXSTRLOOKUP_IDXS {
 	AS_CFG_LOOKUP_UP,
 	AS_CFG_LOOKUP_DOWN,
 	AS_CFG_LOOKUP_LEFT,
@@ -82,7 +82,7 @@ enum AS_STR_LOOKUP_IDXS {
 	AS_CFG_LOOKUP_BACKGROUND,
 };
 
-static const char *str_lookup[] = {
+static const char *As_LexStrLookup[] = {
         [AS_CFG_LOOKUP_KEYBOARD]   	= "keyboard",
         [AS_CFG_LOOKUP_START_SCR]  	= "start_screen",
         [AS_CFG_LOOKUP_THEMES]     	= "themes",

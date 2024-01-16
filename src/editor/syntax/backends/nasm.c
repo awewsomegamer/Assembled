@@ -19,12 +19,13 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "editor/syntax/syntax.h"
-#include "includes.h"
-#include "interface/theming/themes.h"
-#include <ctype.h>
+#include <editor/syntax/syntax.h>
 #include <editor/buffer/buffer.h>
-#include <editor/syntax/backends/asm.h>
+#include <editor/syntax/backends/nasm.h>
+
+#include <interface/theming/themes.h>
+
+#include <includes.h>
 #include <global.h>
 #include <string.h>
 
@@ -40,15 +41,41 @@ struct keyword {
 
 enum {
 	INSTRUCTION = AS_CUSTOM_COLOR_START + 1,
-	LABEL = INSTRUCTION + 1,
-	COLON = LABEL + 1,
-	SQUARE = COLON + 1,
-	COMMENT = SQUARE + 1,
-	MACRO = COMMENT + 1,
-	REGISTER = MACRO + 1,
+	LABEL,
+	COLON,
+	SQUARE,
+	COMMENT,
+	MACRO,
+	REGISTER,
+	NASM_KEYWORD,
+	SYMBOL,
 };
 
 static struct keyword keywords[] = {
+	{ "DB", NASM_KEYWORD },
+	{ "DW", NASM_KEYWORD },
+	{ "DD", NASM_KEYWORD },
+	{ "DQ", NASM_KEYWORD },
+	{ "DT", NASM_KEYWORD },
+	{ "DO", NASM_KEYWORD },
+	{ "DY", NASM_KEYWORD },
+	{ "DZ", NASM_KEYWORD },
+	{ "BYTE", NASM_KEYWORD },
+	{ "WORD", NASM_KEYWORD },
+	{ "DWORD", NASM_KEYWORD },
+	{ "QWORD", NASM_KEYWORD },
+	{ "TWORD", NASM_KEYWORD },
+	{ "OWORD", NASM_KEYWORD },
+	{ "YWORD", NASM_KEYWORD },
+	{ "ZWORD", NASM_KEYWORD },
+	{ "INCBIN", NASM_KEYWORD },
+	{ "EQU", NASM_KEYWORD },
+	{ "TIMES", NASM_KEYWORD },
+	{ "EXTERN", NASM_KEYWORD },
+	{ "GLOBAL", NASM_KEYWORD },
+	{ "SECTION", NASM_KEYWORD },
+	{ "PTR", NASM_KEYWORD},
+
 	{ "RAX", REGISTER },
 	{ "RCX", REGISTER },
 	{ "RBX", REGISTER },
@@ -89,6 +116,7 @@ static struct keyword keywords[] = {
 	{ "ESI", REGISTER},
 	{ "DI", REGISTER},
 	{ "SI", REGISTER},
+
 	{ "AAA", INSTRUCTION },
 	{ "AAD", INSTRUCTION },
 	{ "AAM", INSTRUCTION },
@@ -1373,7 +1401,7 @@ static struct keyword keywords[] = {
 	{ "VSCATTERPF1QPS", INSTRUCTION },
 };
 
-struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
+struct AS_SyntaxPoint *as_asm_get_syntax(char *line) {
 	if (line == NULL) {
 		return NULL;
 	}
@@ -1383,10 +1411,10 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 
 	int org_len = strlen(line);
 
-	struct AS_SyntaxPoints *head = (struct AS_SyntaxPoints *)malloc(sizeof(struct AS_SyntaxPoints));
-	memset(head, 0, sizeof(struct AS_SyntaxPoints));
-	struct AS_SyntaxPoints *current = head;
-	struct AS_SyntaxPoints *prev = NULL;
+	struct AS_SyntaxPoint *head = (struct AS_SyntaxPoint *)malloc(sizeof(struct AS_SyntaxPoint));
+	memset(head, 0, sizeof(struct AS_SyntaxPoint));
+	struct AS_SyntaxPoint *current = head;
+	struct AS_SyntaxPoint *prev = NULL;
 
 	while ((c = *line) && x <= org_len) {
 		current->length = 1;
@@ -1395,7 +1423,7 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 		case ':': {
 			current->color = COLON;
 
-			if (prev != NULL && prev->color == 0) {
+			if (prev != NULL && (prev->color == 0 || prev->color == INSTRUCTION)) {
 				prev->color = LABEL;
 			}
 
@@ -1416,8 +1444,8 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 			break;
 		}
 
-		case '\"': {
-
+		case '$': {
+			current->color = SYMBOL;
 
 			break;
 		}
@@ -1492,8 +1520,8 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 		current->x = x;
 		x += current->length;
 		// Advance
-		current->next = (struct AS_SyntaxPoints *)malloc(sizeof(struct AS_SyntaxPoints));
-		memset(current->next, 0, sizeof(struct AS_SyntaxPoints));
+		current->next = (struct AS_SyntaxPoint *)malloc(sizeof(struct AS_SyntaxPoint));
+		memset(current->next, 0, sizeof(struct AS_SyntaxPoint));
 		prev = current;
 		current = current->next;
 

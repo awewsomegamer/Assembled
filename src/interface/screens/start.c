@@ -318,3 +318,13 @@ struct AS_CfgTok *configure_start_screen(struct AS_CfgTok *token) {
 
         return token;
 }
+
+// Cleanup definitions
+#undef CHARS_FROM_CENTER
+#undef BMP_WIDTH
+#undef BMP_HEIGHT
+#undef SCREEN_MIN_WIDTH
+#undef SCREEN_MIN_HEIGHT
+#undef UPDATE_TIME_MAX
+#undef UPDATE_TIME_MIN
+#undef UPDATE_TIME_TICK

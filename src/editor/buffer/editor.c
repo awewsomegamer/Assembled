@@ -19,13 +19,13 @@
 *    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "includes.h"
 #include <editor/buffer/buffer.h>
 #include <editor/config.h>
 #include <editor/buffer/editor.h>
 
 #include <global.h>
 #include <stdio.h>
+#include <includes.h>
 
 void load_file_content(struct AS_TextFile *text_file) {
 	FILE *file = text_file->file;
