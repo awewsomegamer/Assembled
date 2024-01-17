@@ -1,6 +1,6 @@
 /*
 *    Assembled - Column based text editor
-*    Copyright (C) 2023 awewsomegamer
+*    Copyright (C) 2023-2024 awewsomegamer
 *
 *    This file is apart of Assembled.
 *
