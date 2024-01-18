@@ -35,6 +35,11 @@ struct assembled_color {
 
 static struct assembled_color custom_colors[32];
 
+// TODO: Allow users to set both foreground and background
+//       color in the same line. Possibly even add a small
+//       hash to the mix to allow users to use default colors
+//       or predefined colors such as "blue" instead of
+//       0x0000FF
 static void read_theme(FILE *file) {
         struct AS_CfgTok *token = cfg_lex(file);
         struct AS_CfgTok *current = token;
@@ -74,6 +79,7 @@ static void read_theme(FILE *file) {
         }
 
         AS_DEBUG_MSG("Token list:\n");
+	// TODO: Make linked list freeing a macro
         while (current != NULL) {
                 AS_DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
 		struct AS_CfgTok *tmp = current->next;

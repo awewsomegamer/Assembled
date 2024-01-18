@@ -117,7 +117,7 @@ static void interpret_token_stream(struct AS_CfgTok *token) {
         }
 }
 
-// ERROR: Trailing commas may cause errors if they are
+// BUG?:  Trailing commas may cause errors if they are
 //        are directly followed by a comment.
 struct AS_CfgTok *cfg_lex(FILE *file) {
         struct AS_CfgTok *head = (struct AS_CfgTok *)malloc(sizeof(struct AS_CfgTok));

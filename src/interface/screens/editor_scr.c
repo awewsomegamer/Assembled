@@ -41,6 +41,11 @@ static int offset = 0;
 static int differential = 0;
 
 // Draw line with syntax highlighting
+// struct AS_Bound bounds - contains more arguments (.x = cursor x (on screen), .y = cursor y (on screen),
+//                                                   .w = maximum characters per row, .h = offset to current->contents)
+// struct AS_LLElement *current - current line to be printed (unwrapped)
+// struct AS_SyntaxPoint *syntax - first call: buffer->syntax, next call: the return value from the last invokation of this function
+// int *section_start - an integer adjusted by this function for its future invokations, caller must not overwrite
 static struct AS_SyntaxPoint *syntactic_mvprintw(struct AS_Bound bounds, struct AS_LLElement *current, struct AS_SyntaxPoint *syntax, int *section_start) {
 	int x = bounds.x;
 	int y = bounds.y;
@@ -64,6 +69,9 @@ static struct AS_SyntaxPoint *syntactic_mvprintw(struct AS_Bound bounds, struct 
 		mvaddch(y, x + i, current->contents[i + offset]);
 	}
 
+	// Return updated position in syntax list
+	// Caller will need to keep track of this for the
+	// current buffer
 	return syntax;
 }
 
@@ -464,7 +472,7 @@ static void local(int code, int value) {
 		struct AS_TextBuf *buffer = NULL;
 		bool moved = 0;
 
-		// TODO: There is probably a cleanr way of doing this
+		// TODO: There is probably a cleaner way of doing this
 		for (int i = -as_ctx.text_file->selected_buffers; i != 0;) {
 			// Move a line down in selected buffers
 			buffer = as_ctx.text_file->buffers[as_ctx.text_file->active_buffer_idx + i];

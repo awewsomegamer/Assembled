@@ -52,16 +52,20 @@ static const char *menu_table_left[] = {
 };
 
 static const char *menu_table_right[] = {
-
+	"License",
 };
 
 static void menu_load_file() {
 	switch_to_screen("file_load");
 }
 
+static void menu_display_license() {
+
+}
+
 static void (*menu_functions[2][10])() = {
         {menu_load_file},
-        {}
+        {menu_display_license}
 };
 
 // Default logo to use
@@ -97,8 +101,9 @@ static void render(struct AS_RenderCtx *context) {
         }
 
         // Absolute minimun
-        if (context->max_x < 64 || context->max_y < 10)
+        if (context->max_x < 64 || context->max_y < 10) {
                 return;
+	}
 
         int center_x = context->max_x / 2;
         int center_y = context->max_y / 2;

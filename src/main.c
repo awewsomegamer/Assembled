@@ -36,7 +36,6 @@
 
 bool running = 1;
 bool update = 0;
-int currently_active_screen = 0;
 FILE *__AS_DBG_LOG_FILE__ = NULL;
 
 static int default_column_definition[] = { 0 };
@@ -119,6 +118,7 @@ void terminate(int signal) {
 }
 
 int main(int argc, char **argv) {
+	// Setup up debug file
         AS_DEBUG_CODE( 
                 __AS_DBG_LOG_FILE__ = fopen("debug.log", "w");
                 if (__AS_DBG_LOG_FILE__ == NULL) {
@@ -128,6 +128,7 @@ int main(int argc, char **argv) {
                 }
         )
 
+	// Initialize
 	as_ctx.col_desc_i = -1;
 
         read_config();
@@ -167,9 +168,13 @@ int main(int argc, char **argv) {
                 switch_to_screen("start");
         }
 
-        signal(SIGINT,terminate);
+	// Allow program to terminate properly on Ctrl + C
+        signal(SIGINT, terminate);
 
         init_ncurses();
+
+	// Initialization is complete
+	// Get to running
 
         struct timespec spec;
         clock_gettime(CLOCK_REALTIME, &spec);
@@ -196,6 +201,7 @@ int main(int argc, char **argv) {
                         editor();
 
                         if (update == 0) {
+				// No update, don't need to render
                                 accumulator = 0;
                                 break;
                         }
@@ -204,6 +210,8 @@ int main(int argc, char **argv) {
                         render = 1;
                 }
 
+		// Probably impossible to type a character in an
+		// interval below ~8 milliseconds
                 usleep(8000);
 
                 if (render || (as_ctx.screen->render_options & SCR_OPT_ALWAYS)) {
@@ -213,10 +221,13 @@ int main(int argc, char **argv) {
                 update = 0;
         }
 
+	// Shutdown
+	// Stop ncurses window
         endwin();
 
         AS_DEBUG_MSG("Successfuly exited\n");
 
+	// Close debug file
         AS_DEBUG_CODE( fclose(__AS_DBG_LOG_FILE__); )
 
         return 0;

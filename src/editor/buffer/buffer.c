@@ -290,9 +290,6 @@ void buffer_char_del() {
 	(active_text_buffer->cx)--;
 }
 
-// ERROR: The nature of the multiline movement code is
-//        questionable as it does not work across multiple
-//        buffers
 // Move the current line, or selected lines, down in the given buffer
 // Returns 1 on success, returns 0 on failure ("%d lines moved", return_code)
 int buffer_move_ln_up(struct AS_TextBuf *active_buffer) {

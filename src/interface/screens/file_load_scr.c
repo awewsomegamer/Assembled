@@ -94,8 +94,9 @@ static void update_directory_listing(char *abs) {
 static void local(int code, int value) {
 	switch (code) {
 	case LOCAL_ENTER: {
-		// TODO: Create a better way to exit this screen (maybe using
-		//       escape key)
+		// TODO: Create a better way to exit this screen (using escape
+		//       key), and allowing this to display the directory listing
+		//       even if nothing is entered into the input field
 
 		// Stat the user entry using an absolute path
 		struct stat *st = (struct stat *)malloc(sizeof(struct stat));
