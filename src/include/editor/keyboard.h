@@ -37,9 +37,30 @@
 #include <global.h>
 #include <includes.h>
 
+/// Maximum number of elements on the key_stack.
 #define AS_MAX_KEY_ELEMENTS 16
 
+/**
+ * Acknowledge keyboard input.
+ *
+ * Place the given character onto the key_stack at key_stack_ptr.
+ * Then try to collapse the stack.
+ *
+ * @param int c - Character to acknowledge.
+ * */
 void key(int c);
+
+/**
+ * Configure the keyboard.
+ *
+ * This function is invoked by config.c's interpret_token_stream
+ * function. It is given the current element within within the
+ * token list. The token must be of type AS_CFG_TOKEN_KEY with
+ * a value of AS_CFG_LOOKUP_KEYBOARD.
+ *
+ * @param struct AS_CfgTok *token - The token from which to start interpretation.
+ * @return A pointer to the beginning of the next set of tokens.
+ * */
 struct AS_CfgTok *configure_keyboard(struct AS_CfgTok *token);
 
 #endif

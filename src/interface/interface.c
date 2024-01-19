@@ -75,19 +75,19 @@ int register_screen(char *name, void (*render)(struct AS_RenderCtx *), void (*up
 }
 
 // Draw an ASCII border (rectangle) on the current screen
-void draw_border(int x, int y, int width, int height) {
-	for (int i = y; i < (y + height); i++) {
-		mvaddch(i, x, '|');
-		mvaddch(i, x + width, '|');
+void draw_border(struct AS_Bound bound) {
+	for (int i = bound.y; i < (bound.y + bound.h); i++) {
+		mvaddch(i, bound.x, '|');
+		mvaddch(i, bound.x + bound.w, '|');
 	}
 
-	for (int i = x; i < (x + width); i++) {
-		mvaddch(y, i, '-');
-		mvaddch(y + height, i, '-');
+	for (int i = bound.x; i < (bound.x + bound.w); i++) {
+		mvaddch(bound.y, i, '-');
+		mvaddch(bound.y + bound.h, i, '-');
 	}
 
-	mvaddch(y, x, '+');
-	mvaddch(y + height, x, '+');
-	mvaddch(y, x + width, '+');
-	mvaddch(y + height, x + width, '+');
+	mvaddch(bound.y, bound.x, '+');
+	mvaddch(bound.y + bound.h, bound.x, '+');
+	mvaddch(bound.y, bound.x + bound.w, '+');
+	mvaddch(bound.y + bound.h, bound.x + bound.w, '+');
 }

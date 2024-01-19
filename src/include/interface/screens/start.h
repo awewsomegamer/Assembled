@@ -35,7 +35,25 @@
 
 #include <includes.h>
 
+/**
+ * Function called by main to register editor screen.
+ *
+ * Wrapper of register_screen.
+ * */
 void register_start_screen();
+
+/**
+ * Configure the start screen.
+ *
+ * The start screen offers two types of configuration:
+ * a change of logo and an option to turn off the binary
+ * moving background.
+ *
+ * @param struct AS_CfgTok *token - The starting token of a line of configuration
+ * for the screen.
+ * @return A pointer to the last element of the line of configuration (caller must use NEXT_TOKEN
+ * to move to the start of the next line).
+ * */
 struct AS_CfgTok *configure_start_screen(struct AS_CfgTok *token);
 
 #endif

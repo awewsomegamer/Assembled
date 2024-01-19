@@ -32,25 +32,52 @@
 #ifndef AS_SYNTAX_H
 #define AS_SYNTAX_H
 
+/// Maximum number of syntax backends.
 #define AS_MAX_BACKENDS 256
+/// Maximum number of extensions per backend.
+#define AS_MAX_BACKEND_EXTS 32
 
 #include <editor/buffer/editor.h>
 #include <editor/buffer/buffer.h>
 
-enum {
+/**
+ * Indices used for extension names.
+ * */
+enum AS_SYNTAX_TYPE {
 	AS_SYNTAX_TYPE_ASM,
 };
 
+/**
+ * Names of extensions
+ * */
 static const char *As_SyntaxExtNames[] = {
 	[AS_SYNTAX_TYPE_ASM] = "asm",
 };
 
+/**
+ * Representation of a backend
+ * */
 struct AS_SyntaxBackendMeta {
+	/// The function to call to get syntax information.
 	struct AS_SyntaxPoint *(*get_syntax)(char *);
-	int extensions[32];
+	/// The number of file extensions this backend handles.
+	int extensions[AS_MAX_BACKEND_EXTS];
 };
 
+/**
+ * Initalize as_ctx.syn_backends.
+ * */
 void init_syntax();
+
+/**
+ * Wrapper function to get syntax for a file.
+ *
+ * This function determines which syntax backend to use based on the
+ * file's extension.
+ *
+ * @param struct AS_TextFile *file - File in which next parameter is in.
+ * @param struct AS_LLElement *element - The line for which to create a syntax point linked list.
+ * */
 struct AS_SyntaxPoint *get_syntax(struct AS_TextFile *file, struct AS_LLElement *element);
 
 #endif

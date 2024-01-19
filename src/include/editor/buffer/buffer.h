@@ -44,10 +44,15 @@
  * their color pairs.
  * */
 struct AS_SyntaxPoint {
-	int x;                                             /// Offset into AS_TextBuf->contents at which this applies
-	int length;                                        /// The number of characters that are included within the region (minimum: 1)
-	int color;                                         /// The index of the color pair for this region
-	struct AS_SyntaxPoint *next;                       /// A pointer to the next syntax point, NULL if this is the last point
+	/// Offset into AS_TextBuf->contents at which this applies
+	int x;
+	/// The number of characters that are included within the region (minimum: 1)
+	int length;
+
+	/// The index of the color pair for this region
+	int color;
+	/// A pointer to the next syntax point, NULL if this is the last point
+	struct AS_SyntaxPoint *next;
 };
 
 /**
@@ -56,10 +61,14 @@ struct AS_SyntaxPoint {
  * A linked list which holds the all of the lines of
  * a column. */
 struct AS_LLElement {
-        char *contents;                                     /// Contains a single line of the open file (zero terminated, with no '\n' character).
-        struct AS_LLElement *next;                          /// A pointer to the next line, NULL if this is the last line.
-        struct AS_LLElement *prev;                          /// A pointer to the previous line, NULL if this is the first line.
-	struct AS_SyntaxPoint *syntax;                      /// A pointer to a linked list outlining how certain regions of `contents` is supposed to be colored.
+	/// Contains a single line of the open file (zero terminated, with no '\n' character).
+        char *contents;
+	/// A pointer to the next line, NULL if this is the last line.
+        struct AS_LLElement *next;
+	/// A pointer to the previous line, NULL if this is the first line.
+        struct AS_LLElement *prev;
+	/// A pointer to a linked list outlining how certain regions of `contents` is supposed to be colored.
+	struct AS_SyntaxPoint *syntax;
 };
 
 /**
@@ -68,17 +77,26 @@ struct AS_LLElement {
  * Holds all information about a single column.
  *  */
 struct AS_TextBuf {
-        int cx;                                             /// Cursor's X position in buffer.
-        int col_start;                                      /// The start index of the buffer's column.
-        int col_end;                                        /// The end index of the buffer's column.
+	/// Cursor's X position in buffer.
+        int cx;
+	/// The start index of the buffer's column.
+        int col_start;
+	/// The end index of the buffer's column.
+        int col_end;
 
-	uint8_t selection_enabled;                          /// Determines if selection is enabled for this buffer (1).
-	struct AS_Bound selection_start;                    /// 0-based coordinates of the selection's start.
+	/// Determines if selection is enabled for this buffer (1).
+	uint8_t selection_enabled;
+	/// 0-based coordinates of the selection's start.
+	struct AS_Bound selection_start;
 
-        struct AS_LLElement *head;                          /// The first line in the buffer.
-	struct AS_LLElement *virtual_head;                  /// The first line on screen.
-        struct AS_LLElement *current_element;               /// Pointer to the line at (cx, cy).
-	struct AS_LLElement *selection_start_line;          /// Pointer to the line at (0, selection_start.y).
+	/// The first line in the buffer.
+        struct AS_LLElement *head;
+	/// The first line on screen.
+	struct AS_LLElement *virtual_head;
+	/// Pointer to the line at (cx, cy).
+        struct AS_LLElement *current_element;
+	/// Pointer to the line at (0, selection_start.y).
+	struct AS_LLElement *selection_start_line;
 };
 
 /**

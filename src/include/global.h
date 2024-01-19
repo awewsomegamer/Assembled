@@ -62,23 +62,32 @@
  * */
 struct AS_GlobalCtx {
 	// Editor Screen
-	char editor_scr_message[1024];                             /// Current message to be displated at the bottom of the editor screen
+	/// Current message to be displated at the bottom of the editor screen
+	char editor_scr_message[1024];
 	
 	// Interface
-	struct AS_RenderCtx render_ctx;                            /// The current render context.
-	struct AS_Screen screens[AS_MAX_SCREEN_COUNT];             /// A list of all registered screens.
-	struct AS_Screen *screen;                                  /// A pointer to the currently active screen.
+	/// The current render context.
+	struct AS_RenderCtx render_ctx;
+	/// A list of all registered screens.
+	struct AS_Screen screens[AS_MAX_SCREEN_COUNT];
+	/// A pointer to the currently active screen.
+	struct AS_Screen *screen;
 
 	// Editor
-	struct AS_TextFile *text_file_head;                        /// The start of the linked list containing all text files.
-	struct AS_TextFile *text_file;                             /// The current text file.
+	/// The start of the linked list containing all text files.
+	struct AS_TextFile *text_file_head;
+	/// The current text file.
+	struct AS_TextFile *text_file;
 
 	// Columns
-	struct AS_ColDesc col_descs[AS_MAX_COLUMNS];               /// An array of all available column descriptors / layouts.
-	int col_desc_i;                                            /// The index of the currently selected column descriptor.
+	/// An array of all available column descriptors / layouts.
+	struct AS_ColDesc col_descs[AS_MAX_COLUMNS];
+	/// The index of the currently selected column descriptor.
+	int col_desc_i;
 
 	// Syntax
-	struct AS_SyntaxBackendMeta syn_backends[AS_MAX_BACKENDS]; /// All registered syntax backends.
+	/// All registered syntax backends.
+	struct AS_SyntaxBackendMeta syn_backends[AS_MAX_BACKENDS];
 };
 
 /**

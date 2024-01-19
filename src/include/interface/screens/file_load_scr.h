@@ -37,7 +37,25 @@
 #include <includes.h>
 #include <util.h>
 
+/**
+ * Function called by main to register editor screen.
+ *
+ * Wrapper of register_screen.
+ * */
 void register_file_load_scr();
+
+/**
+ * Configure the file load screen.
+ *
+ * This function is invoked by config.c's interpret_token_stream
+ * function.
+ *
+ * Currently there is no configuration for the file load screen, therefore
+ * the parameter is just returnd.
+ *
+ * @param struct AS_CfgTok *token - Currently just returned.
+ * @return Currently just the input parameter.
+ * */
 struct AS_CfgTok *configure_file_load_scr(struct AS_CfgTok *token);
 
 #endif

@@ -37,17 +37,37 @@
 #include <global.h>
 #include <includes.h>
 
+/// Maximum number of colors defined in a theme.
 #define AS_MAX_CUSTOM_COLORS  32
 
+/// Start of the first custom color pair (right after the 16 predefined ncurses colors).
 #define AS_CUSTOM_COLOR_START 16
+/// The color pair index of the highlight color (the first custom color).
 #define AS_COLOR_HIGHLIGHT    AS_CUSTOM_COLOR_START
 
+/// Bit mask for red.
 #define AS_RED_MASK           16
+/// Bit mask for green.
 #define AS_GREEN_MASK         8
+/// Bit mask for blue.
 #define AS_BLUE_MASK          0
 
-
+/**
+ * Function to initialize all custom color pairs.
+ *
+ * Invoked from init_ncurses in main.c once ncurses has initialized colors.
+ * */
 void register_custom_colors();
+
+/**
+ * Configuration for themes.
+ *
+ * Currently used to state which theme to use. Only one theme
+ * can be loaded at a time.
+ *
+ * @param struct AS_CfgTok *token - The token which starts the line of configuration.
+ * @return A pointer to the last token in the line of configuration (caller must use TOKEN_NEXT
+ * to advance to the start of the next line of configuration). */
 struct AS_CfgTok *configure_theme(struct AS_CfgTok *token);
 
 #endif

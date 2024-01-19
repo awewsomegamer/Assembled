@@ -36,13 +36,23 @@
 #include <global.h>
 #include <ncurses.h>
 
+/**
+ * Defines a single color
+ * */
 struct AS_Color {
+	/// The ARGB hex color value.
         uint32_t color_value;
-        uint8_t information; // 0 0 0 0 0 0 F P
-                             //             | ` 1: Color is non-null
-                             //             `-- 1: Color is a foreground color
+	/**
+	 * 0 0 0 0 0 0 F P\n
+	 * P, 1: Color is present, 0: Color is not present.\n
+	 * F, 1: Color is in the foreground, 0: Color is in the background.
+	 * */
+        uint8_t information;
 };
 
+/**
+ * The colors of the current theme.
+ * */
 static struct AS_Color custom_colors[32];
 
 // TODO: Allow users to set both foreground and background
@@ -50,6 +60,15 @@ static struct AS_Color custom_colors[32];
 //       hash to the mix to allow users to use default colors
 //       or predefined colors such as "blue" instead of
 //       0x0000FF
+/**
+ * Read themes file found by configuration function.
+ *
+ * This function reads the color values in the themes file
+ * found by the configuration function. Themes will overwrite
+ * each other, but not clear the custom_colors array.
+ *
+ * @param FILE *file - The theme.cfg file.
+ * */
 static void read_theme(FILE *file) {
         struct AS_CfgTok *token = cfg_lex(file);
         struct AS_CfgTok *current = token;

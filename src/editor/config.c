@@ -28,6 +28,7 @@
  * Responsible for reading .cfg files.
 */
 
+#include <ctype.h>
 #include <editor/keyboard.h>
 #include <editor/config.h>
 #include <editor/buffer/editor.h>
@@ -43,7 +44,11 @@
 	static GHashTable *lex_tokens;
 #endif
 
-// Interpret the stream of configuration tokens
+/**
+ * Interpret the token stream for configuration files.
+ *
+ * @param struct AS_CfgTok *token - The linked list of tokens to interpret.
+ * */
 static void interpret_token_stream(struct AS_CfgTok *token) {
         while (token->type != AS_CFG_TOKEN_EOF) {
                 AS_EXPECT_TOKEN(AS_CFG_TOKEN_KEY, "Expected command (i.e. keyboard, themes, or start_screen)");

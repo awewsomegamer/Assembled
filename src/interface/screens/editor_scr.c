@@ -49,12 +49,14 @@ static int line_length = 0;
 static int offset = 0;
 static int differential = 0;
 
-// Draw line with syntax highlighting
-// struct AS_Bound bounds - contains more arguments (.x = cursor x (on screen), .y = cursor y (on screen),
-//                                                   .w = maximum characters per row, .h = offset to current->contents)
-// struct AS_LLElement *current - current line to be printed (unwrapped)
-// struct AS_SyntaxPoint *syntax - first call: buffer->syntax, next call: the return value from the last invokation of this function
-// int *section_start - an integer adjusted by this function for its future invokations, caller must not overwrite
+/**
+ * Draw a line with syntax highlighting
+ *
+ * @param struct AS_Bound bounds - Contains more arguments (.x = cursor x (on screen), .y = cursor y (on screen), .w = maximum characters per row, .h = offset in current->contents).
+ * @param struct AS_LLElement *current - Current unwrapped line to be printed.
+ * @param struct AS_SyntaxPoint *syntax - First call: buffer->syntax, next call: The return value from the last invokation of this function.
+ * @param int *section_start - An integer adjusted by this function for its future invokations, caller must not overwrite.
+ * */
 static struct AS_SyntaxPoint *syntactic_mvprintw(struct AS_Bound bounds, struct AS_LLElement *current, struct AS_SyntaxPoint *syntax, int *section_start) {
 	int x = bounds.x;
 	int y = bounds.y;

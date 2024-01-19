@@ -36,6 +36,11 @@
 #include <stdio.h>
 #include <includes.h>
 
+/**
+ * Load the content of a file in the format of struct AS_TextBuf.
+ *
+ * @param struct AS_TextFile *text_file - The text file who's content needs to be loaded
+ * */
 void load_file_content(struct AS_TextFile *text_file) {
 	FILE *file = text_file->file;
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];

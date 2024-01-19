@@ -1,4 +1,7 @@
-/*
+/**
+ * @file util.c
+ *
+ * @section LICENSE
  * Copyright (C) 2023-2024 awewsomegamer
  *
  * This file is apart of Assembled.

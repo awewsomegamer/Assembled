@@ -48,8 +48,8 @@ static void render(struct AS_RenderCtx *ctx) {
 	mvprintw(1, (ctx->max_x / 4 + 1), "%s", (file_path == NULL ? "" : file_path));
 	// Draw two boxes creating a short field for the user input and a
 	// tall field for the directory listing
-	draw_border(ctx->max_x / 4, 0, ctx->max_x / 2, ctx->max_y - 1);
-	draw_border(ctx->max_x / 4, 2, ctx->max_x / 2, ctx->max_y - 3);
+	draw_border((struct AS_Bound){ctx->max_x / 4, 0, ctx->max_x / 2, ctx->max_y - 1});
+	draw_border((struct AS_Bound){ctx->max_x / 4, 2, ctx->max_x / 2, ctx->max_y - 3});
 
 	// Draw directory listing if it exists
 	if (directory_listing != NULL) {

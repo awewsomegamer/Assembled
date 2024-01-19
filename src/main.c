@@ -149,6 +149,9 @@ void interface() {
         refresh();
 }
 
+/**
+ * Function to be called when SIGINT is received.
+ * */
 void terminate(int signal) {
         running = 0;
 }
