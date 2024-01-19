@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file file_load_scr.c
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,8 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * The screen shown when the user wants to load another when the program is
+ * already running.
 */
 #include <editor/config.h>
 #include <editor/buffer/editor.h>

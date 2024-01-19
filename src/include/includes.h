@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file includes.h
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,8 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * This file contains some includes which need to be separate from
+ * global.h.
 */
 
 #ifndef AS_INCLUDES_H
@@ -55,17 +56,32 @@
 #include <string.h>
 
 #ifdef DEBUG_MODE
+/**
+ * Execute the given code if AS_DEBUG_ENABLE is defined.
+ * */
 #define AS_DEBUG_CODE(code) code
+/**
+ * Print the given `__`VA_ARGS`__` in a formatted debug message into `__AS_DBG_LOG_FILE__` if AS_DEBUG_ENABLE is defined.
+ * */
 #define AS_DEBUG_MSG(...) { \
 			for (int __i__ = fprintf(__AS_DBG_LOG_FILE__, "[%s:%d, AS]: ", __FILE_NAME__, __LINE__); __i__ < 40; __i__++) \
 				fputc(' ', __AS_DBG_LOG_FILE__); \
 			fprintf(__AS_DBG_LOG_FILE__, __VA_ARGS__); \
 		       }
 #else
+/**
+ * Execute the given code if AS_DEBUG_ENABLE is defined.
+ * */
 #define AS_DEBUG_CODE(code)
+/**
+ * Print the given `__`VA_ARGS`__` in a formatted debug message into `__AS_DBG_LOG_FILE__` if AS_DEBUG_ENABLE is defined.
+ * */
 #define AS_DEBUG_MSG(...)
 #endif
 
+/**
+ * The current debugging file.
+ * */
 extern FILE *__AS_DBG_LOG_FILE__;
 
 #endif

@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file nasm.c
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,7 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * This is a syntax backend module.
 */
 #include <editor/syntax/syntax.h>
 #include <editor/buffer/buffer.h>
@@ -39,15 +39,23 @@
 
 #ifdef AS_GLIB_ENABLE
 	#include <glib-2.0/glib.h>
-	static GHashTable *keywords_hash;
+	static GHashTable *keywords_hash; /// If AS_GLIB_ENABLE is defined, this is used.
 #endif
 
+
+/**
+ * A structure which defines a keyword and its color.
+ * */
 struct AS_Keyword {
-	const char *word;
-	int color;
+	const char *word;     /// The keyword (all caps).
+	int color;            /// The keywords color pair index.
 };
 
-enum {
+/**
+ * Colors for different types of keywords.
+ *
+ * Describes the color pairs used for the given type of keyword. */
+enum AS_NASM_SYNTAX_COLORS {
 	INSTRUCTION = AS_CUSTOM_COLOR_START + 1,
 	LABEL,
 	COLON,
@@ -59,7 +67,12 @@ enum {
 	SYMBOL,
 };
 
-static struct keyword keywords[] = {
+/**
+ * All NASM keywords, and all x86 instructions
+ *
+ * Instruction list used: https://www.felixcloutier.com/x86/
+ * */
+static struct AS_Keyword keywords[] = {
 	{ "DB", NASM_KEYWORD },
 	{ "DW", NASM_KEYWORD },
 	{ "DD", NASM_KEYWORD },
@@ -1409,6 +1422,12 @@ static struct keyword keywords[] = {
 	{ "VSCATTERPF1QPS", INSTRUCTION },
 };
 
+/**
+ * Internal function to parse an unwrapped line into syntax point
+ *
+ * @param char *line - The unwrapped line to be decoded into a series of syntax points.
+ * @return A pointer to the head of a AS_SyntaxPoint list, its memory is owned by the caller.
+ * */
 struct AS_SyntaxPoint *as_asm_get_syntax(char *line) {
 	if (line == NULL) {
 		return NULL;
@@ -1495,7 +1514,7 @@ struct AS_SyntaxPoint *as_asm_get_syntax(char *line) {
 
 			// Lookup the color
 			#ifdef AS_GLIB_ENABLE
-				struct keyword *keyword = g_hash_table_lookup(keywords_hash, (gpointer)extracted);
+				struct AS_Keyword *keyword = g_hash_table_lookup(keywords_hash, (gpointer)extracted);
 
 				if (keyword != NULL) {
 					current->color = keyword->color;

@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file config.h
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,7 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * Responsible for reading .cfg files.
 */
 
 #ifndef AS_CONFIG_H

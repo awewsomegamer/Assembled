@@ -1,3 +1,4 @@
+/*
  * Copyright (C) 2023-2024 awewsomegamer
  *
  * This file is apart of Assembled.
@@ -18,18 +19,12 @@
  *
  * @section DESCRIPTION
  *
- * File containing functions which aren't specific to any one file.
+ * File containing functions which arent specific to any one file.
 */
 
 #include <global.h>
 #include <util.h>
 
-/**
- * Create a 64-bit hash from the given string input
- *
- * @param char *string - a zero terminated string to hash
- * @return 64-bit hash
- * */
 uint64_t general_hash(char *string) {
         uint64_t hash = 5381;
 
@@ -41,14 +36,6 @@ uint64_t general_hash(char *string) {
         return hash;
 }
 
-/**
- * Create an absolute path from the given path
- *
- * @param char *path - Relative or absolute path. If the path is already absolute,
- * it will be returned in a new allocation.
- * @param int options - Options for where the abolsute path should begin from.
- * 0: The path will be absolute to the user's current working directory.
- * 1: The path will be relative to ~/.config/assembled/. */
 char *fpath2abs(char *path, int options) {
 	if (path == NULL) {
 		return NULL;

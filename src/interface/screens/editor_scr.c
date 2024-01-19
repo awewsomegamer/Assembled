@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file editor_scr.c
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,7 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * The editor screen.
 */
 
 #include <editor/buffer/buffer.h>

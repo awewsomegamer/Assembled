@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file file_load_scr.h
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,8 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * The screen shown when the user wants to load another when the program is
+ * already running.
 */
 
 #ifndef AS_FILE_LOAD_SCR

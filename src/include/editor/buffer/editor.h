@@ -39,7 +39,7 @@
 #include <includes.h>
 
 /**
- * Describes a single open file
+ * Describes a single open file.
  * */
 struct AS_TextFile {
         int cy;                                        /// 0-based index of current line.
@@ -65,7 +65,9 @@ struct AS_ColDesc {
 };
 
 /**
- * Load */
+ * Load a file into a `struct AS_TextFile`.
+ *
+ * */
 struct AS_TextFile *load_file(char *name);
 void reload_file(struct AS_TextFile *file);
 void reload_all();

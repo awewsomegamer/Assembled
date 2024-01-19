@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file syntax.c
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,8 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * Responsible for selecting the proper syntax backend for a given file, and installing
+ * all syntax backends into as_ctx.syn_backends.
 */
 
 #include <editor/buffer/buffer.h>

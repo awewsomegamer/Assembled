@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file themes.c
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,8 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * Responsible for handling parsing of theme files, and initializing them into
+ * ncurses.
 */
 
 #include <editor/config.h>
@@ -42,7 +43,7 @@ struct AS_Color {
                              //             `-- 1: Color is a foreground color
 };
 
-static struct assembled_color custom_colors[32];
+static struct AS_Color custom_colors[32];
 
 // TODO: Allow users to set both foreground and background
 //       color in the same line. Possibly even add a small

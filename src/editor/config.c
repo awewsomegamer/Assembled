@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file config.c
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,7 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * Responsible for reading .cfg files.
 */
 
 #include <editor/keyboard.h>

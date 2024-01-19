@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file nasm.h
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,14 +25,20 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * This is a syntax backend module.
 */
 
 #ifndef AS_ASM_BACKEND_H
 #define AS_ASM_BACKEND_H
 
 #include <editor/buffer/buffer.h>
-
+/**
+ * Initialization function for the backend
+ *
+ * Will restructure the keywords array into a g_hash_table
+ * if AS_GLIB_ENABLE is defined.
+ * @param int i - The position the backend should place itself in as_ctx.syn_backends
+ * */
 void as_asm_backend_init(int i);
 
 #endif

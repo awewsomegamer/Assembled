@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file themes.h
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,8 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * Responsible for handling parsing of theme files, and initializing them into
+ * ncurses.
 */
 
 #ifndef AS_THEMES_H

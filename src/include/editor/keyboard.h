@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file keyboard.h
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,8 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * Responsible for handling all keyboard input and determining when the user
+ * has entered a key sequence for the active screen to preform an action.
 */
 
 #ifndef AS_KEYBOARD_H

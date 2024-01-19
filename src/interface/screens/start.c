@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file start.c
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,7 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * The start screen that is displayed in the event no files are opened with the command.
 */
 
 #include <editor/config.h>

@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file interface.h
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,7 +25,7 @@
  *
  * @section DESCRIPTION
  *
- * The main program file
+ * The screen manager.
 */
 
 #ifndef AS_INTERFACE_H
