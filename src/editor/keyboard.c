@@ -1,22 +1,31 @@
-/*
-*    Assembled - Column based text editor
-*    Copyright (C) 2023-2024 awewsomegamer
-*
-*    This file is apart of Assembled.
-*
-*    Assembled is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; version 2
-*    of the License.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/**
+ * @file main.c
+ * @author awewsomegamer <awewsomegamer@gmail.com>
+ *
+ * @section LICENSE
+ *
+ * Assembled - Column based text editor
+ * Copyright (C) 2023-2024 awewsomegamer
+ *
+ * This file is apart of Assembled.
+ *
+ * Assembled is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @section DESCRIPTION
+ *
+ * The main program file
 */
 
 #include <includes.h>
@@ -46,12 +55,12 @@ struct AS_KeySeq {
 static struct AS_KeySeq keyseq_list_head = { 0 };
 static struct AS_KeySeq *keyseq_list_last = &keyseq_list_head;
 
-struct key_stack_element {
+struct AS_KeyStackElem {
         int key;
         time_t time;
 };
 
-static struct key_stack_element key_stack[AS_MAX_KEY_ELEMENTS];
+static struct AS_KeyStackElem key_stack[AS_MAX_KEY_ELEMENTS];
 static int key_stack_ptr = 0;
 
 // Arguments for local functions depending on given function

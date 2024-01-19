@@ -1,22 +1,31 @@
-/*
-*    Assembled - Column based text editor
-*    Copyright (C) 2023-2024 awewsomegamer
-*
-*    This file is apart of Assembled.
-*
-*    Assembled is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; version 2
-*    of the License.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/**
+ * @file main.c
+ * @author awewsomegamer <awewsomegamer@gmail.com>
+ *
+ * @section LICENSE
+ *
+ * Assembled - Column based text editor
+ * Copyright (C) 2023-2024 awewsomegamer
+ *
+ * This file is apart of Assembled.
+ *
+ * Assembled is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @section DESCRIPTION
+ *
+ * The main program file.
 */
 
 #include <editor/syntax/syntax.h>
@@ -34,14 +43,32 @@
 #include <util.h>
 #include <includes.h>
 
+/**
+ * Controls whether the main loop is running (1) or not (0).
+ * */
 bool running = 1;
+/**
+ * Set when new input from the keyboard is present, otherwise 0.
+ * */
 bool update = 0;
+/**
+ * Debug log file pointer.
+ *
+ * This file is only used if Assembled is compiled with
+ * AS_DEBUG_ENABLE defined. This can be acheived through
+ * adding the `debug` target to the `make` command.
+ * `make debug`
+ * */
 FILE *__AS_DBG_LOG_FILE__ = NULL;
 
 static int default_column_definition[] = { 0 };
 
 struct AS_GlobalCtx as_ctx = { 0 };
-
+/**
+ * Initialize ncurses library
+ *
+ * Initialize the terminal.
+ * */
 void init_ncurses() {
         AS_DEBUG_MSG("Initializing ncurses\n");
         setlocale(LC_ALL, "UTF-8");
@@ -79,7 +106,12 @@ void init_ncurses() {
         AS_DEBUG_MSG("Initialized ncurses\n");
 }
 
-// Update the state of the editor
+/**
+ * Update the state of the editor
+ *
+ * Checks if the keyboard has any new input and
+ * updates the current screen.
+ * */
 void editor() {
 	// Read in current key
         int c = getch();
@@ -100,7 +132,12 @@ void editor() {
         }
 }
 
-// Render the current state of the editor
+/**
+ * Render the current screen
+ *
+ * Render the current active screen, clearing
+ * the screen in the process
+ * */
 void interface() {
         erase();
 
@@ -112,7 +149,6 @@ void interface() {
         refresh();
 }
 
-// Ctrl + C
 void terminate(int signal) {
         running = 0;
 }

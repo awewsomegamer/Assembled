@@ -11,8 +11,14 @@ standalone:
 glib:
 	gcc $(CFILES) $(CFLAGS) $(GLIB_FLAGS)
 
+documentation:
+		doxygen ./Doxyfile
+
 run: all
 	$(PRODUCT) test/test.txt
 
+clean:
+	rm -rf docs/*
+
 debug: CFLAGS += -DDEBUG_MODE
-debug: all
+	debug: all
