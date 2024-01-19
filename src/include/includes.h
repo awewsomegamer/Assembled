@@ -1,22 +1,32 @@
-/*
-*    Assembled - Column based text editor
-*    Copyright (C) 2023 awewsomegamer
-*
-*    This file is apart of Assembled.
-*
-*    Assembled is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; version 2
-*    of the License.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/**
+ * @file includes.h
+ * @author awewsomegamer <awewsomegamer@gmail.com>
+ *
+ * @section LICENSE
+ *
+ * Assembled - Column based text editor
+ * Copyright (C) 2023-2024 awewsomegamer
+ *
+ * This file is apart of Assembled.
+ *
+ * Assembled is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @section DESCRIPTION
+ *
+ * This file contains some includes which need to be separate from
+ * global.h.
 */
 
 #ifndef AS_INCLUDES_H
@@ -46,17 +56,32 @@
 #include <string.h>
 
 #ifdef DEBUG_MODE
+/**
+ * Execute the given code if AS_DEBUG_ENABLE is defined.
+ * */
 #define AS_DEBUG_CODE(code) code
+/**
+ * Print the given `__`VA_ARGS`__` in a formatted debug message into `__AS_DBG_LOG_FILE__` if AS_DEBUG_ENABLE is defined.
+ * */
 #define AS_DEBUG_MSG(...) { \
 			for (int __i__ = fprintf(__AS_DBG_LOG_FILE__, "[%s:%d, AS]: ", __FILE_NAME__, __LINE__); __i__ < 40; __i__++) \
 				fputc(' ', __AS_DBG_LOG_FILE__); \
 			fprintf(__AS_DBG_LOG_FILE__, __VA_ARGS__); \
 		       }
 #else
+/**
+ * Execute the given code if AS_DEBUG_ENABLE is defined.
+ * */
 #define AS_DEBUG_CODE(code)
+/**
+ * Print the given `__`VA_ARGS`__` in a formatted debug message into `__AS_DBG_LOG_FILE__` if AS_DEBUG_ENABLE is defined.
+ * */
 #define AS_DEBUG_MSG(...)
 #endif
 
+/**
+ * The current debugging file.
+ * */
 extern FILE *__AS_DBG_LOG_FILE__;
 
 #endif

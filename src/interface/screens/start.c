@@ -1,22 +1,31 @@
-/*
-*    Assembled - Column based text editor
-*    Copyright (C) 2023 awewsomegamer
-*
-*    This file is apart of Assembled.
-*
-*    Assembled is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; version 2
-*    of the License.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/**
+ * @file start.c
+ * @author awewsomegamer <awewsomegamer@gmail.com>
+ *
+ * @section LICENSE
+ *
+ * Assembled - Column based text editor
+ * Copyright (C) 2023-2024 awewsomegamer
+ *
+ * This file is apart of Assembled.
+ *
+ * Assembled is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @section DESCRIPTION
+ *
+ * The start screen that is displayed in the event no files are opened with the command.
 */
 
 #include <editor/config.h>
@@ -52,16 +61,20 @@ static const char *menu_table_left[] = {
 };
 
 static const char *menu_table_right[] = {
-
+	"License",
 };
 
 static void menu_load_file() {
 	switch_to_screen("file_load");
 }
 
+static void menu_display_license() {
+
+}
+
 static void (*menu_functions[2][10])() = {
         {menu_load_file},
-        {}
+        {menu_display_license}
 };
 
 // Default logo to use
@@ -97,8 +110,9 @@ static void render(struct AS_RenderCtx *context) {
         }
 
         // Absolute minimun
-        if (context->max_x < 64 || context->max_y < 10)
+        if (context->max_x < 64 || context->max_y < 10) {
                 return;
+	}
 
         int center_x = context->max_x / 2;
         int center_y = context->max_y / 2;
@@ -318,3 +332,13 @@ struct AS_CfgTok *configure_start_screen(struct AS_CfgTok *token) {
 
         return token;
 }
+
+// Cleanup definitions
+#undef CHARS_FROM_CENTER
+#undef BMP_WIDTH
+#undef BMP_HEIGHT
+#undef SCREEN_MIN_WIDTH
+#undef SCREEN_MIN_HEIGHT
+#undef UPDATE_TIME_MAX
+#undef UPDATE_TIME_MIN
+#undef UPDATE_TIME_TICK

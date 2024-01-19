@@ -1,54 +1,102 @@
-/*
-*    Assembled - Column based text editor
-*    Copyright (C) 2023 awewsomegamer
-*
-*    This file is apart of Assembled.
-*
-*    Assembled is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; version 2
-*    of the License.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/**
+ * @file nasm.c
+ * @author awewsomegamer <awewsomegamer@gmail.com>
+ *
+ * @section LICENSE
+ *
+ * Assembled - Column based text editor
+ * Copyright (C) 2023-2024 awewsomegamer
+ *
+ * This file is apart of Assembled.
+ *
+ * Assembled is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @section DESCRIPTION
+ *
+ * This is a syntax backend module.
 */
-
-#include "editor/syntax/syntax.h"
-#include "includes.h"
-#include "interface/theming/themes.h"
-#include <ctype.h>
+#include <editor/syntax/syntax.h>
 #include <editor/buffer/buffer.h>
-#include <editor/syntax/backends/asm.h>
+#include <editor/syntax/backends/nasm.h>
+
+#include <interface/theming/themes.h>
+
+#include <includes.h>
 #include <global.h>
 #include <string.h>
 
 #ifdef AS_GLIB_ENABLE
 	#include <glib-2.0/glib.h>
-	static GHashTable *keywords_hash;
+	static GHashTable *keywords_hash; /// If AS_GLIB_ENABLE is defined, this is used.
 #endif
 
-struct keyword {
-	const char *word;
-	int color;
+
+/**
+ * A structure which defines a keyword and its color.
+ * */
+struct AS_Keyword {
+	const char *word;     /// The keyword (all caps).
+	int color;            /// The keywords color pair index.
 };
 
-enum {
+/**
+ * Colors for different types of keywords.
+ *
+ * Describes the color pairs used for the given type of keyword. */
+enum AS_NASM_SYNTAX_COLORS {
 	INSTRUCTION = AS_CUSTOM_COLOR_START + 1,
-	LABEL = INSTRUCTION + 1,
-	COLON = LABEL + 1,
-	SQUARE = COLON + 1,
-	COMMENT = SQUARE + 1,
-	MACRO = COMMENT + 1,
-	REGISTER = MACRO + 1,
+	LABEL,
+	COLON,
+	SQUARE,
+	COMMENT,
+	MACRO,
+	REGISTER,
+	NASM_KEYWORD,
+	SYMBOL,
 };
 
-static struct keyword keywords[] = {
+/**
+ * All NASM keywords, and all x86 instructions
+ *
+ * Instruction list used: https://www.felixcloutier.com/x86/
+ * */
+static struct AS_Keyword keywords[] = {
+	{ "DB", NASM_KEYWORD },
+	{ "DW", NASM_KEYWORD },
+	{ "DD", NASM_KEYWORD },
+	{ "DQ", NASM_KEYWORD },
+	{ "DT", NASM_KEYWORD },
+	{ "DO", NASM_KEYWORD },
+	{ "DY", NASM_KEYWORD },
+	{ "DZ", NASM_KEYWORD },
+	{ "BYTE", NASM_KEYWORD },
+	{ "WORD", NASM_KEYWORD },
+	{ "DWORD", NASM_KEYWORD },
+	{ "QWORD", NASM_KEYWORD },
+	{ "TWORD", NASM_KEYWORD },
+	{ "OWORD", NASM_KEYWORD },
+	{ "YWORD", NASM_KEYWORD },
+	{ "ZWORD", NASM_KEYWORD },
+	{ "INCBIN", NASM_KEYWORD },
+	{ "EQU", NASM_KEYWORD },
+	{ "TIMES", NASM_KEYWORD },
+	{ "EXTERN", NASM_KEYWORD },
+	{ "GLOBAL", NASM_KEYWORD },
+	{ "SECTION", NASM_KEYWORD },
+	{ "PTR", NASM_KEYWORD},
+
 	{ "RAX", REGISTER },
 	{ "RCX", REGISTER },
 	{ "RBX", REGISTER },
@@ -89,6 +137,7 @@ static struct keyword keywords[] = {
 	{ "ESI", REGISTER},
 	{ "DI", REGISTER},
 	{ "SI", REGISTER},
+
 	{ "AAA", INSTRUCTION },
 	{ "AAD", INSTRUCTION },
 	{ "AAM", INSTRUCTION },
@@ -1373,7 +1422,13 @@ static struct keyword keywords[] = {
 	{ "VSCATTERPF1QPS", INSTRUCTION },
 };
 
-struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
+/**
+ * Internal function to parse an unwrapped line into syntax point
+ *
+ * @param char *line - The unwrapped line to be decoded into a series of syntax points.
+ * @return A pointer to the head of a AS_SyntaxPoint list, its memory is owned by the caller.
+ * */
+struct AS_SyntaxPoint *as_asm_get_syntax(char *line) {
 	if (line == NULL) {
 		return NULL;
 	}
@@ -1383,10 +1438,10 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 
 	int org_len = strlen(line);
 
-	struct AS_SyntaxPoints *head = (struct AS_SyntaxPoints *)malloc(sizeof(struct AS_SyntaxPoints));
-	memset(head, 0, sizeof(struct AS_SyntaxPoints));
-	struct AS_SyntaxPoints *current = head;
-	struct AS_SyntaxPoints *prev = NULL;
+	struct AS_SyntaxPoint *head = (struct AS_SyntaxPoint *)malloc(sizeof(struct AS_SyntaxPoint));
+	memset(head, 0, sizeof(struct AS_SyntaxPoint));
+	struct AS_SyntaxPoint *current = head;
+	struct AS_SyntaxPoint *prev = NULL;
 
 	while ((c = *line) && x <= org_len) {
 		current->length = 1;
@@ -1395,7 +1450,7 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 		case ':': {
 			current->color = COLON;
 
-			if (prev != NULL && prev->color == 0) {
+			if (prev != NULL && (prev->color == 0 || prev->color == INSTRUCTION)) {
 				prev->color = LABEL;
 			}
 
@@ -1416,8 +1471,8 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 			break;
 		}
 
-		case '\"': {
-
+		case '$': {
+			current->color = SYMBOL;
 
 			break;
 		}
@@ -1459,7 +1514,7 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 
 			// Lookup the color
 			#ifdef AS_GLIB_ENABLE
-				struct keyword *keyword = g_hash_table_lookup(keywords_hash, (gpointer)extracted);
+				struct AS_Keyword *keyword = g_hash_table_lookup(keywords_hash, (gpointer)extracted);
 
 				if (keyword != NULL) {
 					current->color = keyword->color;
@@ -1492,8 +1547,8 @@ struct AS_SyntaxPoints *as_asm_get_syntax(char *line) {
 		current->x = x;
 		x += current->length;
 		// Advance
-		current->next = (struct AS_SyntaxPoints *)malloc(sizeof(struct AS_SyntaxPoints));
-		memset(current->next, 0, sizeof(struct AS_SyntaxPoints));
+		current->next = (struct AS_SyntaxPoint *)malloc(sizeof(struct AS_SyntaxPoint));
+		memset(current->next, 0, sizeof(struct AS_SyntaxPoint));
 		prev = current;
 		current = current->next;
 

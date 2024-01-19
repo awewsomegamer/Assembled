@@ -1,22 +1,32 @@
-/*
-*    Assembled - Column based text editor
-*    Copyright (C) 2023 awewsomegamer
-*
-*    This file is apart of Assembled.
-*
-*    Assembled is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; version 2
-*    of the License.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/**
+ * @file keyboard.c
+ * @author awewsomegamer <awewsomegamer@gmail.com>
+ *
+ * @section LICENSE
+ *
+ * Assembled - Column based text editor
+ * Copyright (C) 2023-2024 awewsomegamer
+ *
+ * This file is apart of Assembled.
+ *
+ * Assembled is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @section DESCRIPTION
+ *
+ * Responsible for handling all keyboard input and determining when the user
+ * has entered a key sequence for the active screen to preform an action.
 */
 
 #include <includes.h>
@@ -29,32 +39,66 @@
 #include <global.h>
 #include <stdio.h>
 
+/// Maximum number of functions.
 #define MAX_FUNCTION_COUNT 256
 #define PARAM2(a, b) { a, b },
 
+/**
+ * A list which represents the order of keys the user needs to press.
+ * */
 struct AS_KeySeqList {
+	/// The keycode the user needs to press.
 	int code;
+	/// Pointer to the next element.
 	struct AS_KeySeqList *next;
 };
 
+/**
+ * Internal structure defining actions to a AS_KeySeqList structure.
+ *
+ * Defines the set of keys which need to be pressed by the user to activate a
+ * given funcntion on the active screen.
+ * */
 struct AS_KeySeq {
+	/// The sequence of keys which need to be pressed by the user.
 	struct AS_KeySeqList *list;
+	/// The local function which should be called.
 	int function;
+	/// Pointer to the next element.
 	struct AS_KeySeq *next;
 };
 
+/**
+ *  */
 static struct AS_KeySeq keyseq_list_head = { 0 };
+/**
+ * */
 static struct AS_KeySeq *keyseq_list_last = &keyseq_list_head;
 
-struct key_stack_element {
+/**
+ * Element on a LIFO stack of the users inputs. */
+struct AS_KeyStackElem {
+	/// The key the user pressed.
         int key;
+	/// The time the usre pressed the key.
         time_t time;
 };
 
-static struct key_stack_element key_stack[AS_MAX_KEY_ELEMENTS];
+/**
+ * LIFO stack of user's key presses.
+ * */
+static struct AS_KeyStackElem key_stack[AS_MAX_KEY_ELEMENTS];
+/**
+ * Stack pointer of key_stack
+ * */
 static int key_stack_ptr = 0;
 
-// Arguments for local functions depending on given function
+/**
+ * Arguments for local functions depending on action type.
+ *
+ * Outlines the two arguments which need to be submitted to the active screen's
+ * local function for the given action. The list is indexed with AS_KeySeq->function.
+ * */
 static const int func_args[MAX_FUNCTION_COUNT][2] = {
 	[AS_CFG_LOOKUP_UP]            = PARAM2(LOCAL_ARROW_YMOVE, -1)
         [AS_CFG_LOOKUP_DOWN]          = PARAM2(LOCAL_ARROW_YMOVE, 1)
@@ -75,8 +119,15 @@ static const int func_args[MAX_FUNCTION_COUNT][2] = {
 	[AS_CFG_LOOKUP_COLDESC_RIGHT] = PARAM2(LOCAL_COLDESC_SWITCH, 1)
 };
 
-// Collapse (interpet) current key stack, looking
-// for any valid combinations of keys.
+/**
+ * Collapse or interpret the current key stack.
+ *
+ * This function looks from the current key_stack_ptr to 0 seeing if it can
+ * detect an AS_KeySeq within it. If it can, the stack pointer is set to 0,
+ * and the active screen's local function is called. In the event that it
+ * detects the beginnings of a key sequence (that is not yet complete), it
+ * will return, leaving the stack pointer intact. Otherwise, it will default
+ * to calling LOCAL_BUFFER_CHAR with the character at the stack pointer. */
 void collapse_stack() {
 	struct AS_KeySeq *current = &keyseq_list_head;
 
@@ -112,8 +163,6 @@ void collapse_stack() {
 	key_stack_ptr = 0;
 }
 
-// Acknowledge a key, put it on the stack, ask
-// to collapse the stack.
 // CONVIENENCE: Create an End of Command char
 //              that will tell us when to
 //              collapse the stack

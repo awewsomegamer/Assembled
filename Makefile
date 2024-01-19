@@ -14,5 +14,13 @@ glib:
 run: all
 	$(PRODUCT) test/test.txt
 
+documentation:
+	doxygen ./Doxyfile
+
+clean:
+	rm -rf docs/*
+	rm $(PRODUCT)
+
+
 debug: CFLAGS += -DDEBUG_MODE
 debug: all

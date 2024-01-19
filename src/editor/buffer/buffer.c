@@ -1,22 +1,32 @@
-/*
-*    Assembled - Column based text editor
-*    Copyright (C) 2023 awewsomegamer
-*
-*    This file is apart of Assembled.
-*
-*    Assembled is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; version 2
-*    of the License.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/**
+ * @file buffer.c
+ * @author awewsomegamer <awewsomegamer@gmail.com>
+ *
+ * @section LICENSE
+ *
+ * Assembled - Column based text editor
+ * Copyright (C) 2023-2024 awewsomegamer
+ *
+ * This file is apart of Assembled.
+ *
+ * Assembled is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @section DESCRIPTION
+ *
+ * This file handles actions related to `struct AS_TextBuf`s, such as character insertion
+ * and deletion.
 */
 
 #include <editor/buffer/editor.h>
@@ -28,6 +38,12 @@
 #include <includes.h>
 #include <string.h>
 
+/**
+ * Function to free a `struct AS_LLElement`
+ *
+ * @param element - Pointer to the element to be freed
+ * @return void
+ * */
 void free_line_list_element(struct AS_LLElement *element) {
 	free(element->contents);
 	free(element);
@@ -290,9 +306,6 @@ void buffer_char_del() {
 	(active_text_buffer->cx)--;
 }
 
-// ERROR: The nature of the multiline movement code is
-//        questionable as it does not work across multiple
-//        buffers
 // Move the current line, or selected lines, down in the given buffer
 // Returns 1 on success, returns 0 on failure ("%d lines moved", return_code)
 int buffer_move_ln_up(struct AS_TextBuf *active_buffer) {

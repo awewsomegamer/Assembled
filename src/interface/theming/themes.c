@@ -1,25 +1,34 @@
-/*
-*    Assembled - Column based text editor
-*    Copyright (C) 2023 awewsomegamer
-*
-*    This file is apart of Assembled.
-*
-*    Assembled is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; version 2
-*    of the License.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/**
+ * @file themes.c
+ * @author awewsomegamer <awewsomegamer@gmail.com>
+ *
+ * @section LICENSE
+ *
+ * Assembled - Column based text editor
+ * Copyright (C) 2023-2024 awewsomegamer
+ *
+ * This file is apart of Assembled.
+ *
+ * Assembled is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @section DESCRIPTION
+ *
+ * Responsible for handling parsing of theme files, and initializing them into
+ * ncurses.
 */
 
-#include "includes.h"
 #include <editor/config.h>
 
 #include <interface/theming/themes.h>
@@ -27,15 +36,39 @@
 #include <global.h>
 #include <ncurses.h>
 
-struct assembled_color {
+/**
+ * Defines a single color
+ * */
+struct AS_Color {
+	/// The ARGB hex color value.
         uint32_t color_value;
-        uint8_t information; // 0 0 0 0 0 0 F P
-                             //             | ` 1: Color is non-null
-                             //             `-- 1: Color is a foreground color
+	/**
+	 * 0 0 0 0 0 0 F P\n
+	 * P, 1: Color is present, 0: Color is not present.\n
+	 * F, 1: Color is in the foreground, 0: Color is in the background.
+	 * */
+        uint8_t information;
 };
 
-static struct assembled_color custom_colors[32];
+/**
+ * The colors of the current theme.
+ * */
+static struct AS_Color custom_colors[32];
 
+// TODO: Allow users to set both foreground and background
+//       color in the same line. Possibly even add a small
+//       hash to the mix to allow users to use default colors
+//       or predefined colors such as "blue" instead of
+//       0x0000FF
+/**
+ * Read themes file found by configuration function.
+ *
+ * This function reads the color values in the themes file
+ * found by the configuration function. Themes will overwrite
+ * each other, but not clear the custom_colors array.
+ *
+ * @param FILE *file - The theme.cfg file.
+ * */
 static void read_theme(FILE *file) {
         struct AS_CfgTok *token = cfg_lex(file);
         struct AS_CfgTok *current = token;
@@ -75,6 +108,7 @@ static void read_theme(FILE *file) {
         }
 
         AS_DEBUG_MSG("Token list:\n");
+	// TODO: Make linked list freeing a macro
         while (current != NULL) {
                 AS_DEBUG_MSG("%d { 0x%02X, \"%s\", (%d, %d) } %p\n", current->type, current->value, current->str, current->line, current->column, current->next);
 		struct AS_CfgTok *tmp = current->next;

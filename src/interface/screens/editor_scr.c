@@ -1,26 +1,33 @@
-/*
-*    Assembled - Column based text editor
-*    Copyright (C) 2023 awewsomegamer
-*
-*    This file is apart of Assembled.
-*
-*    Assembled is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; version 2
-*    of the License.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/**
+ * @file editor_scr.c
+ * @author awewsomegamer <awewsomegamer@gmail.com>
+ *
+ * @section LICENSE
+ *
+ * Assembled - Column based text editor
+ * Copyright (C) 2023-2024 awewsomegamer
+ *
+ * This file is apart of Assembled.
+ *
+ * Assembled is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @section DESCRIPTION
+ *
+ * The editor screen.
 */
 
-#include "util.h"
-#include <includes.h>
 #include <editor/buffer/buffer.h>
 #include <editor/buffer/editor.h>
 #include <editor/config.h>
@@ -30,8 +37,9 @@
 #include <interface/theming/themes.h>
 
 #include <global.h>
+#include <util.h>
+#include <includes.h>
 #include <ncurses.h>
-#include <stdio.h>
 
 #define CURSOR_X (as_ctx.text_file->active_buffer->cx)
 #define CURSOR_Y (as_ctx.text_file->cy)
@@ -41,8 +49,15 @@ static int line_length = 0;
 static int offset = 0;
 static int differential = 0;
 
-// Draw line with syntax highlighting
-static struct AS_SyntaxPoints *syntactic_mvprintw(struct AS_Bound bounds, struct AS_LLElement *current, struct AS_SyntaxPoints *syntax, int *section_start) {
+/**
+ * Draw a line with syntax highlighting
+ *
+ * @param struct AS_Bound bounds - Contains more arguments (.x = cursor x (on screen), .y = cursor y (on screen), .w = maximum characters per row, .h = offset in current->contents).
+ * @param struct AS_LLElement *current - Current unwrapped line to be printed.
+ * @param struct AS_SyntaxPoint *syntax - First call: buffer->syntax, next call: The return value from the last invokation of this function.
+ * @param int *section_start - An integer adjusted by this function for its future invokations, caller must not overwrite.
+ * */
+static struct AS_SyntaxPoint *syntactic_mvprintw(struct AS_Bound bounds, struct AS_LLElement *current, struct AS_SyntaxPoint *syntax, int *section_start) {
 	int x = bounds.x;
 	int y = bounds.y;
 	int max_x = bounds.w;
@@ -51,11 +66,13 @@ static struct AS_SyntaxPoints *syntactic_mvprintw(struct AS_Bound bounds, struct
 	// Iterate through string's length
 	for (int i = 0; i < min(strlen(current->contents) - offset, max_x); i++) {
 		if (syntax != NULL && (offset + i) == ((*section_start) + syntax->length)) {
+			// Reached end of syntax point, turn highlighting off
 			attroff(COLOR_PAIR(syntax->color));
 			syntax = syntax->next;
 		}
 
 		if (syntax != NULL && (offset + i) == syntax->x) {
+			// Reached beginning of syntax point, turn highlighting on
 			*section_start = i;
 			attron(COLOR_PAIR(syntax->color));
 		}
@@ -63,9 +80,15 @@ static struct AS_SyntaxPoints *syntactic_mvprintw(struct AS_Bound bounds, struct
 		mvaddch(y, x + i, current->contents[i + offset]);
 	}
 
+	// Return updated position in syntax list
+	// Caller will need to keep track of this for the
+	// current buffer
 	return syntax;
 }
 
+// BUG: When lines near the end of a file are wrapped,
+//      it becomes impossible to see the last few lines of
+//      the text file
 static void render(struct AS_RenderCtx *context) {
 	struct AS_ColDesc descriptor = as_ctx.col_descs[as_ctx.col_desc_i];
 	struct AS_TextBuf *active_buffer = as_ctx.text_file->active_buffer;
@@ -160,7 +183,7 @@ static void render(struct AS_RenderCtx *context) {
 			}
 
 			// Draw each line of the string
-			struct AS_SyntaxPoints *syntax = current->syntax;
+			struct AS_SyntaxPoint *syntax = current->syntax;
 			int section_start = 0;
 
 			for (int x = 0; x < strlen(current->contents); x += max_length) {
@@ -176,8 +199,6 @@ static void render(struct AS_RenderCtx *context) {
 
 				// Draw regular text
 				if (selection == 0 || selection_extreme == 0 || as_ctx.text_file->selected_buffers != 0) {
-					mvprintw(yc, xc, "%.*s", max_length, (current->contents + x));
-
 					syntax = syntactic_mvprintw((struct AS_Bound){.y = yc, .x = xc, .w = max_length, .h = x},
 							   current, syntax, &section_start);
 
@@ -236,13 +257,6 @@ static void render(struct AS_RenderCtx *context) {
 	free(currents);
 }
 
-// BUG: Ocassionally there is a bit of desync
-//      between where the cursor is and where
-//      input is actually written. I have not
-//      been able to recreate this issue yet
-//      but keep an eye out for it, it may
-//      have something to do with this
-//      function
 static void update(struct AS_RenderCtx *context) {
 	// The differential is checked, if it has overflowed
 	// or underflowed the screen, restrict it, and update
@@ -284,10 +298,10 @@ static void update(struct AS_RenderCtx *context) {
 			}
 
 			if (currents[i]->syntax != NULL) {
-				struct AS_SyntaxPoints *current = currents[i]->syntax;
+				struct AS_SyntaxPoint *current = currents[i]->syntax;
 
 				while (current != NULL) {
-					struct AS_SyntaxPoints *tmp = current;
+					struct AS_SyntaxPoint *tmp = current;
 					current = current->next;
 					// ERROR: Causes global mainfree(): invalid size
 					free(tmp);
@@ -469,7 +483,7 @@ static void local(int code, int value) {
 		struct AS_TextBuf *buffer = NULL;
 		bool moved = 0;
 
-		// TODO: There is probably a cleanr way of doing this
+		// TODO: There is probably a cleaner way of doing this
 		for (int i = -as_ctx.text_file->selected_buffers; i != 0;) {
 			// Move a line down in selected buffers
 			buffer = as_ctx.text_file->buffers[as_ctx.text_file->active_buffer_idx + i];
@@ -543,7 +557,7 @@ static void local(int code, int value) {
 	}
 
 	case LOCAL_COLDESC_SWITCH: {
-		if (as_ctx.col_desc_i > 0 && as_ctx.col_desc_i < AS_MAX_COLUMNS) {
+		if (as_ctx.col_desc_i + value >= 0 && as_ctx.col_desc_i + value < AS_MAX_COLUMNS) {
 			save_all();
 
 			as_ctx.col_desc_i += value;
@@ -570,3 +584,7 @@ void register_editor_screen() {
 struct AS_CfgTok *configure_editor_screen(struct AS_CfgTok *token) {
 	return token;
 }
+
+// Cleanup definitions
+#undef CURSOR_X
+#undef CURSOR_Y

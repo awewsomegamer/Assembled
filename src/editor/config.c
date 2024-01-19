@@ -1,24 +1,34 @@
-/*
-*    Assembled - Column based text editor
-*    Copyright (C) 2023 awewsomegamer
-*
-*    This file is apart of Assembled.
-*
-*    Assembled is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; version 2
-*    of the License.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/**
+ * @file config.c
+ * @author awewsomegamer <awewsomegamer@gmail.com>
+ *
+ * @section LICENSE
+ *
+ * Assembled - Column based text editor
+ * Copyright (C) 2023-2024 awewsomegamer
+ *
+ * This file is apart of Assembled.
+ *
+ * Assembled is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @section DESCRIPTION
+ *
+ * Responsible for reading .cfg files.
 */
 
+#include <ctype.h>
 #include <editor/keyboard.h>
 #include <editor/config.h>
 #include <editor/buffer/editor.h>
@@ -34,7 +44,11 @@
 	static GHashTable *lex_tokens;
 #endif
 
-// Interpret the stream of configuration tokens
+/**
+ * Interpret the token stream for configuration files.
+ *
+ * @param struct AS_CfgTok *token - The linked list of tokens to interpret.
+ * */
 static void interpret_token_stream(struct AS_CfgTok *token) {
         while (token->type != AS_CFG_TOKEN_EOF) {
                 AS_EXPECT_TOKEN(AS_CFG_TOKEN_KEY, "Expected command (i.e. keyboard, themes, or start_screen)");
@@ -117,7 +131,7 @@ static void interpret_token_stream(struct AS_CfgTok *token) {
         }
 }
 
-// ERROR: Trailing commas may cause errors if they are
+// BUG?:  Trailing commas may cause errors if they are
 //        are directly followed by a comment.
 struct AS_CfgTok *cfg_lex(FILE *file) {
         struct AS_CfgTok *head = (struct AS_CfgTok *)malloc(sizeof(struct AS_CfgTok));
@@ -263,8 +277,8 @@ struct AS_CfgTok *cfg_lex(FILE *file) {
 					free(str);
 				}
 			#else
-				for (int i = 0; i < sizeof(str_lookup)/sizeof(str_lookup[0]); i++) {
-					if (*str == *str_lookup[i] && strcmp(str_lookup[i], str) == 0) {
+				for (int i = 0; i < sizeof(As_LexStrLookup)/sizeof(As_LexStrLookup[0]); i++) {
+					if (*str == *As_LexStrLookup[i] && strcmp(As_LexStrLookup[i], str) == 0) {
 						current->type = AS_CFG_TOKEN_KEY;
 						current->value = i;
 						current->str = NULL;
@@ -292,8 +306,8 @@ int read_config() {
 	#ifdef AS_GLIB_ENABLE
 		lex_tokens = g_hash_table_new(g_str_hash, g_str_equal);
 
-		for (int i = 0; i < sizeof(str_lookup)/sizeof(str_lookup[0]); i++) {
-			g_hash_table_insert(lex_tokens, (gpointer)str_lookup[i], (gpointer)(i + 1));
+		for (int i = 0; i < sizeof(As_LexStrLookup)/sizeof(As_LexStrLookup[0]); i++) {
+			g_hash_table_insert(lex_tokens, (gpointer)As_LexStrLookup[i], (gpointer)(i + 1));
 		}
 	#endif
 

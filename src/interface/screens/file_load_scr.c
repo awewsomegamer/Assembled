@@ -1,24 +1,33 @@
-/*
-*    Assembled - Column based text editor
-*    Copyright (C) 2023 awewsomegamer
-*
-*    This file is apart of Assembled.
-*
-*    Assembled is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; version 2
-*    of the License.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/**
+ * @file file_load_scr.c
+ * @author awewsomegamer <awewsomegamer@gmail.com>
+ *
+ * @section LICENSE
+ *
+ * Assembled - Column based text editor
+ * Copyright (C) 2023-2024 awewsomegamer
+ *
+ * This file is apart of Assembled.
+ *
+ * Assembled is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @section DESCRIPTION
+ *
+ * The screen shown when the user wants to load another when the program is
+ * already running.
 */
-
 #include <editor/config.h>
 #include <editor/buffer/editor.h>
 
@@ -39,8 +48,8 @@ static void render(struct AS_RenderCtx *ctx) {
 	mvprintw(1, (ctx->max_x / 4 + 1), "%s", (file_path == NULL ? "" : file_path));
 	// Draw two boxes creating a short field for the user input and a
 	// tall field for the directory listing
-	draw_border(ctx->max_x / 4, 0, ctx->max_x / 2, ctx->max_y - 1);
-	draw_border(ctx->max_x / 4, 2, ctx->max_x / 2, ctx->max_y - 3);
+	draw_border((struct AS_Bound){ctx->max_x / 4, 0, ctx->max_x / 2, ctx->max_y - 1});
+	draw_border((struct AS_Bound){ctx->max_x / 4, 2, ctx->max_x / 2, ctx->max_y - 3});
 
 	// Draw directory listing if it exists
 	if (directory_listing != NULL) {
@@ -94,8 +103,9 @@ static void update_directory_listing(char *abs) {
 static void local(int code, int value) {
 	switch (code) {
 	case LOCAL_ENTER: {
-		// TODO: Create a better way to exit this screen (maybe using
-		//       escape key)
+		// TODO: Create a better way to exit this screen (using escape
+		//       key), and allowing this to display the directory listing
+		//       even if nothing is entered into the input field
 
 		// Stat the user entry using an absolute path
 		struct stat *st = (struct stat *)malloc(sizeof(struct stat));

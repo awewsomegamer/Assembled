@@ -1,5 +1,5 @@
 /**
- * @file util.h
+ * @file nasm.h
  * @author awewsomegamer <awewsomegamer@gmail.com>
  *
  * @section LICENSE
@@ -25,30 +25,20 @@
  *
  * @section DESCRIPTION
  *
- * File containing functions which aren't specific to any one file.
+ * This is a syntax backend module.
 */
-#ifndef AS_UTIL_H
-#define AS_UTIL_H
 
-#include <includes.h>
+#ifndef AS_ASM_BACKEND_H
+#define AS_ASM_BACKEND_H
 
+#include <editor/buffer/buffer.h>
 /**
- * Create a 64-bit hash from the given string input
+ * Initialization function for the backend
  *
- * @param char *string - a zero terminated string to hash
- * @return 64-bit hash
+ * Will restructure the keywords array into a g_hash_table
+ * if AS_GLIB_ENABLE is defined.
+ * @param int i - The position the backend should place itself in as_ctx.syn_backends
  * */
-uint64_t general_hash(char *string);
-
-/**
- * Create an absolute path from the given path
- *
- * @param char *path - Relative or absolute path. If the path is already absolute,
- * it will be returned in a new allocation.
- * @param int options - Options for where the abolsute path should begin from.
- * 0: The path will be absolute to the user's current working directory.
- * 1: The path will be relative to ~/.config/assembled/.
- * */
-char *fpath2abs(char *path, int options);
+void as_asm_backend_init(int i);
 
 #endif

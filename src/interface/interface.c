@@ -1,24 +1,32 @@
-/*
-*    Assembled - Column based text editor
-*    Copyright (C) 2023 awewsomegamer
-*
-*    This file is apart of Assembled.
-*
-*    Assembled is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; version 2
-*    of the License.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software
-*    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/**
+ * @file interface.c
+ * @author awewsomegamer <awewsomegamer@gmail.com>
+ *
+ * @section LICENSE
+ *
+ * Assembled - Column based text editor
+ * Copyright (C) 2023-2024 awewsomegamer
+ *
+ * This file is apart of Assembled.
+ *
+ * Assembled is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * @section DESCRIPTION
+ *
+ * The screen manager.
 */
-
 #include <interface/interface.h>
 
 #include <global.h>
@@ -67,19 +75,19 @@ int register_screen(char *name, void (*render)(struct AS_RenderCtx *), void (*up
 }
 
 // Draw an ASCII border (rectangle) on the current screen
-void draw_border(int x, int y, int width, int height) {
-	for (int i = y; i < (y + height); i++) {
-		mvaddch(i, x, '|');
-		mvaddch(i, x + width, '|');
+void draw_border(struct AS_Bound bound) {
+	for (int i = bound.y; i < (bound.y + bound.h); i++) {
+		mvaddch(i, bound.x, '|');
+		mvaddch(i, bound.x + bound.w, '|');
 	}
 
-	for (int i = x; i < (x + width); i++) {
-		mvaddch(y, i, '-');
-		mvaddch(y + height, i, '-');
+	for (int i = bound.x; i < (bound.x + bound.w); i++) {
+		mvaddch(bound.y, i, '-');
+		mvaddch(bound.y + bound.h, i, '-');
 	}
 
-	mvaddch(y, x, '+');
-	mvaddch(y + height, x, '+');
-	mvaddch(y, x + width, '+');
-	mvaddch(y + height, x + width, '+');
+	mvaddch(bound.y, bound.x, '+');
+	mvaddch(bound.y + bound.h, bound.x, '+');
+	mvaddch(bound.y, bound.x + bound.w, '+');
+	mvaddch(bound.y + bound.h, bound.x + bound.w, '+');
 }
