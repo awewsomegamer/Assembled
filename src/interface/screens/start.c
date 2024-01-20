@@ -28,6 +28,7 @@
  * The start screen that is displayed in the event no files are opened with the command.
 */
 
+#include "editor/buffer/editor.h"
 #include <editor/config.h>
 
 #include <interface/screens/start.h>
@@ -69,7 +70,10 @@ static void menu_load_file() {
 }
 
 static void menu_display_license() {
-
+	// TODO: Make put COPYING in the config or somewhere where
+	//       we can open it
+	load_file("./COPYING");
+	switch_to_screen("editor");
 }
 
 static void (*menu_functions[2][10])() = {

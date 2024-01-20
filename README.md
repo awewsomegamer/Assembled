@@ -4,6 +4,10 @@
 A column based text editor designed for the purpose of easing the editing of column reliant languages or
 column organized languages.
 
+## Installation
+
+If you don't already have a ~/.config/assembled folder, create one and copy the contents of the config directory to it.
+
 ## Compilation
 ```bash
 $ make

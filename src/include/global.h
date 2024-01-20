@@ -32,6 +32,9 @@
 #ifndef AS_GLOBAL_H
 #define AS_GLOBAL_H
 
+#define AS_VERSION_MAJ 2
+#define AS_VERSION_MIN 0
+
 #include <editor/syntax/syntax.h>
 #include <editor/buffer/editor.h>
 
